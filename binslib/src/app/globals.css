@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #2a6496;
+  --color-primary-dark: #1e4a6e;
+  --color-accent: #c9302c;
+  --color-accent-dark: #a52722;
+  --color-bg: #f5f5f5;
+  --color-card: #ffffff;
+  --color-text: #333333;
+  --color-text-secondary: #666666;
+  --color-genre-bar: #2a2a2a;
+  --color-border: #e5e5e5;
+  --font-sans: "Noto Sans", "Source Sans Pro", system-ui, sans-serif;
+  --font-serif: "Noto Serif", "Source Serif Pro", Georgia, serif;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+mark {
+  background-color: #fff3cd;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Card hover lift effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Scroll-reveal animation for long genre names */
+@keyframes scrollReveal {
+  0%, 15% { transform: translateX(0); }
+  85%, 100% { transform: translateX(var(--scroll-dist, 0)); }
+}
+.genre-item:hover span span[style] {
+  animation-play-state: running !important;
+}
+
+/* Scrollbar for genre bar */
+.genre-bar-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.genre-bar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.genre-bar-scroll::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 2px;
+}

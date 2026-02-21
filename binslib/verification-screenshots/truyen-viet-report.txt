@@ -1,0 +1,18 @@
+=== Truyện Việt Toggle Test ===
+
+  1. Screenshot (before): /Users/alenguyen/Documents/mtc/binslib/verification-screenshots/truyen-viet-toggle-before.png
+
+  2. First 5 book names (toggle OFF): Đỉnh Cấp Khí Vận, Lặng Lẽ Tu Luyện Ngàn Năm
+
+  3. Truyện Việt toggle found: true
+
+  4. Screenshot (after): /Users/alenguyen/Documents/mtc/binslib/verification-screenshots/truyen-viet-toggle-after.png
+
+  5. First 5 book names (toggle ON): Toàn Chức Pháp Sư Dị Bản, Đỉnh Cấp Khí Vận, Lặng Lẽ Tu Luyện Ngàn Năm, Huyền Lục, Đế Chế Đại Việt, Ta Bán Hủ Tiếu Tại Dị Giới
+
+  6. Book list changed after toggle: YES
+  7. Toggle aria-checked after click: true
+
+  Summary:
+  - Toggle visually changes: Expected (accent/gray)
+  - Book list updates: YES

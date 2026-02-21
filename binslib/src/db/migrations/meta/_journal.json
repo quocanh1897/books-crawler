@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1771351733580,
+      "tag": "0000_curvy_toxin",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771663225650,
+      "tag": "0001_military_spiral",
+      "breakpoints": true
+    }
+  ]
+}

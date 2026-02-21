@@ -1,0 +1,11 @@
+node_modules
+.next
+data
+binslib.db
+.env.local
+.env.example
+.git
+.vscode
+.claude
+.cursor
+*.md

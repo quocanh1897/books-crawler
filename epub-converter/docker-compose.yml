@@ -1,0 +1,28 @@
+services:
+  epub-converter:
+    build: .
+    volumes:
+      # Crawler dir — contains output/, config.py, and AUDIT.md
+      - ../crawler:/data/crawler
+
+      # Meta-puller — needed to auto-fetch missing metadata
+      - ../meta-puller:/data/meta-puller
+
+      # EPUB output — {book_id}/epub-output/ directories written here
+      - ./:/data/epub-output
+
+    # Pass through any CLI args:  docker compose run epub-converter --ids 100358
+    # Default (no args) converts all eligible books.
+    #
+    # Examples:
+    #   docker compose run --rm epub-converter
+    #   docker compose run --rm epub-converter --ids 100358 128390
+    #   docker compose run --rm epub-converter --status completed
+    #   docker compose run --rm epub-converter --list
+    #   docker compose run --rm epub-converter --dry-run
+    #   docker compose run --rm epub-converter --force
+    #   docker compose run --rm epub-converter --no-audit
+
+    # Allocate a TTY so rich progress bars render properly
+    tty: true
+    stdin_open: true

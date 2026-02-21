@@ -1,0 +1,3 @@
+httpx>=0.27
+pycryptodome>=3.20
+frida-tools>=12.0
