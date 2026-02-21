@@ -73,7 +73,7 @@ echo "10.0.2.2" | reflutter combined_emu.apk
    ~/Library/Android/sdk/build-tools/34.0.0/apksigner sign --ks ../debug.keystore --ks-pass pass:android aligned.apk
    ```
 
-## API Findings (tested 2026-02-15, updated 2026-02-16)
+## API Findings (tested 2026-02-15, updated 2026-02-21)
 
 - **x-signature NOT validated** — can be omitted entirely; only Bearer token needed
 - **Chapter navigation**: each chapter response has `next: {id, name, index}` — no chapter-list endpoint needed
@@ -83,6 +83,27 @@ echo "10.0.2.2" | reflutter combined_emu.apk
 - **Search endpoints** (added 2026-02-16):
   - `filter[keyword]` on `/api/books` — exact keyword match
   - `/api/books/search?keyword=` — fuzzy search, more results
+
+### Full Catalog Endpoint (added 2026-02-21)
+
+The complete platform catalog (30,486 books) can be fetched by paginating `/api/books`:
+
+```
+GET /api/books?limit=50&page={N}
+```
+
+- **Total**: 30,486 books (30,438 downloadable, 48 with 0 chapters)
+- **Pagination**: 610 pages × 50 books, takes ~14 minutes at 0.08s delay
+- `limit` must be ≥ 5 (server validates)
+- Response includes: `id`, `name`, `slug`, `first_chapter`, `latest_index` (chapter count), `status_name`, `kind`, `sex`
+- **Filter by author**: `GET /api/books?filter[author]={author_id}&limit=50&page=1`
+- **Direct book lookup**: `GET /api/books/{book_id}` (reliable, unlike `filter[id]` which returns wrong books)
+- **Catalog file**: saved to `crawler-descryptor/full_catalog.json`
+- **Script**: `crawler-descryptor/fetch_catalog.py`
+
+### Ranking Endpoint (coverage limited)
+
+`/api/books/ranking` only returns books appearing in monthly rankings — capped at ~2,620 unique books across all parameter combinations (14 months × 3 types × 3 categories, max 100 per combo). This is **8.6% of the platform**. Use `/api/books` pagination for complete coverage.
 
 ## Chapter Content Encryption — SOLVED
 

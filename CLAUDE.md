@@ -17,6 +17,7 @@ MTC is a multi-source Vietnamese web novel crawling, decryption, conversion, and
 | `epub-converter/`      | Python 3.12 | Converts .txt chapters to EPUB 3.0 (Docker)                     |
 | `progress-checking/`   | Python 3.9+ | Real-time terminal TUI dashboard (rich)                         |
 | `binslib/`             | TypeScript  | Next.js 15 / React 19 web reader and catalog                    |
+| `vbook-extension/`     | JavaScript  | vBook app extension for reading from binslib                     |
 
 ## Common Commands
 
@@ -91,6 +92,10 @@ npm run db:studio                       # Drizzle Studio GUI
 docker compose up -d
 docker compose logs -f binslib-importer
 ```
+
+### vBook Extension
+
+The extension is pure JavaScript for the vBook Android app. No build step — edit `src/*.js` files directly. Requires binslib backend with the slug-based API endpoints (`/api/books/by-slug/...`).
 
 ## Architecture
 

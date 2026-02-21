@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "name": "Binslib",
+    "author": "binscode",
+    "version": 1,
+    "source": "https://lib.binscode.site",
+    "regexp": "(www.)?lib\\.binscode\\.site/doc-truyen/[a-zA-Z0-9-]+/?$",
+    "description": "Đọc truyện trên Binslib - Thư viện truyện tự lưu trữ",
+    "locale": "vi_VN",
+    "language": "javascript",
+    "type": "novel"
+  },
+  "script": {
+    "home": "home.js",
+    "genre": "genre.js",
+    "detail": "detail.js",
+    "search": "search.js",
+    "toc": "toc.js",
+    "chap": "chap.js"
+  }
+}

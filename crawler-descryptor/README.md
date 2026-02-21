@@ -164,13 +164,28 @@ python3 batch_download.py 100441 101481 101486  # specific book IDs
 python3 batch_download.py -w 15 --clean       # 15 workers, clean wrong data first
 ```
 
-### Download from ranking list
+### Download from plan file
 
 ```bash
 python3 download_top1000.py                   # download all books in ranking_books.json
 python3 download_top1000.py -w 100            # 100 parallel workers
 python3 download_top1000.py --plan custom.json  # custom book list (flat JSON array)
 python3 download_top1000.py --exclude 100441 101481  # skip specific IDs
+```
+
+### Fetch full platform catalog
+
+```bash
+python3 fetch_catalog.py                # fetch all 30,486 books, audit vs local DB
+python3 fetch_catalog.py --verify 926   # verify author ID 926 has expected books
+python3 fetch_catalog.py --skip-fetch   # reuse existing full_catalog.json, just re-audit
+```
+
+### Download the full catalog (all missing books)
+
+```bash
+python3 download_top1000.py -w 100 --plan new_books_download.json      # 27,623 new books
+python3 download_top1000.py -w 100 --plan partial_books_download.json  # 360 partial books
 ```
 
 ### Analyze encryption details
@@ -205,8 +220,12 @@ crawler-descryptor/
 ├── main.py                       # CLI: fetch-chapter, fetch-book, analyze
 ├── batch_download.py             # Parallel batch download (specific book IDs)
 ├── download_top1000.py           # Parallel download from ranking/plan JSON files
-├── ranking_books.json            # 2,620 books from ranking API sweep
-├── top1000_download_plan.json    # Top 1000 download plan with status
+├── fetch_catalog.py              # Full platform catalog fetcher + audit
+├── full_catalog.json             # Complete catalog: 30,486 books
+├── new_books_download.json       # 27,623 books not yet downloaded
+├── partial_books_download.json   # 360 partially downloaded books
+├── ranking_books.json            # 2,620 books from ranking API sweep (subset)
+├── top1000_download_plan.json    # Top 1000 download plan with status (historical)
 ├── src/
 │   ├── decrypt.py                # AES-128-CBC decryption + key extraction
 │   ├── client.py                 # API client (chapter fetching, book lookup)

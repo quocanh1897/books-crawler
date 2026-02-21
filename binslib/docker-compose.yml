@@ -5,6 +5,7 @@ services:
       - "8460:3000"
     volumes:
       - ../crawler/output:/data/crawler-output
+      - ../crawler-tangthuvien/output:/data/ttv-crawler-output
       - ../meta-puller:/data/meta-puller:ro
       - ../epub-converter:/data/epub-converter
       - ./data:/app/data
@@ -12,6 +13,7 @@ services:
     environment:
       - DATABASE_URL=file:/app/data/binslib.db
       - CRAWLER_OUTPUT_DIR=/data/crawler-output
+      - TTV_CRAWLER_OUTPUT_DIR=/data/ttv-crawler-output
       - META_PULLER_DIR=/data/meta-puller
       - EPUB_CONVERTER_DIR=/data/epub-converter
       - EPUB_OUTPUT_DIR=/data/epub-converter/epub-output

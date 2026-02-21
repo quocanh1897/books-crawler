@@ -95,9 +95,14 @@ function openDb() {
     const sqlite = new Database(DB_PATH);
     sqlite.pragma("journal_mode = WAL");
     sqlite.pragma("foreign_keys = ON");
-    // Migrate: add meta_hash column if missing
+    // Migrate: add columns if missing
     try {
         sqlite.exec("ALTER TABLE books ADD COLUMN meta_hash TEXT");
+    } catch {
+        // column already exists
+    }
+    try {
+        sqlite.exec("ALTER TABLE books ADD COLUMN source TEXT");
     } catch {
         // column already exists
     }

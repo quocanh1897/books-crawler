@@ -27,9 +27,9 @@ from config import BASE_URL, HEADERS
 from src.decrypt import DecryptionError, decrypt_content
 from src.utils import count_existing_chapters, save_chapter, save_metadata
 
-DEFAULT_WORKERS = 100
-MAX_CONCURRENT_REQUESTS = 120
-REQUEST_DELAY = 0.02
+DEFAULT_WORKERS = 150
+MAX_CONCURRENT_REQUESTS = 180
+REQUEST_DELAY = 0.015
 PLAN_FILE = os.path.join(os.path.dirname(__file__), "ranking_books.json")
 
 
@@ -110,7 +110,7 @@ async def download_book(client: AsyncBookClient, book_entry: dict, label: str) -
             expected_ch = book.get("chapter_count", expected_ch)
             stats["total"] = expected_ch
             stats["name"] = book.get("name", stats["name"])
-            save_metadata(book_id, book)
+            await asyncio.to_thread(save_metadata, book_id, book)
         except Exception as e:
             print(f"{label} Book {book_id}: metadata error — {e}")
             stats["errors"] = -1
@@ -119,13 +119,13 @@ async def download_book(client: AsyncBookClient, book_entry: dict, label: str) -
         try:
             book = await client.get_book(book_id)
             if book.get("id") == book_id:
-                save_metadata(book_id, book)
+                await asyncio.to_thread(save_metadata, book_id, book)
                 expected_ch = book.get("chapter_count", expected_ch)
                 stats["total"] = expected_ch
         except Exception:
             pass
 
-    existing = count_existing_chapters(book_id)
+    existing = await asyncio.to_thread(count_existing_chapters, book_id)
     remaining = expected_ch - len(existing)
     if remaining <= 0:
         print(f"{label} {stats['name'][:40]} — already complete ({len(existing)} ch)")
@@ -165,7 +165,7 @@ async def download_book(client: AsyncBookClient, book_entry: dict, label: str) -
 
         try:
             plaintext = decrypt_content(encrypted)
-            save_chapter(book_id, index, slug, ch_name, plaintext)
+            await asyncio.to_thread(save_chapter, book_id, index, slug, ch_name, plaintext)
             stats["saved"] += 1
 
             if stats["saved"] % 100 == 0 or stats["saved"] == 1:
@@ -192,21 +192,34 @@ async def main_async(books: list[dict], workers: int):
     print(f"Rate limit: {MAX_CONCURRENT_REQUESTS} concurrent reqs, {REQUEST_DELAY}s delay\n")
     start = time.time()
 
-    book_sem = asyncio.Semaphore(workers)
+    queue: asyncio.Queue = asyncio.Queue()
+    for i, b in enumerate(books, 1):
+        await queue.put((i, b))
+
+    results = []
+    results_lock = asyncio.Lock()
     completed = {"count": 0}
 
-    async def bounded(entry: dict, idx: int) -> dict:
-        async with book_sem:
-            result = await download_book(client, entry, f"[{idx}/{n}]")
+    async def worker_loop():
+        while True:
+            try:
+                idx, entry = queue.get_nowait()
+            except asyncio.QueueEmpty:
+                return
+            try:
+                result = await download_book(client, entry, f"[{idx}/{n}]")
+                async with results_lock:
+                    results.append(result)
+            except Exception as e:
+                async with results_lock:
+                    results.append(e)
             completed["count"] += 1
             if completed["count"] % 10 == 0:
                 elapsed = time.time() - start
-                total_saved = completed["count"]
-                print(f"  --- Progress: {total_saved}/{n} books done ({elapsed/60:.0f}m) ---")
-            return result
+                print(f"  --- Progress: {completed['count']}/{n} books done ({elapsed/60:.0f}m) ---")
 
-    tasks = [bounded(b, i) for i, b in enumerate(books, 1)]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
+    worker_tasks = [asyncio.create_task(worker_loop()) for _ in range(workers)]
+    await asyncio.gather(*worker_tasks)
 
     await client.close()
 
