@@ -9,6 +9,7 @@ import {
   chapters,
 } from "@/db/schema";
 import { eq, desc, asc, sql, and } from "drizzle-orm";
+import { readChapterBody } from "./chapter-storage";
 import type {
   BookWithAuthor,
   BookWithDetails,
@@ -361,12 +362,18 @@ export async function getChapter(
   bookId: number,
   indexNum: number
 ) {
-  return db
+  const row = await db
     .select()
     .from(chapters)
     .where(and(eq(chapters.bookId, bookId), eq(chapters.indexNum, indexNum)))
     .limit(1)
     .then((rows) => rows[0] ?? null);
+
+  if (!row) return null;
+  return {
+    ...row,
+    body: readChapterBody(bookId, indexNum),
+  };
 }
 
 // ─── Search ──────────────────────────────────────────────────────────────────
@@ -397,38 +404,6 @@ export function searchBooks(
   })[];
 }
 
-export function searchChapters(
-  query: string,
-  limit: number = 20,
-  offset: number = 0,
-  source?: BookSource
-) {
-  const sourceCond = source ? "AND books.source = ?" : "";
-  const params: unknown[] = [query];
-  if (source) params.push(source);
-  params.push(limit, offset);
-
-  const stmt = sqlite.prepare(`
-    SELECT chapters.id, chapters.book_id, chapters.index_num, chapters.title,
-           books.name as book_name, books.slug as book_slug,
-           snippet(chapters_fts, 1, '<mark>', '</mark>', '...', 40) as snippet
-    FROM chapters_fts
-    JOIN chapters ON chapters.id = chapters_fts.rowid
-    JOIN books ON books.id = chapters.book_id
-    WHERE chapters_fts MATCH ? ${sourceCond}
-    ORDER BY rank
-    LIMIT ? OFFSET ?
-  `);
-  return stmt.all(...params) as {
-    id: number;
-    book_id: number;
-    index_num: number;
-    title: string;
-    book_name: string;
-    book_slug: string;
-    snippet: string;
-  }[];
-}
 
 // ─── Library Stats ───────────────────────────────────────────────────────────
 

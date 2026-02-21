@@ -13,6 +13,7 @@ export type Author = InferSelectModel<typeof authors>;
 export type Genre = InferSelectModel<typeof genres>;
 export type Tag = InferSelectModel<typeof tags>;
 export type Chapter = InferSelectModel<typeof chapters>;
+export type ChapterWithBody = Chapter & { body: string | null };
 export type User = InferSelectModel<typeof users>;
 
 export type BookWithAuthor = Book & {
@@ -54,15 +55,6 @@ export const METRIC_LABELS: Record<RankingMetric, string> = {
 
 export interface SearchResult {
   books: BookWithAuthor[];
-  chapters: {
-    id: number;
-    bookId: number;
-    bookName: string;
-    bookSlug: string;
-    indexNum: number;
-    title: string;
-    snippet: string;
-  }[];
   authors: (Author & { bookCount: number })[];
 }
 

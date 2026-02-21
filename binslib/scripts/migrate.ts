@@ -29,15 +29,7 @@ sqlite.exec(`
     tokenize='unicode61'
   );
 
-  CREATE VIRTUAL TABLE IF NOT EXISTS chapters_fts USING fts5(
-    title,
-    body,
-    content='chapters',
-    content_rowid='id',
-    tokenize='unicode61'
-  );
-
-  -- Triggers to keep FTS in sync
+  -- Triggers to keep books FTS in sync
   CREATE TRIGGER IF NOT EXISTS books_ai AFTER INSERT ON books BEGIN
     INSERT INTO books_fts(rowid, name, synopsis) VALUES (new.id, new.name, new.synopsis);
   END;
@@ -49,16 +41,11 @@ sqlite.exec(`
     INSERT INTO books_fts(rowid, name, synopsis) VALUES (new.id, new.name, new.synopsis);
   END;
 
-  CREATE TRIGGER IF NOT EXISTS chapters_ai AFTER INSERT ON chapters BEGIN
-    INSERT INTO chapters_fts(rowid, title, body) VALUES (new.id, new.title, new.body);
-  END;
-  CREATE TRIGGER IF NOT EXISTS chapters_ad AFTER DELETE ON chapters BEGIN
-    INSERT INTO chapters_fts(chapters_fts, rowid, title, body) VALUES('delete', old.id, old.title, old.body);
-  END;
-  CREATE TRIGGER IF NOT EXISTS chapters_au AFTER UPDATE ON chapters BEGIN
-    INSERT INTO chapters_fts(chapters_fts, rowid, title, body) VALUES('delete', old.id, old.title, old.body);
-    INSERT INTO chapters_fts(rowid, title, body) VALUES (new.id, new.title, new.body);
-  END;
+  -- Clean up chapter FTS (bodies now stored on disk, not in DB)
+  DROP TRIGGER IF EXISTS chapters_ai;
+  DROP TRIGGER IF EXISTS chapters_ad;
+  DROP TRIGGER IF EXISTS chapters_au;
+  DROP TABLE IF EXISTS chapters_fts;
 `);
 
 console.log("Migrations complete.");

@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchBooks, searchChapters } from "@/lib/queries";
+import { searchBooks } from "@/lib/queries";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q") || "";
-  const scope = searchParams.get("scope") || "books";
   const limit = Math.min(parseInt(searchParams.get("limit") || "10", 10), 50);
 
   if (q.length < 2) {
@@ -14,13 +13,8 @@ export async function GET(request: NextRequest) {
   const ftsQuery = q.split(/\s+/).map(w => `"${w}"`).join(" ");
 
   try {
-    if (scope === "chapters") {
-      const results = searchChapters(ftsQuery, limit);
-      return NextResponse.json({ results });
-    } else {
-      const results = searchBooks(ftsQuery, limit);
-      return NextResponse.json({ results });
-    }
+    const results = searchBooks(ftsQuery, limit);
+    return NextResponse.json({ results });
   } catch {
     return NextResponse.json({ results: [], error: "Search failed" });
   }

@@ -125,7 +125,6 @@ export const chapters = sqliteTable(
     indexNum: integer("index_num").notNull(),
     title: text("title").notNull(),
     slug: text("slug"),
-    body: text("body"),
     wordCount: integer("word_count").default(0),
   },
   (table) => [

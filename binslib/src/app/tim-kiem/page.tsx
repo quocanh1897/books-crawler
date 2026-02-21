@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { searchBooks, searchChapters, searchAuthors } from "@/lib/queries";
+import { searchBooks, searchAuthors } from "@/lib/queries";
 import { getSource } from "@/lib/source";
 import { BookCover } from "@/components/books/BookCover";
 import { formatNumber } from "@/lib/utils";
@@ -24,7 +24,6 @@ export default async function SearchPage({ searchParams }: Props) {
 
   const ftsQuery = q.split(/\s+/).map(w => `"${w}"`).join(" ");
   const bookResults = tab === "books" ? searchBooks(ftsQuery, 20, 0, source) : [];
-  const chapterResults = tab === "chapters" ? searchChapters(ftsQuery, 20, 0, source) : [];
   const authorResults = tab === "authors" ? searchAuthors(q, 20) : [];
 
   return (
@@ -44,16 +43,6 @@ export default async function SearchPage({ searchParams }: Props) {
           }`}
         >
           Truyện
-        </Link>
-        <Link
-          href={`/tim-kiem?q=${encodeURIComponent(q)}&tab=chapters`}
-          className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-            tab === "chapters"
-              ? "border-[var(--color-primary)] text-[var(--color-primary)]"
-              : "border-transparent text-[var(--color-text-secondary)]"
-          }`}
-        >
-          Chương
         </Link>
         <Link
           href={`/tim-kiem?q=${encodeURIComponent(q)}&tab=authors`}
@@ -98,32 +87,6 @@ export default async function SearchPage({ searchParams }: Props) {
                     />
                   )}
                 </div>
-              </Link>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Chapter Results */}
-      {tab === "chapters" && (
-        <div className="space-y-3">
-          {chapterResults.length === 0 ? (
-            <p className="text-sm text-[var(--color-text-secondary)] py-8 text-center">
-              Không tìm thấy chương nào.
-            </p>
-          ) : (
-            chapterResults.map((ch) => (
-              <Link
-                key={ch.id}
-                href={`/doc-truyen/${ch.book_slug}/chuong-${ch.index_num}`}
-                className="block p-3 bg-white rounded-lg border border-[var(--color-border)] hover:shadow-md transition-shadow"
-              >
-                <div className="text-sm font-medium text-[var(--color-text)]">{ch.title}</div>
-                <div className="text-xs text-[var(--color-primary)] mt-0.5">{ch.book_name}</div>
-                <p
-                  className="text-xs text-[var(--color-text-secondary)] mt-1 line-clamp-2"
-                  dangerouslySetInnerHTML={{ __html: ch.snippet }}
-                />
               </Link>
             ))
           )}

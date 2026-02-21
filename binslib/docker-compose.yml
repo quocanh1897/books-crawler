@@ -17,6 +17,7 @@ services:
       - META_PULLER_DIR=/data/meta-puller
       - EPUB_CONVERTER_DIR=/data/epub-converter
       - EPUB_OUTPUT_DIR=/data/epub-converter/epub-output
+      - CHAPTERS_DIR=/app/data/compressed
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET:-change-me-in-production}
       - NEXTAUTH_URL=http://lib.binscode.site
     restart: unless-stopped

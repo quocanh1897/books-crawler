@@ -20,6 +20,7 @@ import path from "path";
 import crypto from "crypto";
 import { execSync } from "child_process";
 import cliProgress from "cli-progress";
+import { writeChapterBody } from "../src/lib/chapter-storage";
 
 // ─── CLI Args ────────────────────────────────────────────────────────────────
 
@@ -349,7 +350,7 @@ function runImport(fullMode: boolean): ImportReport {
         "INSERT OR IGNORE INTO book_tags (book_id, tag_id) VALUES (?, ?)"
     );
     const insertChapter = sqlite.prepare(
-        "INSERT OR REPLACE INTO chapters (book_id, index_num, title, slug, body, word_count) VALUES (?, ?, ?, ?, ?, ?)"
+        "INSERT OR REPLACE INTO chapters (book_id, index_num, title, slug, word_count) VALUES (?, ?, ?, ?, ?)"
     );
     const bookExistsStmt = sqlite.prepare(
         "SELECT id, updated_at, meta_hash FROM books WHERE id = ?"
@@ -373,7 +374,6 @@ function runImport(fullMode: boolean): ImportReport {
         sqlite.exec("DELETE FROM genres");
         sqlite.exec("DELETE FROM tags");
         sqlite.exec("DELETE FROM books_fts");
-        sqlite.exec("DELETE FROM chapters_fts");
     }
 
     function scanNumericDirs(dir: string, source: "mtc" | "ttv"): { id: string; sourceDir: string; source: "mtc" | "ttv" }[] {
@@ -670,12 +670,12 @@ function runImport(fullMode: boolean): ImportReport {
                     const body = lines.slice(bodyStart).join("\n").trim();
                     const wordCount = body.split(/\s+/).filter(Boolean).length;
 
+                    writeChapterBody(bookId, indexNum, body);
                     insertChapter.run(
                         bookId,
                         indexNum,
                         title,
                         chapterSlug,
-                        body,
                         wordCount
                     );
                     chaptersThisBook++;
