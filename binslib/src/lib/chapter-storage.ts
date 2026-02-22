@@ -1,11 +1,39 @@
 import { gunzipSync } from "node:zlib";
-import { compressSync, decompressSync } from "@aspect/zstd";
+import { Compressor, Decompressor } from "zstd-napi";
 import fs from "node:fs";
 import path from "node:path";
 
 const CHAPTERS_DIR = path.resolve(
   process.env.CHAPTERS_DIR || "./data/compressed",
 );
+
+const DICT_PATH = path.resolve(
+  process.env.ZSTD_DICT_PATH || "./data/global.dict",
+);
+
+let compressor: Compressor | null = null;
+let decompressor: Decompressor | null = null;
+
+function getCompressor(): Compressor {
+  if (!compressor) {
+    compressor = new Compressor();
+    compressor.setParameters({ compressionLevel: 3 });
+    if (fs.existsSync(DICT_PATH)) {
+      compressor.loadDictionary(fs.readFileSync(DICT_PATH));
+    }
+  }
+  return compressor;
+}
+
+function getDecompressor(): Decompressor {
+  if (!decompressor) {
+    decompressor = new Decompressor();
+    if (fs.existsSync(DICT_PATH)) {
+      decompressor.loadDictionary(fs.readFileSync(DICT_PATH));
+    }
+  }
+  return decompressor;
+}
 
 export function writeChapterBody(
   bookId: number,
@@ -14,7 +42,7 @@ export function writeChapterBody(
 ): void {
   const dir = path.join(CHAPTERS_DIR, String(bookId));
   fs.mkdirSync(dir, { recursive: true });
-  const compressed = compressSync(Buffer.from(body, "utf-8"), 3);
+  const compressed = getCompressor().compress(Buffer.from(body, "utf-8"));
   fs.writeFileSync(path.join(dir, `${indexNum}.txt.zst`), compressed);
 }
 
@@ -26,7 +54,7 @@ export function readChapterBody(
 
   const zstPath = path.join(dir, `${indexNum}.txt.zst`);
   if (fs.existsSync(zstPath)) {
-    return decompressSync(fs.readFileSync(zstPath)).toString("utf-8");
+    return getDecompressor().decompress(fs.readFileSync(zstPath)).toString("utf-8");
   }
 
   const gzPath = path.join(dir, `${indexNum}.txt.gz`);
@@ -38,7 +66,7 @@ export function readChapterBody(
 }
 
 /**
- * Disk-first resolution: returns the gzipped file content if it exists,
+ * Disk-first resolution: returns the compressed file content if it exists,
  * otherwise falls back to the body stored in the DB row.
  * This enables incremental migration where some chapters are on disk
  * and others are still only in the database.
