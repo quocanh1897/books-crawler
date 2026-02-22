@@ -4639,44 +4639,5 @@
     "word_count": 172652,
     "db_chapters": 101,
     "gap": 6
-  },
-  {
-    "id": 148071,
-    "name": "Sáng Tạo Sinh Mệnh Chơi Hỏng Nhân Loại",
-    "slug": "sang-tao-sinh-menh-choi-hong-nhan-loai",
-    "chapter_count": 58,
-    "first_chapter": 24852021,
-    "status": "Còn tiếp",
-    "kind": 2,
-    "sex": 1,
-    "word_count": 89488,
-    "db_chapters": 53,
-    "gap": 5
-  },
-  {
-    "id": 144974,
-    "name": "Cửu Đế",
-    "slug": "cuu-de",
-    "chapter_count": 57,
-    "first_chapter": 23667792,
-    "status": "Còn tiếp",
-    "kind": 2,
-    "sex": 1,
-    "word_count": 140174,
-    "db_chapters": 52,
-    "gap": 5
-  },
-  {
-    "id": 126573,
-    "name": "Hướng Dẫn Cơ Bản",
-    "slug": "huong-dan-co-ban",
-    "chapter_count": 14,
-    "first_chapter": 18042525,
-    "status": "Hoàn thành",
-    "kind": 2,
-    "sex": 1,
-    "word_count": 887,
-    "db_chapters": 13,
-    "gap": 1
   }
 ]

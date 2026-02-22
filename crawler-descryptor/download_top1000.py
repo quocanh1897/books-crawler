@@ -262,7 +262,7 @@ def main():
                         help="Only download N books from the plan after offset (0=all)")
     args = parser.parse_args()
 
-    with open(args.plan) as f:
+    with open(args.plan, encoding="utf-8") as f:
         plan = json.load(f)
 
     if isinstance(plan, list):
