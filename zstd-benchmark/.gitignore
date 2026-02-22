@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+
+# Training data (copied from crawler output)
+training/
+
+# Per-book dictionaries (generated during benchmark)
+dicts/
+
+# Results (generated, can be large)
+results/
