@@ -64,7 +64,7 @@ graph LR
 
 **Data mapping layer** — `binslib/scripts/import.ts` scans all crawler output directories, reads `.txt` chapters, `.json` metadata, and `.jpg` covers, then inserts everything into a SQLite database with FTS5 full-text search indexes. Each book is tagged with a `source` column (`mtc` or `ttv`). `epub-converter/` also operates at this layer, generating EPUB 3.0 files from the stored chapter data for download through binslib.
 
-**Presentation layer** — `binslib/` is a Next.js web app serving the catalog, reader, search, rankings, and on-demand EPUB downloads. `vbook-extension/` is a JavaScript extension for the [vBook](https://github.com/AaronLee01/vbook) Android reading app that communicates with binslib via JSON APIs.
+**Presentation layer** — `binslib/` is a Next.js web app serving the catalog, reader, search, rankings, and on-demand EPUB downloads. `vbook-extension/` is a JavaScript extension for the vbook Android reading app that communicates with binslib via JSON APIs.
 
 ## Subprojects
 

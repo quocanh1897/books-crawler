@@ -167,10 +167,11 @@ python3 batch_download.py -w 15 --clean       # 15 workers, clean wrong data fir
 ### Download from plan file
 
 ```bash
-python3 download_top1000.py                   # download all books in ranking_books.json
-python3 download_top1000.py -w 100            # 100 parallel workers
-python3 download_top1000.py --plan custom.json  # custom book list (flat JSON array)
-python3 download_top1000.py --exclude 100441 101481  # skip specific IDs
+python3 download_top1000.py                           # download from default plan
+python3 download_top1000.py -w 200                    # 200 parallel workers
+python3 download_top1000.py --plan fresh_books_download.json  # use specific plan file
+python3 download_top1000.py --offset 5000 --limit 1000  # skip first 5000, download 1000
+python3 download_top1000.py --exclude 100441 101481   # skip specific IDs
 ```
 
 ### Fetch full platform catalog
@@ -184,8 +185,9 @@ python3 fetch_catalog.py --skip-fetch   # reuse existing full_catalog.json, just
 ### Download the full catalog (all missing books)
 
 ```bash
-python3 download_top1000.py -w 100 --plan new_books_download.json      # 27,623 new books
-python3 download_top1000.py -w 100 --plan partial_books_download.json  # 360 partial books
+python3 download_top1000.py -w 200 --plan fresh_books_download.json    # 24,235 books (≥80 chapters)
+python3 download_top1000.py -w 200 --plan new_books_download.json      # 24,440 new books
+python3 download_top1000.py -w 200 --plan partial_books_download.json  # 357 partial books
 ```
 
 ### Analyze encryption details
@@ -210,33 +212,79 @@ After downloading, run `binslib/scripts/import.ts --cleanup` to import chapters
 into the SQLite database and remove the `.txt` files. The epub-converter and
 binslib website will then read chapters from the database.
 
+## Download Plan Files
+
+| File                          | Books  | Description                                                             |
+| ----------------------------- | ------ | ----------------------------------------------------------------------- |
+| `full_catalog.json`           | 30,486 | Complete platform catalog from API                                      |
+| `fresh_books_download.json`   | 24,235 | Filtered list (≥80 chapters), sorted by chapter count                   |
+| `new_books_download.json`     | 24,440 | Books not yet in local database                                         |
+| `partial_books_download.json` | 357    | Books with incomplete downloads (has `db_chapters` and `gap` fields)    |
+| `audit_result.json`           | —      | Latest audit comparing local DB vs API (complete/partial/missing stats) |
+
+All plan files use the same book entry format:
+
+```json
+{
+  "id": 100890,
+  "name": "Hương Thôn Thấu Thị Thần Y",
+  "slug": "huong-thon-thau-thi-than-y",
+  "chapter_count": 2990,
+  "first_chapter": 11063426,
+  "status": "Hoàn thành",
+  "kind": 1,
+  "sex": 1,
+  "word_count": 7807531
+}
+```
+
+Partial books include additional tracking fields: `db_chapters` (chapters on disk) and `gap` (remaining to download).
+
 ## Project Structure
 
 ```
 crawler-descryptor/
-├── README.md                     # This file
-├── PLAN.md                       # Original investigation plan (historical)
+├── README.md                      # This file
+├── API.md                         # MTC mobile API endpoint documentation
+├── ENCRYPTION.md                  # Detailed encryption analysis notes
+├── KNOWLEDGE.md                   # Reverse engineering knowledge base
+├── PLAN.md                        # Original investigation plan (historical)
 ├── requirements.txt
-├── main.py                       # CLI: fetch-chapter, fetch-book, analyze
-├── batch_download.py             # Parallel batch download (specific book IDs)
-├── download_top1000.py           # Parallel download from ranking/plan JSON files
-├── fetch_catalog.py              # Full platform catalog fetcher + audit
-├── full_catalog.json             # Complete catalog: 30,486 books
-├── new_books_download.json       # 27,623 books not yet downloaded
-├── partial_books_download.json   # 360 partially downloaded books
-├── ranking_books.json            # 2,620 books from ranking API sweep (subset)
-├── top1000_download_plan.json    # Top 1000 download plan with status (historical)
+│
+├── main.py                        # CLI: fetch-chapter, fetch-book, analyze
+├── batch_download.py              # Parallel batch download (specific book IDs)
+├── download_top1000.py            # Parallel download from plan JSON files
+├── fetch_catalog.py               # Full platform catalog fetcher + audit
+├── collect_samples.py             # Collect encrypted/decrypted pairs for testing
+├── test_server.py                 # Quick connectivity and decryption test
+│
 ├── src/
-│   ├── decrypt.py                # AES-128-CBC decryption + key extraction
-│   ├── client.py                 # API client (chapter fetching, book lookup)
-│   └── utils.py                  # Output formatting, file helpers
-├── frida/                        # Historical — Frida hooks (no longer needed)
+│   ├── decrypt.py                 # AES-128-CBC decryption + key extraction
+│   ├── client.py                  # API client (chapter fetching, book lookup)
+│   ├── iv_extract.py              # IV de-obfuscation strategies (historical)
+│   └── utils.py                   # Output formatting, file helpers
+│
+├── full_catalog.json              # Complete platform catalog: 30,486 books
+├── fresh_books_download.json      # 24,235 books to download (≥80 chapters)
+├── new_books_download.json        # 24,440 new books not yet downloaded
+├── partial_books_download.json    # 357 partially downloaded books
+├── audit_result.json              # Latest audit results vs local DB
+├── books_to_download.json         # Structured download plan (need_download/partial)
+├── full_download_plan.json        # Full download plan with categories
+├── top1000_download_plan.json     # Top 1000 download plan (historical)
+│
+├── frida/                         # Historical — Frida hooks (no longer needed)
 │   ├── hook_boringssl.js
 │   ├── hook_dart_decrypt.js
-│   └── hook_api_init.js
+│   ├── hook_api_init.js
+│   └── gadget-config.json
+│
 └── tests/
-    ├── test_blutter_decrypt.py   # Decryption validation test
+    ├── test_blutter_decrypt.py    # Decryption validation test
+    ├── test_decrypt.py            # Test against sample pairs
     ├── test_validate_vs_crawler.py  # Compare output with crawler DB
     └── samples/
-        └── verified_pair.json    # Known plaintext-ciphertext pair
+        ├── verified_pair.json     # Known plaintext-ciphertext pair
+        ├── raw_response_*.json    # Raw API responses for debugging
+        └── frida_*.json/log       # Frida capture data (historical)
 ```
