@@ -1,7 +1,11 @@
 node_modules
 .next
 data
-binslib.db
+*.db
+*.db-shm
+*.db-wal
+public/covers
+verification-screenshots
 .env.local
 .env.example
 .git

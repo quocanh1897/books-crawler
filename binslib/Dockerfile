@@ -14,15 +14,15 @@ RUN mkdir -p data && npx tsx scripts/migrate.ts && npm run build
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs \
+    && apk add --no-cache python3 py3-pip make g++ \
+    && pip3 install --break-system-packages ebooklib rich Pillow httpx
 
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-
-RUN apk add --no-cache python3 py3-pip make g++ \
-    && pip3 install --break-system-packages ebooklib rich Pillow httpx
 
 USER nextjs
 EXPOSE 3000
