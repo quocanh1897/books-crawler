@@ -1,4 +1,5 @@
-import { gzipSync, gunzipSync } from "node:zlib";
+import { gunzipSync } from "node:zlib";
+import { compressSync, decompressSync } from "@aspect/zstd";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -13,16 +14,27 @@ export function writeChapterBody(
 ): void {
   const dir = path.join(CHAPTERS_DIR, String(bookId));
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, `${indexNum}.txt.gz`), gzipSync(body));
+  const compressed = compressSync(Buffer.from(body, "utf-8"), 3);
+  fs.writeFileSync(path.join(dir, `${indexNum}.txt.zst`), compressed);
 }
 
 export function readChapterBody(
   bookId: number,
   indexNum: number,
 ): string | null {
-  const fp = path.join(CHAPTERS_DIR, String(bookId), `${indexNum}.txt.gz`);
-  if (!fs.existsSync(fp)) return null;
-  return gunzipSync(fs.readFileSync(fp)).toString("utf-8");
+  const dir = path.join(CHAPTERS_DIR, String(bookId));
+
+  const zstPath = path.join(dir, `${indexNum}.txt.zst`);
+  if (fs.existsSync(zstPath)) {
+    return decompressSync(fs.readFileSync(zstPath)).toString("utf-8");
+  }
+
+  const gzPath = path.join(dir, `${indexNum}.txt.gz`);
+  if (fs.existsSync(gzPath)) {
+    return gunzipSync(fs.readFileSync(gzPath)).toString("utf-8");
+  }
+
+  return null;
 }
 
 /**
@@ -43,6 +55,9 @@ export function chapterFileExists(
   bookId: number,
   indexNum: number,
 ): boolean {
-  const fp = path.join(CHAPTERS_DIR, String(bookId), `${indexNum}.txt.gz`);
-  return fs.existsSync(fp);
+  const dir = path.join(CHAPTERS_DIR, String(bookId));
+  return (
+    fs.existsSync(path.join(dir, `${indexNum}.txt.zst`)) ||
+    fs.existsSync(path.join(dir, `${indexNum}.txt.gz`))
+  );
 }

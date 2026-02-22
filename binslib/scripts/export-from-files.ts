@@ -2,8 +2,10 @@
  * Parallel Chapter Export — from crawler output files directly (not from DB)
  *
  * Reads .txt chapter files from crawler/output and crawler-tangthuvien/output,
- * compresses them with gzip in parallel using worker threads, and writes to
- * data/compressed/{book_id}/{index}.txt.gz.
+ * compresses them with zstd in parallel using worker threads, and writes to
+ * data/compressed/{book_id}/{index}.txt.zst.
+ *
+ * Supports dual-read migration: skips chapters that already have .zst or .gz files.
  *
  * Usage:
  *   npx tsx scripts/export-from-files.ts
@@ -16,7 +18,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { Worker, isMainThread, parentPort, workerData } from "worker_threads";
-import { gzipSync } from "node:zlib";
+import { compressSync } from "@aspect/zstd";
 
 // ─── Worker Thread ───────────────────────────────────────────────────────────
 
@@ -47,9 +49,10 @@ if (!isMainThread) {
             const match = file.match(/^(\d+)_(.+)\.txt$/);
             if (!match) { skipped++; continue; }
             const indexNum = parseInt(match[1], 10);
-            const outFile = path.join(outDir, `${indexNum}.txt.gz`);
+            const outFileZst = path.join(outDir, `${indexNum}.txt.zst`);
+            const outFileGz = path.join(outDir, `${indexNum}.txt.gz`);
 
-            if (fs.existsSync(outFile)) {
+            if (fs.existsSync(outFileZst) || fs.existsSync(outFileGz)) {
                 skipped++;
                 continue;
             }
@@ -73,8 +76,8 @@ if (!isMainThread) {
                     fs.mkdirSync(outDir, { recursive: true });
                     dirCreated = true;
                 }
-                const compressed = gzipSync(body);
-                fs.writeFileSync(outFile, compressed);
+                const compressed = compressSync(Buffer.from(body, "utf-8"), 3);
+                fs.writeFileSync(outFileZst, compressed);
                 bytesWritten += compressed.length;
                 exported++;
             } catch (err) {
