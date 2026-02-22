@@ -256,8 +256,10 @@ def main():
     parser.add_argument("--exclude", nargs="*", type=int, default=[],
                         help="Book IDs to skip (e.g. already being downloaded elsewhere)")
     parser.add_argument("--plan", default=PLAN_FILE, help="Path to download plan JSON")
+    parser.add_argument("--offset", type=int, default=0,
+                        help="Skip first N books in the plan (for multi-machine split)")
     parser.add_argument("--limit", type=int, default=0,
-                        help="Only download first N books from the plan (0=all)")
+                        help="Only download N books from the plan after offset (0=all)")
     args = parser.parse_args()
 
     with open(args.plan) as f:
@@ -273,6 +275,10 @@ def main():
         before = len(books)
         books = [b for b in books if b["id"] not in exclude]
         print(f"Excluded {before - len(books)} books (IDs: {sorted(exclude)})\n")
+
+    if args.offset:
+        print(f"Skipping first {args.offset} books (offset)\n")
+        books = books[args.offset:]
 
     if args.limit:
         books = books[:args.limit]
