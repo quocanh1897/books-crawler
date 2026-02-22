@@ -135,6 +135,177 @@ Previous approaches (Frida runtime hooking, exhaustive binary scanning, memory d
 
 ---
 
+## Crawler Flow
+
+### Architecture
+
+```mermaid
+flowchart LR
+    subgraph SCRIPTS["📜 Download Scripts"]
+        main["main.py<br/><i>single book</i>"]
+        batch["batch_download.py<br/><i>specific IDs</i>"]
+        top1000["download_top1000.py<br/><i>plan files, 200 workers</i>"]
+    end
+
+    subgraph CLIENT["🔌 src/client.py"]
+        api_client["APIClient<br/>• get_book(id)<br/>• get_chapter(id)<br/>• iter_chapters(first_id)"]
+    end
+
+    subgraph API["🌐 android api"]
+        books_api["/api/books/{id}<br/><i>metadata + first_chapter</i>"]
+        chapters_api["/api/chapters/{id}<br/><i>encrypted content + next link</i>"]
+    end
+
+    subgraph DECRYPT["🔓 src/decrypt.py"]
+        decrypt_fn["decrypt_content()<br/>1. Extract key [17:33]<br/>2. Remove key → clean base64<br/>3. Decode JSON envelope<br/>4. AES-128-CBC decrypt<br/>5. Return plaintext"]
+    end
+
+    subgraph UTILS["💾 src/utils.py"]
+        save["save_chapter() → .txt<br/>save_metadata() → .json"]
+    end
+
+    subgraph OUTPUT["📁 output"]
+        files["0001_slug.txt<br/>0002_slug.txt<br/>metadata.json"]
+    end
+
+    main --> api_client
+    batch --> api_client
+    top1000 --> api_client
+
+    api_client --> books_api
+    api_client --> chapters_api
+
+    chapters_api -->|"encrypted content"| decrypt_fn
+    decrypt_fn -->|"plaintext"| save
+    save --> files
+
+    style SCRIPTS fill:#e0f2fe,stroke:#0284c7
+    style CLIENT fill:#fef3c7,stroke:#f59e0b
+    style API fill:#fee2e2,stroke:#ef4444
+    style DECRYPT fill:#d1fae5,stroke:#10b981
+    style UTILS fill:#ede9fe,stroke:#8b5cf6
+    style OUTPUT fill:#f3f4f6,stroke:#6b7280
+```
+
+### Download Process (download_top1000.py)
+
+```mermaid
+flowchart LR
+    START([Start]) --> LOAD
+
+    subgraph LOAD["1️⃣ Load Plan"]
+        load_json["Read JSON plan file"]
+        filter["Apply --exclude, --offset, --limit"]
+        queue["Build work queue"]
+        load_json --> filter --> queue
+    end
+
+    LOAD --> SPAWN
+
+    subgraph SPAWN["2️⃣ Spawn Workers"]
+        workers["Create N async workers<br/>(default: 200)"]
+    end
+
+    SPAWN --> WORKER
+
+    subgraph WORKER["3️⃣ Per-Book Workflow"]
+        direction TB
+
+        subgraph META["Get Metadata"]
+            fetch_book["GET /api/books/{id}"]
+            extract["Extract: name, chapter_count, first_chapter"]
+            save_meta["Save metadata.json"]
+            fetch_book --> extract --> save_meta
+        end
+
+        subgraph CHECK["Check Existing"]
+            scan["Scan output/{book_id}/*.txt"]
+            parse["Parse chapter indices"]
+            skip_check{"All complete?"}
+            scan --> parse --> skip_check
+        end
+
+        subgraph DOWNLOAD["Download Chapters"]
+            fetch_ch["GET /api/chapters/{id}"]
+            decrypt["Decrypt content"]
+            save_ch["Save {index}_{slug}.txt"]
+            get_next["Get next.id"]
+            more{"More chapters?"}
+
+            fetch_ch --> decrypt --> save_ch --> get_next --> more
+            more -->|"Yes"| fetch_ch
+        end
+
+        META --> CHECK
+        skip_check -->|"No"| DOWNLOAD
+        skip_check -->|"Yes, skip"| DONE2
+    end
+
+    WORKER --> SUMMARY
+
+    subgraph SUMMARY["4️⃣ Summary"]
+        report["Report: books, chapters saved, errors"]
+    end
+
+    more -->|"No"| DONE2([Done])
+    SUMMARY --> END([End])
+
+    style LOAD fill:#dbeafe,stroke:#3b82f6
+    style SPAWN fill:#fef3c7,stroke:#f59e0b
+    style WORKER fill:#f0fdf4,stroke:#22c55e
+    style META fill:#ecfdf5,stroke:#10b981
+    style CHECK fill:#fefce8,stroke:#eab308
+    style DOWNLOAD fill:#fdf2f8,stroke:#ec4899
+    style SUMMARY fill:#f3e8ff,stroke:#a855f7
+```
+
+### Chapter Linked-List Navigation
+
+The API uses a **linked list** structure for chapters:
+
+```mermaid
+flowchart LR
+    subgraph BOOK["📖 Book Metadata"]
+        first["first_chapter: 10340503"]
+    end
+
+    subgraph CH1["Chapter 1"]
+        c1_id["id: 10340503"]
+        c1_content["content: <encrypted>"]
+        c1_next["next.id: 10340504"]
+    end
+
+    subgraph CH2["Chapter 2"]
+        c2_id["id: 10340504"]
+        c2_content["content: <encrypted>"]
+        c2_next["next.id: 10340505"]
+    end
+
+    subgraph CH3["Chapter 3"]
+        c3_id["id: 10340505"]
+        c3_content["content: <encrypted>"]
+        c3_next["next: null"]
+    end
+
+    BOOK -->|"start"| CH1
+    CH1 -->|"next"| CH2
+    CH2 -->|"next"| CH3
+    CH3 -->|"end"| STOP([End of Book])
+
+    style BOOK fill:#dbeafe,stroke:#3b82f6
+    style CH1 fill:#d1fae5,stroke:#10b981
+    style CH2 fill:#fef3c7,stroke:#f59e0b
+    style CH3 fill:#fee2e2,stroke:#ef4444
+```
+
+The crawler starts from `first_chapter` (from book metadata) and follows `next.id` links until:
+
+- `next` is null (end of book)
+- Chapter count reached
+- Network error occurs
+
+---
+
 ## Setup
 
 ```bash
