@@ -8,4 +8,5 @@ training/
 dicts/
 
 # Results (generated, can be large)
-results/
+results/*.dict
+results/*.json
