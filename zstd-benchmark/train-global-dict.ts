@@ -88,9 +88,9 @@ function collectSamples(): string[] {
     const chapterFiles = getChapterFiles(book.bookId);
     log(`  Book ${book.bookId}: ${chapterFiles.length} chapters`);
     
-    // Take 30 random samples from each book (150 total to fit command line)
+    // Take 100 random samples from each book (500 total)
     const shuffled = chapterFiles.sort(() => Math.random() - 0.5);
-    const samples = shuffled.slice(0, 30);
+    const samples = shuffled.slice(0, 100);
     allSamples.push(...samples);
   }
   
@@ -109,10 +109,12 @@ function copySamplesToTrainingDir(samples: string[]): string[] {
     fs.unlinkSync(path.join(TRAINING_DIR, f));
   }
   
+  // Use short filenames to avoid Windows command line length limit
   const samplePaths: string[] = [];
   for (let i = 0; i < samples.length; i++) {
     const body = readChapterBody(samples[i]);
-    const destPath = path.join(TRAINING_DIR, `sample_${i.toString().padStart(4, "0")}.txt`);
+    const shortName = `${i}.txt`;  // Short name: 0.txt, 1.txt, etc.
+    const destPath = path.join(TRAINING_DIR, shortName);
     fs.writeFileSync(destPath, body);
     samplePaths.push(destPath);
   }

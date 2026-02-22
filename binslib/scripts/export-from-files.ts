@@ -18,16 +18,24 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { Worker, isMainThread, parentPort, workerData } from "worker_threads";
-import { compressSync } from "@aspect/zstd";
+import { Compressor } from "zstd-napi";
 
 // ─── Worker Thread ───────────────────────────────────────────────────────────
 
 if (!isMainThread) {
-    const { books, chaptersDir, dryRun } = workerData as {
+    const { books, chaptersDir, dryRun, dictPath } = workerData as {
         books: { bookId: string; bookDir: string }[];
         chaptersDir: string;
         dryRun: boolean;
+        dictPath: string | null;
     };
+
+    // Initialize compressor with dictionary for this worker
+    const compressor = new Compressor();
+    compressor.setParameters({ compressionLevel: 3 });
+    if (dictPath && fs.existsSync(dictPath)) {
+        compressor.loadDictionary(fs.readFileSync(dictPath));
+    }
 
     let exported = 0;
     let skipped = 0;
@@ -76,7 +84,7 @@ if (!isMainThread) {
                     fs.mkdirSync(outDir, { recursive: true });
                     dirCreated = true;
                 }
-                const compressed = compressSync(Buffer.from(body, "utf-8"), 3);
+                const compressed = compressor.compress(Buffer.from(body, "utf-8"));
                 fs.writeFileSync(outFileZst, compressed);
                 bytesWritten += compressed.length;
                 exported++;
@@ -127,6 +135,9 @@ const TTV_CRAWLER_OUTPUT =
     path.resolve(__dirname, "../../crawler-tangthuvien/output");
 const CHAPTERS_DIR = path.resolve(
     process.env.CHAPTERS_DIR || "./data/compressed"
+);
+const DICT_PATH = path.resolve(
+    process.env.ZSTD_DICT_PATH || "./data/global.dict"
 );
 const LOG_FILE = path.resolve(__dirname, "../data/export-log.txt");
 
@@ -245,6 +256,7 @@ const workerPromises = chunks.map((chunk, idx) => {
                 books: chunk,
                 chaptersDir: CHAPTERS_DIR,
                 dryRun: DRY_RUN,
+                dictPath: fs.existsSync(DICT_PATH) ? DICT_PATH : null,
             },
         });
 

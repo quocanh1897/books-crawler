@@ -15,7 +15,7 @@
     "import:cron": "tsx scripts/import.ts --cron"
   },
   "dependencies": {
-    "@aspect/zstd": "^1.0.7",
+    "zstd-napi": "^0.0.12",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.6.2",
     "chalk": "^5.6.2",

@@ -34,11 +34,6 @@ apk/
 # EPUB output (generated files)
 epub-converter/epub-output/
 
-# Binslib generated data
-binslib/data/
-binslib/public/covers/*.jpg
-!binslib/public/covers/placeholder.jpg
-
 # Environment files
 .env
 .env.*
