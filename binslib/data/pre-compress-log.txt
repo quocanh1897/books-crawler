@@ -1,0 +1,12 @@
+[2026-02-23 11:12:48] pre-compress workers=12 duration=3s
+  books=22277 exported=1695965 skipped=0 failed=0
+  read=0 B written=0 B
+[2026-02-23 11:13:25] pre-compress workers=12 duration=0s
+  books=1 exported=105 skipped=0 failed=0
+  read=2.1 MB written=802.9 KB
+[2026-02-23 12:15:43] pre-compress workers=12 duration=0s
+  books=1 exported=54 skipped=0 failed=0
+  read=862.3 KB written=273.8 KB
+[2026-02-23 12:20:32] pre-compress workers=12 duration=0s
+  books=1 exported=54 skipped=0 failed=0
+  read=862.3 KB written=273.8 KB
