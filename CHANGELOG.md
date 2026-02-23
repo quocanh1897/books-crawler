@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.4] - 2026-02-24
+
+### Changed
+
+- **Pre-compress 3-tier skip optimization** (`binslib/scripts/pre-compress.ts`)
+  - **Tier 1 — mtime fast skip**: compares bundle mtime vs source directory mtime (2 stat calls). If the directory hasn't changed since the bundle was written, skips instantly with zero file reads. Eliminates ~30-50 GB of unnecessary bundle reads on re-runs
+  - **Tier 2 — index-only check**: new `readBundleIndices()` reads only the bundle header + index section (~16 KB for a 1000-chapter bundle) instead of `readBundleRaw()` which reads the entire multi-MB file and copies every compressed chunk
+  - **Tier 3 — full merge**: `readBundleRaw()` is now only called when new chapters actually need to be written, instead of for every book
+  - Work distribution changed from round-robin to contiguous ranges, reducing HDD seek thrashing when workers access nearby directories sequentially
+  - Metadata chapter counts passed from main thread to workers, avoiding redundant bundle header reads for progress reporting
+  - Removed redundant `existsSync` calls before `readFileSync` in the estimation loop
+  - Re-run with 0 new chapters: **~25 hours → < 1 minute**
+
 ## [0.2.3] - 2026-02-23
 
 ### Changed
@@ -123,6 +136,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `PARALLEL_DOWNLOAD.md` — dual-emulator setup and usage
   - `crawler/CONTEXT.md` — crawler architecture and flow notes
 
+[0.2.4]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.0...v0.2.1

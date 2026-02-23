@@ -39,7 +39,7 @@ const BUNDLE_ENTRY_SIZE = 16; // indexNum(4) + offset(4) + compLen(4) + rawLen(4
 
 if (!isMainThread) {
   const { books, chaptersDir, dryRun, dictPath } = workerData as {
-    books: { bookId: string; bookDir: string }[];
+    books: { bookId: string; bookDir: string; metaChapterCount: number }[];
     chaptersDir: string;
     dryRun: boolean;
     dictPath: string | null;
@@ -112,6 +112,68 @@ if (!isMainThread) {
   }
 
   /**
+   * Read only the chapter count from a bundle header (12 bytes).
+   * Returns -1 if the bundle doesn't exist or is invalid.
+   */
+  function readBundleCount(bundlePath: string): number {
+    let fd: number;
+    try {
+      fd = fs.openSync(bundlePath, "r");
+    } catch {
+      return -1;
+    }
+    try {
+      const header = Buffer.alloc(BUNDLE_HEADER_SIZE);
+      const bytesRead = fs.readSync(fd, header, 0, BUNDLE_HEADER_SIZE, 0);
+      if (bytesRead < BUNDLE_HEADER_SIZE) return -1;
+      if (!header.subarray(0, 4).equals(BUNDLE_MAGIC)) return -1;
+      if (header.readUInt32LE(4) !== BUNDLE_VERSION) return -1;
+      return header.readUInt32LE(8);
+    } finally {
+      fs.closeSync(fd);
+    }
+  }
+
+  /**
+   * Read only the index section of a bundle (header + N×16 byte entries).
+   * Returns the set of chapter indices without reading any compressed data.
+   * For a 1000-chapter bundle this reads ~16KB instead of several MB.
+   */
+  function readBundleIndices(bundlePath: string): Set<number> | null {
+    let fd: number;
+    try {
+      fd = fs.openSync(bundlePath, "r");
+    } catch {
+      return null;
+    }
+    try {
+      const header = Buffer.alloc(BUNDLE_HEADER_SIZE);
+      if (fs.readSync(fd, header, 0, BUNDLE_HEADER_SIZE, 0) < BUNDLE_HEADER_SIZE)
+        return null;
+      if (!header.subarray(0, 4).equals(BUNDLE_MAGIC)) return null;
+      if (header.readUInt32LE(4) !== BUNDLE_VERSION) return null;
+      const count = header.readUInt32LE(8);
+      if (count === 0) return new Set();
+
+      const indexBufSize = count * BUNDLE_ENTRY_SIZE;
+      const indexBuf = Buffer.alloc(indexBufSize);
+      if (
+        fs.readSync(fd, indexBuf, 0, indexBufSize, BUNDLE_HEADER_SIZE) <
+        indexBufSize
+      )
+        return null;
+
+      const indices = new Set<number>();
+      for (let i = 0; i < count; i++) {
+        indices.add(indexBuf.readUInt32LE(i * BUNDLE_ENTRY_SIZE));
+      }
+      return indices;
+    } finally {
+      fs.closeSync(fd);
+    }
+  }
+
+  /**
    * Write a per-book bundle from a map of chapter data.
    * Matches the BLIB format from chapter-storage.ts.
    */
@@ -181,7 +243,36 @@ if (!isMainThread) {
     return buf.length;
   }
 
-  for (const { bookId, bookDir } of books) {
+  for (const { bookId, bookDir, metaChapterCount } of books) {
+    const bundlePath = path.join(chaptersDir, `${bookId}.bundle`);
+
+    // ── Tier 1: Fast skip via mtime comparison (2 stat calls, no reads) ──
+    // If the source directory hasn't been modified since the bundle was
+    // written, there are no new chapter files — skip instantly.
+    try {
+      const bundleStat = fs.statSync(bundlePath);
+      const dirStat = fs.statSync(bookDir);
+      if (dirStat.mtimeMs <= bundleStat.mtimeMs) {
+        const chapCount =
+          metaChapterCount > 0
+            ? metaChapterCount
+            : readBundleCount(bundlePath);
+        skipped += chapCount;
+        parentPort!.postMessage({
+          type: "book_done",
+          bookId,
+          chapters: chapCount,
+          exported: 0,
+          skipped: chapCount,
+          failed: 0,
+        });
+        continue;
+      }
+    } catch {
+      // Bundle doesn't exist or stat failed — proceed to readdir
+    }
+
+    // ── Tier 2: Readdir + index-only check (~16KB bundle read) ──
     const chapterFiles = fs
       .readdirSync(bookDir)
       .filter((f: string) => /^\d{4}_/.test(f) && f.endsWith(".txt"))
@@ -199,11 +290,8 @@ if (!isMainThread) {
       continue;
     }
 
-    const bundlePath = path.join(chaptersDir, `${bookId}.bundle`);
-
-    // Read existing bundle data for incremental merge
-    const existingData = readBundleRaw(bundlePath);
-    const existingIndices = new Set(existingData.keys());
+    // Read only the bundle index (chapter indices), not compressed data
+    const existingIndices = readBundleIndices(bundlePath) ?? new Set<number>();
 
     // Identify new .txt files not already in the bundle
     const newFiles: { file: string; indexNum: number }[] = [];
@@ -217,7 +305,6 @@ if (!isMainThread) {
     }
 
     if (newFiles.length === 0) {
-      // All chapters already in bundle — skip
       skipped += chapterFiles.length;
       parentPort!.postMessage({
         type: "book_done",
@@ -263,7 +350,9 @@ if (!isMainThread) {
       continue;
     }
 
-    // Incremental merge: start with existing bundle data, add only new chapters
+    // ── Tier 3: Full merge — only reached when there are new chapters ──
+    // Now read the full bundle data for merging with new chapters.
+    const existingData = readBundleRaw(bundlePath);
     const chaptersMap = new Map(existingData);
     let bookExported = 0;
     let bookFailed = 0;
@@ -448,10 +537,11 @@ function scanBookDirs(dir: string): { bookId: string; bookDir: string }[] {
 
 const startedAt = Date.now();
 
-let allBooks = [
-  ...scanBookDirs(CRAWLER_OUTPUT),
-  ...scanBookDirs(TTV_CRAWLER_OUTPUT),
-];
+let allBooks: { bookId: string; bookDir: string; metaChapterCount: number }[] =
+  [
+    ...scanBookDirs(CRAWLER_OUTPUT),
+    ...scanBookDirs(TTV_CRAWLER_OUTPUT),
+  ].map((b) => ({ ...b, metaChapterCount: 0 }));
 
 if (SPECIFIC_IDS.length > 0) {
   const idSet = new Set(SPECIFIC_IDS);
@@ -472,13 +562,12 @@ log("");
 // Estimate chapter counts from metadata (avoids expensive readdirSync scans)
 log(`  ${c.dim}Estimating chapter counts...${c.reset}`);
 let totalChapters = 0;
-for (const { bookDir } of allBooks) {
+for (const book of allBooks) {
   try {
-    const metaPath = path.join(bookDir, "metadata.json");
-    if (fs.existsSync(metaPath)) {
-      const mj = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
-      totalChapters += mj.chapter_count || 0;
-    }
+    const metaPath = path.join(book.bookDir, "metadata.json");
+    const mj = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
+    book.metaChapterCount = mj.chapter_count || 0;
+    totalChapters += book.metaChapterCount;
   } catch {
     /* use 0 */
   }
@@ -488,13 +577,16 @@ log(
 );
 
 // ─── Split work across workers ───────────────────────────────────────────────
+// Use contiguous ranges instead of round-robin so each worker reads nearby
+// directories sequentially, reducing HDD seek thrashing.
 
-const chunks: { bookId: string; bookDir: string }[][] = Array.from(
+const chunks: (typeof allBooks)[] = Array.from(
   { length: NUM_WORKERS },
-  () => [],
+  () => [] as typeof allBooks,
 );
-for (let i = 0; i < allBooks.length; i++) {
-  chunks[i % NUM_WORKERS].push(allBooks[i]);
+const chunkSize = Math.ceil(allBooks.length / NUM_WORKERS);
+for (let w = 0; w < NUM_WORKERS; w++) {
+  chunks[w] = allBooks.slice(w * chunkSize, (w + 1) * chunkSize);
 }
 
 // ─── Launch workers ──────────────────────────────────────────────────────────
