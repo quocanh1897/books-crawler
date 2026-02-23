@@ -89,3 +89,21 @@ export function chapterFileExists(
     fs.existsSync(path.join(dir, `${indexNum}.txt.gz`))
   );
 }
+
+/**
+ * List all chapter indices that have compressed files (.zst or .gz) on disk.
+ * Used for importing pre-compressed chapters from another machine.
+ */
+export function listCompressedChapters(bookId: number): number[] {
+  const dir = path.join(CHAPTERS_DIR, String(bookId));
+  if (!fs.existsSync(dir)) return [];
+
+  const indices: number[] = [];
+  for (const file of fs.readdirSync(dir)) {
+    const match = file.match(/^(\d+)\.txt\.(zst|gz)$/);
+    if (match) {
+      indices.push(parseInt(match[1], 10));
+    }
+  }
+  return indices.sort((a, b) => a - b);
+}

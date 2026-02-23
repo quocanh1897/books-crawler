@@ -3,6 +3,12 @@
  *
  * Reads crawler/output into SQLite database with progress bars and reports.
  *
+ * Supports pre-compressed chapters:
+ *   - If .zst files exist in compressed/ (e.g. rsynced from another machine),
+ *     the script will skip compression and only update the database.
+ *   - .zst-only chapters (no .txt) will have titles extracted from body content.
+ *   - This saves significant time when importing from pre-compressed sources.
+ *
  * Usage:
  *   npx tsx scripts/import.ts                    # incremental import
  *   npx tsx scripts/import.ts --full             # full re-import
@@ -20,7 +26,7 @@ import path from "path";
 import crypto from "crypto";
 import { execSync } from "child_process";
 import cliProgress from "cli-progress";
-import { writeChapterBody, chapterFileExists } from "../src/lib/chapter-storage";
+import { writeChapterBody, chapterFileExists, readChapterBody, listCompressedChapters } from "../src/lib/chapter-storage";
 
 // ─── CLI Args ────────────────────────────────────────────────────────────────
 
@@ -640,7 +646,44 @@ function runImport(fullMode: boolean): ImportReport {
                     for (const t of meta.tags) insertBookTag.run(meta.id, t.id);
                 }
 
-                // Chapters
+                // Chapters - Phase 1: Import pre-compressed .zst files (no .txt needed)
+                // This allows rsync of compressed files from another machine
+                const preCompressedIndices = listCompressedChapters(bookId);
+                const txtIndicesMap = new Map<number, string>(); // indexNum -> slug
+                for (const filename of chapterFiles) {
+                    const match = filename.match(/^(\d+)_(.+)\.txt$/);
+                    if (match) txtIndicesMap.set(parseInt(match[1], 10), match[2]);
+                }
+
+                for (const indexNum of preCompressedIndices) {
+                    if (txtIndicesMap.has(indexNum)) continue; // Will process in Phase 2
+
+                    if (!fullMode) {
+                        const existing = chapterExistsStmt.get(bookId, indexNum);
+                        if (existing) continue;
+                    }
+
+                    const body = readChapterBody(bookId, indexNum);
+                    if (!body) continue;
+
+                    // Extract title from body (first non-empty line) or default
+                    const bodyLines = body.split("\n");
+                    let title = `Chương ${indexNum}`;
+                    for (const line of bodyLines) {
+                        if (line.trim()) {
+                            title = line.trim();
+                            break;
+                        }
+                    }
+                    const wordCount = body.split(/\s+/).filter(Boolean).length;
+                    const chapterSlug = `chuong-${indexNum}`;
+
+                    // .zst already exists - just insert DB
+                    insertChapter.run(bookId, indexNum, title, chapterSlug, wordCount);
+                    chaptersThisBook++;
+                }
+
+                // Chapters - Phase 2: Process .txt files
                 for (const filename of chapterFiles) {
                     const match = filename.match(/^(\d+)_(.+)\.txt$/);
                     if (!match) continue;
@@ -670,7 +713,10 @@ function runImport(fullMode: boolean): ImportReport {
                     const body = lines.slice(bodyStart).join("\n").trim();
                     const wordCount = body.split(/\s+/).filter(Boolean).length;
 
-                    writeChapterBody(bookId, indexNum, body);
+                    // Skip compression if .zst already exists (pre-compressed via rsync)
+                    if (!chapterFileExists(bookId, indexNum)) {
+                        writeChapterBody(bookId, indexNum, body);
+                    }
                     insertChapter.run(
                         bookId,
                         indexNum,

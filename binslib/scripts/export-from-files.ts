@@ -7,6 +7,11 @@
  *
  * Supports dual-read migration: skips chapters that already have .zst or .gz files.
  *
+ * Progress:
+ *   - Dual progress bars: books and chapters
+ *   - Real-time detail log: data/export-detail.log (per-book stats)
+ *   - Summary log: data/export-log.txt
+ *
  * Usage:
  *   npx tsx scripts/export-from-files.ts
  *   npx tsx scripts/export-from-files.ts --workers 6    # default: CPU count
@@ -52,20 +57,24 @@ if (!isMainThread) {
 
         const outDir = path.join(chaptersDir, bookId);
         let dirCreated = false;
+        let bookExported = 0;
+        let bookSkipped = 0;
+        let bookFailed = 0;
 
         for (const file of chapterFiles) {
             const match = file.match(/^(\d+)_(.+)\.txt$/);
-            if (!match) { skipped++; continue; }
+            if (!match) { skipped++; bookSkipped++; continue; }
             const indexNum = parseInt(match[1], 10);
             const outFileZst = path.join(outDir, `${indexNum}.txt.zst`);
             const outFileGz = path.join(outDir, `${indexNum}.txt.gz`);
 
             if (fs.existsSync(outFileZst) || fs.existsSync(outFileGz)) {
                 skipped++;
+                bookSkipped++;
                 continue;
             }
 
-            if (dryRun) { exported++; continue; }
+            if (dryRun) { exported++; bookExported++; continue; }
 
             try {
                 const srcPath = path.join(bookDir, file);
@@ -88,8 +97,10 @@ if (!isMainThread) {
                 fs.writeFileSync(outFileZst, compressed);
                 bytesWritten += compressed.length;
                 exported++;
+                bookExported++;
             } catch (err) {
                 failed++;
+                bookFailed++;
                 failures.push({
                     bookId, file,
                     error: (err as Error).message?.slice(0, 120) || "Unknown",
@@ -101,6 +112,9 @@ if (!isMainThread) {
             type: "book_done",
             bookId,
             chapters: chapterFiles.length,
+            exported: bookExported,
+            skipped: bookSkipped,
+            failed: bookFailed,
         });
     }
 
@@ -227,18 +241,26 @@ for (let i = 0; i < allBooks.length; i++) {
 
 // ─── Launch workers ──────────────────────────────────────────────────────────
 
-const bar = QUIET
+const DETAIL_LOG_FILE = path.resolve(__dirname, "../data/export-detail.log");
+
+// Initialize detail log
+fs.mkdirSync(path.dirname(DETAIL_LOG_FILE), { recursive: true });
+fs.appendFileSync(DETAIL_LOG_FILE, `\n${"=".repeat(60)}\n[${timestamp()}] Export started - ${formatNum(allBooks.length)} books, ${formatNum(totalChapters)} chapters\n${"=".repeat(60)}\n`);
+
+const multiBar = QUIET
     ? null
-    : new cliProgress.SingleBar({
+    : new cliProgress.MultiBar({
           clearOnComplete: false,
           hideCursor: true,
-          barsize: 25,
-          format: `  Export  ${c.green}{bar}${c.reset} {value}/{total}  {percentage}%  ETA: {eta_formatted}  ${c.dim}{detail}${c.reset}`,
+          format: `  {name}  ${c.green}{bar}${c.reset} {value}/{total}  {percentage}%  ETA: {eta_formatted}  ${c.dim}{detail}${c.reset}`,
+          barsize: 20,
       });
 
-bar?.start(allBooks.length, 0, { detail: "starting workers..." });
+const bookBar = multiBar?.create(allBooks.length, 0, { name: "Books   ", detail: "starting..." });
+const chapterBar = multiBar?.create(totalChapters, 0, { name: "Chapters", detail: "" });
 
 let booksProcessed = 0;
+let chaptersProcessed = 0;
 let totalExported = 0;
 let totalSkipped = 0;
 let totalFailed = 0;
@@ -246,6 +268,10 @@ let totalBytesWritten = 0;
 let totalBytesRead = 0;
 const allFailures: { bookId: string; file: string; error: string }[] = [];
 let workersFinished = 0;
+
+function logDetail(msg: string) {
+    fs.appendFileSync(DETAIL_LOG_FILE, `[${timestamp()}] ${msg}\n`);
+}
 
 const workerPromises = chunks.map((chunk, idx) => {
     if (chunk.length === 0) return Promise.resolve();
@@ -263,9 +289,17 @@ const workerPromises = chunks.map((chunk, idx) => {
         worker.on("message", (msg) => {
             if (msg.type === "book_done") {
                 booksProcessed++;
-                bar?.update(booksProcessed, {
-                    detail: `w${idx} book ${msg.bookId} (${msg.chapters} ch)`,
+                chaptersProcessed += msg.chapters;
+                bookBar?.update(booksProcessed, {
+                    detail: `book ${msg.bookId}`,
                 });
+                chapterBar?.update(chaptersProcessed, {
+                    detail: `+${msg.exported} new, ${msg.skipped} skip`,
+                });
+                // Real-time logging
+                if (msg.exported > 0 || msg.failed > 0) {
+                    logDetail(`Book ${msg.bookId}: ${msg.chapters} ch, exported=${msg.exported}, skipped=${msg.skipped}, failed=${msg.failed}`);
+                }
             } else if (msg.type === "done") {
                 totalExported += msg.exported;
                 totalSkipped += msg.skipped;
@@ -287,8 +321,9 @@ const workerPromises = chunks.map((chunk, idx) => {
 
 Promise.all(workerPromises)
     .then(() => {
-        bar?.update(allBooks.length, { detail: "done" });
-        bar?.stop();
+        bookBar?.update(allBooks.length, { detail: "done" });
+        chapterBar?.update(totalChapters, { detail: "done" });
+        multiBar?.stop();
 
         const duration = Date.now() - startedAt;
 
@@ -344,12 +379,20 @@ Promise.all(workerPromises)
         fs.mkdirSync(path.dirname(LOG_FILE), { recursive: true });
         fs.appendFileSync(LOG_FILE, entry);
 
-        log(`\n  ${c.cyan}Next step:${c.reset} Run the DB migration and VACUUM.\n`);
+        // Write summary to detail log
+        logDetail(`${"=".repeat(60)}`);
+        logDetail(`COMPLETED: ${formatNum(totalExported)} exported, ${formatNum(totalSkipped)} skipped, ${formatNum(totalFailed)} failed`);
+        logDetail(`Duration: ${formatDuration(duration)}, Read: ${formatBytes(totalBytesRead)}, Written: ${formatBytes(totalBytesWritten)}`);
+        logDetail(`${"=".repeat(60)}\n`);
+
+        log(`\n  ${c.cyan}Next step:${c.reset} Run the DB migration and VACUUM.`);
+        log(`  ${c.cyan}Detail log:${c.reset} ${DETAIL_LOG_FILE}\n`);
 
         if (totalFailed > 0) process.exit(1);
     })
     .catch((err) => {
-        bar?.stop();
+        multiBar?.stop();
         log(`\n${c.red}${c.bold}Fatal error:${c.reset} ${err.message}`);
+        logDetail(`FATAL ERROR: ${err.message}`);
         process.exit(1);
     });

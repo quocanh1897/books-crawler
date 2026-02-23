@@ -1,0 +1,9 @@
+[2026-02-23 04:21:57] parallel-export workers=12 duration=13m 6s
+  books=22277 exported=646380 skipped=1049585 failed=0
+  read=9.26 GB written=2.90 GB
+[2026-02-23 04:21:57] parallel-export workers=16 duration=2m 43s
+  books=22277 exported=200570 skipped=1495395 failed=0
+  read=2.26 GB written=733.7 MB
+[2026-02-23 04:21:57] parallel-export workers=24 duration=12m 23s
+  books=22277 exported=1488600 skipped=207365 failed=0
+  read=20.83 GB written=6.55 GB
