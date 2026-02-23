@@ -15,21 +15,20 @@ The ARM64 instructions show: content.substring(17, 66)
 But the end value (66) may be Smi-encoded (66>>1 = 33), giving substring(17, 33) = 16 chars.
 We try multiple slice ranges to determine the correct interpretation.
 """
+
 from __future__ import annotations
 
 import base64
 import hashlib
 import json
-import sys
 import os
+import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "crawler"))
-from config import BASE_URL, HEADERS
-
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import httpx
+from config import BASE_URL, HEADERS
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
-
 
 CHAPTER_ID = 10340503
 KNOWN_PLAINTEXT_PREFIX = "Chương 1: Tiêu Phàm trọng sinh"
@@ -73,8 +72,10 @@ def try_decrypt(content: str, start: int, end: int, label: str) -> str | None:
         print(f"  [{label}] envelope missing fields, keys: {list(envelope.keys())}")
         return None
 
-    print(f"  [{label}] envelope parsed OK: iv={len(envelope['iv'])}ch, "
-          f"value={len(envelope['value'])}ch, mac={len(envelope['mac'])}ch")
+    print(
+        f"  [{label}] envelope parsed OK: iv={len(envelope['iv'])}ch, "
+        f"value={len(envelope['value'])}ch, mac={len(envelope['mac'])}ch"
+    )
 
     # Step 2: key bytes = code units of the extracted substring
     key_bytes = bytes(ord(c) for c in key_chars)
@@ -107,13 +108,15 @@ def try_decrypt(content: str, start: int, end: int, label: str) -> str | None:
     ]
 
     if key_len not in (16, 24, 32):
-        key_variants.extend([
-            ("truncate-16", key_bytes[:16]),
-            ("truncate-24", key_bytes[:24]) if key_len >= 24 else None,
-            ("truncate-32", key_bytes[:32]) if key_len >= 32 else None,
-            ("sha256", hashlib.sha256(key_bytes).digest()),
-            ("md5", hashlib.md5(key_bytes).digest()),
-        ])
+        key_variants.extend(
+            [
+                ("truncate-16", key_bytes[:16]),
+                ("truncate-24", key_bytes[:24]) if key_len >= 24 else None,
+                ("truncate-32", key_bytes[:32]) if key_len >= 32 else None,
+                ("sha256", hashlib.sha256(key_bytes).digest()),
+                ("md5", hashlib.md5(key_bytes).digest()),
+            ]
+        )
         key_variants = [kv for kv in key_variants if kv is not None]
 
     for kname, kbytes in key_variants:
@@ -124,11 +127,15 @@ def try_decrypt(content: str, start: int, end: int, label: str) -> str | None:
             decrypted = unpad(cipher.decrypt(ciphertext), AES.block_size)
             plaintext = decrypted.decode("utf-8").strip()
             if plaintext.startswith(KNOWN_PLAINTEXT_PREFIX):
-                print(f"  [{label}] key={kname} ({len(kbytes)}B) -> DECRYPTION SUCCESS!")
+                print(
+                    f"  [{label}] key={kname} ({len(kbytes)}B) -> DECRYPTION SUCCESS!"
+                )
                 return plaintext
             else:
                 preview = plaintext[:80] if plaintext else "(empty)"
-                print(f"  [{label}] key={kname} ({len(kbytes)}B) -> decrypted but wrong prefix: {preview!r}")
+                print(
+                    f"  [{label}] key={kname} ({len(kbytes)}B) -> decrypted but wrong prefix: {preview!r}"
+                )
         except Exception as e:
             err = str(e)[:60]
             print(f"  [{label}] key={kname} ({len(kbytes)}B) -> {err}")
@@ -152,19 +159,21 @@ def main():
         (17, 33, "sub(17,33) 16ch AES-128 [end=66>>1 Smi]"),
         (17, 49, "sub(17,49) 32ch AES-256"),
         (17, 66, "sub(17,66) 49ch [raw ARM values]"),
-        (8, 24,  "sub(8,24) 16ch [start=17>>1 Smi, end=48>>1]"),
-        (8, 40,  "sub(8,40) 32ch [both Smi shifted]"),
+        (8, 24, "sub(8,24) 16ch [start=17>>1 Smi, end=48>>1]"),
+        (8, 40, "sub(8,40) 32ch [both Smi shifted]"),
     ]
 
     for start, end, label in slices:
         print(f"\n--- Trying {label} ---")
         result = try_decrypt(content, start, end, label)
         if result:
-            print(f"\n{'='*60}")
+            print(f"\n{'=' * 60}")
             print(f"SUCCESS with slice [{start}:{end}]")
-            print(f"Key chars (as hex): {bytes(ord(c) for c in content[start:end]).hex()}")
+            print(
+                f"Key chars (as hex): {bytes(ord(c) for c in content[start:end]).hex()}"
+            )
             print(f"Plaintext preview: {result[:200]}")
-            print(f"{'='*60}")
+            print(f"{'=' * 60}")
             return True
 
     print("\n--- None of the standard slices worked. ---")
@@ -176,11 +185,13 @@ def main():
             label = f"scan({start},{end})"
             result = try_decrypt(content, start, end, label)
             if result:
-                print(f"\n{'='*60}")
+                print(f"\n{'=' * 60}")
                 print(f"SUCCESS with slice [{start}:{end}]")
-                print(f"Key chars (as hex): {bytes(ord(c) for c in content[start:end]).hex()}")
+                print(
+                    f"Key chars (as hex): {bytes(ord(c) for c in content[start:end]).hex()}"
+                )
                 print(f"Plaintext preview: {result[:200]}")
-                print(f"{'='*60}")
+                print(f"{'=' * 60}")
                 return True
 
     print("\nAll attempts failed.")

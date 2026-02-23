@@ -87,8 +87,8 @@ graph LR
 cd crawler-descryptor/
 pip install -r requirements.txt
 python3 main.py fetch-book <book_id>        # single book
-python3 batch_download.py                    # batch download
-python3 download_top1000.py -w 100           # top ranked books, 100 workers
+python3 download_batch.py                    # batch download
+python3 download_topN.py 1000 -w 100         # top ranked books, 100 workers
 ```
 
 ### [DEPRECATED] Download books (emulator-based, macOS only)

@@ -13,6 +13,7 @@ Output per chapter:
     tests/samples/<book_id>_<index>_encrypted.json   (API response)
     tests/samples/<book_id>_<index>_decrypted.txt     (plaintext from crawler)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -23,7 +24,7 @@ import time
 
 import httpx
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "crawler"))
+sys.path.insert(0, os.path.dirname(__file__))
 from config import BASE_URL, HEADERS, REQUEST_DELAY
 
 CRAWLER_OUTPUT = os.path.join(os.path.dirname(__file__), "..", "crawler", "output")
@@ -54,13 +55,15 @@ def find_crawled_chapters(book_id: int) -> list[dict]:
         name = content.split("\n", 1)[0] if content else ""
         body = content.split("\n\n", 1)[1] if "\n\n" in content else content
 
-        chapters.append({
-            "index": index,
-            "slug": slug,
-            "name": name,
-            "content": body,
-            "filename": fname,
-        })
+        chapters.append(
+            {
+                "index": index,
+                "slug": slug,
+                "name": name,
+                "content": body,
+                "filename": fname,
+            }
+        )
 
     return chapters
 
@@ -68,10 +71,13 @@ def find_crawled_chapters(book_id: int) -> list[dict]:
 def fetch_first_chapter_id(book_id: int) -> int | None:
     """Get the first chapter ID for a book via API search."""
     with httpx.Client(headers=HEADERS, timeout=30) as client:
-        r = client.get(f"{BASE_URL}/api/books", params={
-            "filter[id]": book_id,
-            "include": "author",
-        })
+        r = client.get(
+            f"{BASE_URL}/api/books",
+            params={
+                "filter[id]": book_id,
+                "include": "author",
+            },
+        )
         if r.status_code == 200:
             data = r.json()
             if data.get("data"):
@@ -94,9 +100,15 @@ def fetch_chapter_encrypted(chapter_id: int) -> dict | None:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Collect encrypted/decrypted sample pairs")
-    parser.add_argument("book_id", type=int, help="Book ID (must exist in crawler/output/)")
-    parser.add_argument("--count", type=int, default=5, help="Number of samples to collect (default: 5)")
+    parser = argparse.ArgumentParser(
+        description="Collect encrypted/decrypted sample pairs"
+    )
+    parser.add_argument(
+        "book_id", type=int, help="Book ID (must exist in crawler/output/)"
+    )
+    parser.add_argument(
+        "--count", type=int, default=5, help="Number of samples to collect (default: 5)"
+    )
     args = parser.parse_args()
 
     os.makedirs(SAMPLES_DIR, exist_ok=True)
@@ -141,24 +153,35 @@ def main():
             continue
 
         # Save encrypted response
-        enc_path = os.path.join(SAMPLES_DIR, f"{args.book_id}_{index:04d}_encrypted.json")
+        enc_path = os.path.join(
+            SAMPLES_DIR, f"{args.book_id}_{index:04d}_encrypted.json"
+        )
         with open(enc_path, "w", encoding="utf-8") as f:
-            json.dump({
-                "chapter_id": api_data["id"],
-                "book_id": api_data.get("book_id", args.book_id),
-                "index": index,
-                "name": api_data.get("name", ""),
-                "slug": api_data.get("slug", ""),
-                "content_encrypted": encrypted_content,
-            }, f, indent=2, ensure_ascii=False)
+            json.dump(
+                {
+                    "chapter_id": api_data["id"],
+                    "book_id": api_data.get("book_id", args.book_id),
+                    "index": index,
+                    "name": api_data.get("name", ""),
+                    "slug": api_data.get("slug", ""),
+                    "content_encrypted": encrypted_content,
+                },
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
 
         # Save decrypted plaintext
-        dec_path = os.path.join(SAMPLES_DIR, f"{args.book_id}_{index:04d}_decrypted.txt")
+        dec_path = os.path.join(
+            SAMPLES_DIR, f"{args.book_id}_{index:04d}_decrypted.txt"
+        )
         with open(dec_path, "w", encoding="utf-8") as f:
             f.write(crawled_chapter["content"])
 
-        print(f"  Saved pair: index={index}, encrypted={len(encrypted_content)} chars, "
-              f"decrypted={len(crawled_chapter['content'])} chars")
+        print(
+            f"  Saved pair: index={index}, encrypted={len(encrypted_content)} chars, "
+            f"decrypted={len(crawled_chapter['content'])} chars"
+        )
         collected += 1
 
         chapter_id = next_info.get("id") if next_info else None

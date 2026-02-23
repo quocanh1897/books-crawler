@@ -58,3 +58,6 @@
 [2026-02-23 13:06:18] mode=incremental duration=0s
   scanned=663 imported=663 skipped=0 failed=0 meta_resynced=0
   chapters=0 covers=663 meta_pulls=0
+[2026-02-23 16:34:50] mode=incremental duration=0s
+  scanned=1 imported=1 skipped=0 failed=0 gap_errors=0 meta_resynced=0
+  chapters=54 covers=0 meta_pulls=1

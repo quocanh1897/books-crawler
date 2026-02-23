@@ -140,12 +140,12 @@ npx tsx scripts/pre-compress.ts --dry-run
 
 1. Scans both `crawler/output/` and `crawler-tangthuvien/output/` for book directories
 2. Estimates chapter counts from `metadata.json` (avoids expensive directory enumeration)
-3. Splits work across N worker threads (round-robin by book)
-4. Each worker, for each book:
-   - Reads all chapter `.txt` files, extracts body (strips title line)
-   - Compresses each body with zstd (using global dictionary if available)
-   - Collects all chapters in memory, then writes a single `{book_id}.bundle` file
-5. Skips books whose bundle already has enough chapters (safe to re-run)
+3. Splits work across N worker threads (contiguous ranges for sequential disk access)
+4. Each worker uses a 3-tier skip strategy per book:
+   - **Tier 1 — mtime fast skip**: compares bundle file mtime vs source directory mtime (2 stat calls, no file reads). If the directory hasn't changed since the bundle was written, skip instantly
+   - **Tier 2 — index-only check**: reads only the bundle header + index section (~16KB for 1000 chapters instead of the full multi-MB file) to get existing chapter indices, then runs `readdirSync` to find new `.txt` files
+   - **Tier 3 — full merge**: only when new chapters are found, reads the full bundle data, compresses new chapters with zstd, and writes a merged bundle
+5. Gap validation: new chapter indices must be contiguous from the bundle's highest existing index
 6. Reports compression ratio, throughput, and per-worker stats
 
 ---

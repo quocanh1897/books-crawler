@@ -143,12 +143,13 @@ Previous approaches (Frida runtime hooking, exhaustive binary scanning, memory d
 flowchart LR
     subgraph SCRIPTS["📜 Download Scripts"]
         main["main.py<br/><i>single book</i>"]
-        batch["batch_download.py<br/><i>specific IDs</i>"]
-        top1000["download_top1000.py<br/><i>plan files, 200 workers</i>"]
+        batch["download_batch.py<br/><i>specific IDs</i>"]
+        topN["download_topN.py<br/><i>plan files, N workers</i>"]
     end
 
-    subgraph CLIENT["🔌 src/client.py"]
-        api_client["APIClient<br/>• get_book(id)<br/>• get_chapter(id)<br/>• iter_chapters(first_id)"]
+    subgraph CLIENT["🔌 src/"]
+        api_client["client.py — APIClient<br/>• get_book(id)<br/>• get_chapter(id)<br/>• iter_chapters(first_id)"]
+        async_dl["downloader.py — AsyncBookClient<br/>• download_book(client, entry, label)"]
     end
 
     subgraph API["🌐 android api"]
@@ -169,8 +170,9 @@ flowchart LR
     end
 
     main --> api_client
-    batch --> api_client
-    top1000 --> api_client
+    batch --> async_dl
+    topN --> async_dl
+    async_dl --> api_client
 
     api_client --> books_api
     api_client --> chapters_api
@@ -187,7 +189,7 @@ flowchart LR
     style OUTPUT fill:#f3f4f6,stroke:#6b7280
 ```
 
-### Download Process (download_top1000.py)
+### Download Process (download_topN.py)
 
 ```mermaid
 flowchart LR
@@ -330,19 +332,19 @@ python3 main.py fetch-book 100358
 ### Batch download specific books
 
 ```bash
-python3 batch_download.py                     # download preset list
-python3 batch_download.py 100441 101481 101486  # specific book IDs
-python3 batch_download.py -w 15 --clean       # 15 workers, clean wrong data first
+python3 download_batch.py                     # download preset list
+python3 download_batch.py 100441 101481 101486  # specific book IDs
+python3 download_batch.py -w 15 --clean       # 15 workers, clean wrong data first
 ```
 
 ### Download from plan file
 
 ```bash
-python3 download_top1000.py                           # download from default plan
-python3 download_top1000.py -w 200                    # 200 parallel workers
-python3 download_top1000.py --plan fresh_books_download.json  # use specific plan file
-python3 download_top1000.py --offset 5000 --limit 1000  # skip first 5000, download 1000
-python3 download_top1000.py --exclude 100441 101481   # skip specific IDs
+python3 download_topN.py 1000                           # top 1000 from default plan
+python3 download_topN.py 500 -w 200                     # top 500, 200 parallel workers
+python3 download_topN.py 2000 --plan custom.json        # top 2000 from custom plan file
+python3 download_topN.py 1000 --offset 500              # skip first 500, then take 1000
+python3 download_topN.py 1000 --exclude 100441 101481   # skip specific IDs
 ```
 
 ### Fetch full platform catalog
@@ -356,9 +358,9 @@ python3 fetch_catalog.py --skip-fetch   # reuse existing full_catalog.json, just
 ### Download the full catalog (all missing books)
 
 ```bash
-python3 download_top1000.py -w 200 --plan fresh_books_download.json    # 24,235 books (≥80 chapters)
-python3 download_top1000.py -w 200 --plan new_books_download.json      # 24,440 new books
-python3 download_top1000.py -w 200 --plan partial_books_download.json  # 357 partial books
+python3 download_topN.py -w 200 --plan fresh_books_download.json    # 24,235 books (≥80 chapters)
+python3 download_topN.py -w 200 --plan new_books_download.json      # 24,440 new books
+python3 download_topN.py -w 200 --plan partial_books_download.json  # 357 partial books
 ```
 
 ### Analyze encryption details
@@ -423,17 +425,17 @@ crawler-descryptor/
 ├── requirements.txt
 │
 ├── main.py                        # CLI: fetch-chapter, fetch-book, analyze
-├── batch_download.py              # Parallel batch download (specific book IDs)
-├── download_top1000.py            # Parallel download from plan JSON files
+├── download_batch.py              # Parallel batch download (specific book IDs)
+├── download_topN.py               # Parallel download from plan JSON files (top N books)
 ├── fetch_catalog.py               # Full platform catalog fetcher + audit
 ├── collect_samples.py             # Collect encrypted/decrypted pairs for testing
-├── test_server.py                 # Quick connectivity and decryption test
 │
 ├── src/
+│   ├── downloader.py              # Shared async download engine (AsyncBookClient, download_book)
 │   ├── decrypt.py                 # AES-128-CBC decryption + key extraction
-│   ├── client.py                  # API client (chapter fetching, book lookup)
+│   ├── client.py                  # Sync API client (chapter fetching, book lookup)
 │   ├── iv_extract.py              # IV de-obfuscation strategies (historical)
-│   └── utils.py                   # Output formatting, file helpers
+│   └── utils.py                   # Output formatting, file helpers, bundle-aware chapter counting
 │
 ├── full_catalog.json              # Complete platform catalog: 30,486 books
 ├── fresh_books_download.json      # 24,235 books to download (≥80 chapters)

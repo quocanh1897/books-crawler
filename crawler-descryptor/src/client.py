@@ -3,6 +3,7 @@ API client for fetching chapters and book metadata from the mobile API.
 
 Uses the same authentication as the crawler (Bearer token from config.py).
 """
+
 from __future__ import annotations
 
 import os
@@ -11,8 +12,8 @@ import time
 
 import httpx
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "crawler"))
-from config import BASE_URL, HEADERS, REQUEST_DELAY, MAX_RETRIES
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+from config import BASE_URL, HEADERS, MAX_RETRIES, REQUEST_DELAY
 
 
 class APIError(Exception):
@@ -91,9 +92,12 @@ class APIClient:
 
     def get_book(self, book_id: int) -> dict:
         """Fetch book metadata via direct ID lookup."""
-        data = self._get(f"/api/books/{book_id}", params={
-            "include": "author,creator,genres",
-        })
+        data = self._get(
+            f"/api/books/{book_id}",
+            params={
+                "include": "author,creator,genres",
+            },
+        )
         if isinstance(data, dict) and "book" in data:
             return data["book"]
         if isinstance(data, list) and data:
@@ -104,10 +108,13 @@ class APIClient:
     def search_book(self, name: str) -> dict | None:
         """Search for a book by name. Returns first match or None."""
         try:
-            data = self._get("/api/books", params={
-                "filter[keyword]": name,
-                "limit": 5,
-            })
+            data = self._get(
+                "/api/books",
+                params={
+                    "filter[keyword]": name,
+                    "limit": 5,
+                },
+            )
         except APIError:
             data = None
 
@@ -117,10 +124,13 @@ class APIClient:
 
         # Fallback to fuzzy search
         try:
-            data = self._get("/api/books/search", params={
-                "keyword": name,
-                "limit": 5,
-            })
+            data = self._get(
+                "/api/books/search",
+                params={
+                    "keyword": name,
+                    "limit": 5,
+                },
+            )
         except APIError:
             return None
 

@@ -208,6 +208,8 @@ interface ImportReport {
   coversCopied: number;
   metaPullerRuns: number;
   failures: { bookId: number; error: string }[];
+  gapErrors: number;
+  gapErrorDetails: { bookId: number; maxBundle: number; minNew: number }[];
   mtcBooks: number;
   ttvBooks: number;
   totalChapterFiles: number;
@@ -273,6 +275,11 @@ function printReport(report: ImportReport) {
       formatNum(report.booksFailed),
       report.booksFailed > 0 ? c.red : c.white,
     ),
+    row(
+      "Gap errors:",
+      formatNum(report.gapErrors),
+      report.gapErrors > 0 ? c.red : c.white,
+    ),
     sep,
     row(
       "Meta resynced:",
@@ -308,6 +315,22 @@ function printReport(report: ImportReport) {
     }
   }
 
+  if (report.gapErrorDetails.length > 0) {
+    process.stdout.write(
+      `\n${c.red}${c.bold}Gap errors (${report.gapErrors} books skipped):${c.reset}\n`,
+    );
+    for (const g of report.gapErrorDetails.slice(0, 30)) {
+      process.stdout.write(
+        `  ${c.red}•${c.reset} Book ${g.bookId}: bundle max=${g.maxBundle}, first new=${g.minNew}, expected=${g.maxBundle + 1}\n`,
+      );
+    }
+    if (report.gapErrorDetails.length > 30) {
+      process.stdout.write(
+        `  ${c.dim}... and ${report.gapErrorDetails.length - 30} more${c.reset}\n`,
+      );
+    }
+  }
+
   log(`\n  ${c.dim}Detail log:${c.reset} ${DETAIL_LOG_FILE}`);
 }
 
@@ -315,7 +338,7 @@ function appendLog(report: ImportReport) {
   const duration = report.finishedAt.getTime() - report.startedAt.getTime();
   const entry = [
     `[${timestamp()}] mode=${report.mode} duration=${formatDuration(duration)}`,
-    `  scanned=${report.booksScanned} imported=${report.booksImported} skipped=${report.booksSkipped} failed=${report.booksFailed} meta_resynced=${report.metaResynced}`,
+    `  scanned=${report.booksScanned} imported=${report.booksImported} skipped=${report.booksSkipped} failed=${report.booksFailed} gap_errors=${report.gapErrors} meta_resynced=${report.metaResynced}`,
     `  chapters=${report.chaptersAdded} covers=${report.coversCopied} meta_pulls=${report.metaPullerRuns}`,
     ...(report.failures.length > 0
       ? report.failures.map((f) => `  FAIL book ${f.bookId}: ${f.error}`)
@@ -470,6 +493,8 @@ function runImport(fullMode: boolean): ImportReport {
     coversCopied: 0,
     metaPullerRuns: 0,
     failures: [],
+    gapErrors: 0,
+    gapErrorDetails: [],
     mtcBooks:
       SPECIFIC_IDS.length > 0
         ? allEntries.filter((e) => e.source === "mtc").length
@@ -654,6 +679,34 @@ function runImport(fullMode: boolean): ImportReport {
       // Prepare bundle writer — loads existing bundle data so we can
       // append new chapters without losing old ones, then flush after commit
       const bundleWriter = new BundleWriter(bookId, { loadExisting: true });
+
+      // Gap validation: if the bundle already has chapters, new .txt file
+      // indices must start right after the bundle's highest index.
+      const bundleMaxIdx = bundleWriter.maxIndex();
+      if (bundleMaxIdx !== null && chapterFiles.length > 0) {
+        const newTxtIndices: number[] = [];
+        for (const filename of chapterFiles) {
+          const m = filename.match(/^(\d+)_/);
+          if (m) {
+            const idx = parseInt(m[1], 10);
+            if (!bundleWriter.has(idx)) newTxtIndices.push(idx);
+          }
+        }
+        if (newTxtIndices.length > 0) {
+          const minNew = Math.min(...newTxtIndices);
+          if (minNew !== bundleMaxIdx + 1) {
+            report.gapErrors++;
+            report.gapErrorDetails.push({ bookId, maxBundle: bundleMaxIdx, minNew });
+            const gapMsg = `bundle max=${bundleMaxIdx}, first new txt=${minNew}, expected=${bundleMaxIdx + 1}`;
+            logDetail(`GAP_ERROR ${bookId}: ${gapMsg}`);
+            const skipChaps = bookChapterCounts.get(bookIdStr) || 0;
+            chaptersProcessed += skipChaps;
+            bookBar?.increment(1, { detail: `GAP ${bookId}` });
+            chapterBar?.update(chaptersProcessed, { detail: `gap err ${bookId}` });
+            continue;
+          }
+        }
+      }
 
       // Import everything in a single transaction for atomicity
       let chaptersThisBook = 0;
