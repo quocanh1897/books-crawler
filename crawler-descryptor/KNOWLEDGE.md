@@ -135,11 +135,13 @@ GET /api/books?limit=50&page={N}
 ## Working Download Workflow
 
 **Automated (preferred):**
+
 ```bash
 python3 grab_book.py "book name"    # fully automated end-to-end
 ```
 
 **Manual fallback:**
+
 1. Start emulator + mitmproxy
 2. Open app → Đánh dấu tab → 3-dot → Tải truyện → enter range → Đồng ý
 3. Run `python3 extract_book.py <book_id> <total>` to extract
@@ -172,16 +174,17 @@ python3 grab_book.py "book name"    # fully automated end-to-end
 
 ## Downloaded Books
 
-| Book | ID | Chapters | Date |
-|------|----|----------|------|
-| Hủ Bại Thế Giới | 148610 | 256 | 2026-02-16 |
-| Cẩu Tại Võ Đạo Thế Giới Thành Thánh | 144812 | 1050 | 2026-02-15 |
-| (book 145005) | 145005 | 961 | 2026-02-15 |
-| (book 137544) | 137544 | 712 | 2026-02-15 |
+| Book                                | ID     | Chapters | Date       |
+| ----------------------------------- | ------ | -------- | ---------- |
+| Hủ Bại Thế Giới                     | 148610 | 256      | 2026-02-16 |
+| Cẩu Tại Võ Đạo Thế Giới Thành Thánh | 144812 | 1050     | 2026-02-15 |
+| (book 145005)                       | 145005 | 961      | 2026-02-15 |
+| (book 137544)                       | 137544 | 712      | 2026-02-15 |
 
 ## Platform Compatibility
 
 **Currently macOS-only.** The crawler has 5 blockers preventing Windows use:
+
 1. Hardcoded macOS ADB path (`~/Library/Android/sdk/...`)
 2. Hardcoded `/tmp/` temp paths (6 occurrences across 3 files)
 3. `multiprocessing.get_context('fork')` — Windows only supports `spawn`
