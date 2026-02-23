@@ -2,13 +2,9 @@ import { db, sqlite } from "@/db";
 import {
   books,
   authors,
-  genres,
-  bookGenres,
-  tags,
-  bookTags,
   chapters,
 } from "@/db/schema";
-import { eq, desc, asc, sql, and } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
 import { readChapterBody } from "./chapter-storage";
 import type {
   BookWithAuthor,
@@ -157,48 +153,53 @@ export async function getBooks(params: {
   };
 }
 
-export async function getBookBySlug(slug: string): Promise<BookWithDetails | null> {
-  const row = await db
-    .select()
-    .from(books)
-    .where(eq(books.slug, slug))
-    .limit(1)
-    .then((rows) => rows[0] ?? null);
+// Single-query book detail: fetches book + author + genres + tags in one round-trip
+// using json_group_array/json_object subqueries instead of N+1 queries.
+const bookDetailSql = `
+  SELECT b.*,
+    a.name   AS author_name,
+    a.local_name AS author_local_name,
+    a.avatar AS author_avatar,
+    (SELECT json_group_array(json_object('id', g.id, 'name', g.name, 'slug', g.slug))
+     FROM book_genres bg JOIN genres g ON bg.genre_id = g.id
+     WHERE bg.book_id = b.id) AS genres_json,
+    (SELECT json_group_array(json_object('id', t.id, 'name', t.name, 'typeId', t.type_id))
+     FROM book_tags bt JOIN tags t ON bt.tag_id = t.id
+     WHERE bt.book_id = b.id) AS tags_json
+  FROM books b
+  LEFT JOIN authors a ON b.author_id = a.id
+`;
 
-  if (!row) return null;
-  return enrichBook(row);
+function rowToBookWithDetails(r: Record<string, unknown>): BookWithDetails {
+  const base = rowToBookWithAuthor(r);
+
+  let parsedGenres: { id: number; name: string; slug: string }[] = [];
+  if (r.genres_json && r.genres_json !== "[null]") {
+    try { parsedGenres = JSON.parse(r.genres_json as string); } catch { /* empty */ }
+  }
+
+  let parsedTags: { id: number; name: string; typeId: number | null }[] = [];
+  if (r.tags_json && r.tags_json !== "[null]") {
+    try { parsedTags = JSON.parse(r.tags_json as string); } catch { /* empty */ }
+  }
+
+  return { ...base, genres: parsedGenres, tags: parsedTags };
+}
+
+export async function getBookBySlug(slug: string): Promise<BookWithDetails | null> {
+  const row = sqlite
+    .prepare(`${bookDetailSql} WHERE b.slug = ? LIMIT 1`)
+    .get(slug) as Record<string, unknown> | undefined;
+
+  return row ? rowToBookWithDetails(row) : null;
 }
 
 export async function getBookById(id: number): Promise<BookWithDetails | null> {
-  const row = await db
-    .select()
-    .from(books)
-    .where(eq(books.id, id))
-    .limit(1)
-    .then((rows) => rows[0] ?? null);
+  const row = sqlite
+    .prepare(`${bookDetailSql} WHERE b.id = ? LIMIT 1`)
+    .get(id) as Record<string, unknown> | undefined;
 
-  if (!row) return null;
-  return enrichBook(row);
-}
-
-async function enrichBook(row: typeof books.$inferSelect): Promise<BookWithDetails> {
-  const author = row.authorId
-    ? await db.select().from(authors).where(eq(authors.id, row.authorId)).then((r) => r[0] ?? null)
-    : null;
-
-  const bookGenreRows = await db
-    .select({ id: genres.id, name: genres.name, slug: genres.slug })
-    .from(bookGenres)
-    .innerJoin(genres, eq(bookGenres.genreId, genres.id))
-    .where(eq(bookGenres.bookId, row.id));
-
-  const bookTagRows = await db
-    .select({ id: tags.id, name: tags.name, typeId: tags.typeId })
-    .from(bookTags)
-    .innerJoin(tags, eq(bookTags.tagId, tags.id))
-    .where(eq(bookTags.bookId, row.id));
-
-  return { ...row, author, genres: bookGenreRows, tags: bookTagRows };
+  return row ? rowToBookWithDetails(row) : null;
 }
 
 // ─── Rankings ────────────────────────────────────────────────────────────────

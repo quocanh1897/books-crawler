@@ -1,0 +1,39 @@
+[2026-02-23 07:59:43] mode=incremental duration=0s
+  scanned=1 imported=0 skipped=1 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 07:59:53] mode=incremental duration=0s
+  scanned=5 imported=0 skipped=5 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 08:00:01] mode=full duration=0s
+  scanned=1 imported=1 skipped=0 failed=0 meta_resynced=0
+  chapters=1 covers=0 meta_pulls=1
+[2026-02-23 08:06:51] mode=incremental duration=0s
+  scanned=22 imported=0 skipped=22 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 08:07:00] mode=incremental duration=0s
+  scanned=500 imported=0 skipped=500 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 08:07:32] mode=full duration=1s
+  scanned=5 imported=5 skipped=0 failed=0 meta_resynced=0
+  chapters=2 covers=0 meta_pulls=5
+[2026-02-23 08:18:01] mode=incremental duration=0s
+  scanned=100 imported=0 skipped=100 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 08:19:37] mode=incremental duration=0s
+  scanned=100 imported=0 skipped=100 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 08:21:05] mode=incremental duration=0s
+  scanned=100 imported=0 skipped=100 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 08:21:28] mode=full duration=2s
+  scanned=10 imported=10 skipped=0 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=10
+[2026-02-23 08:22:24] mode=full duration=1s
+  scanned=10 imported=10 skipped=0 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=10
+[2026-02-23 08:23:42] mode=full duration=2s
+  scanned=10 imported=10 skipped=0 failed=0 meta_resynced=0
+  chapters=879 covers=0 meta_pulls=10
+[2026-02-23 08:25:16] mode=full duration=0s
+  scanned=1 imported=1 skipped=0 failed=0 meta_resynced=0
+  chapters=53 covers=0 meta_pulls=1
