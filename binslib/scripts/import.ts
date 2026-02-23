@@ -20,7 +20,7 @@ import path from "path";
 import crypto from "crypto";
 import { execSync } from "child_process";
 import cliProgress from "cli-progress";
-import { writeChapterBody } from "../src/lib/chapter-storage";
+import { writeChapterBody, chapterFileExists } from "../src/lib/chapter-storage";
 
 // ─── CLI Args ────────────────────────────────────────────────────────────────
 
@@ -699,14 +699,9 @@ function runImport(fullMode: boolean): ImportReport {
 
     bookBar?.stop();
 
-    // ─── Cleanup: remove .txt chapter files after import ─────────────────
+    // ─── Cleanup: remove .txt chapter files whose body is safely in compressed storage
     if (CLEANUP_MODE && !DRY_RUN) {
         log(`\n${c.yellow}Cleanup: removing .txt chapter files from crawler/output...${c.reset}`);
-
-        const cleanupDb = openDb();
-        const countChaptersStmt = cleanupDb.prepare(
-            "SELECT COUNT(*) as cnt FROM chapters WHERE book_id = ?"
-        );
 
         const cleanupBar = QUIET
             ? null
@@ -725,21 +720,11 @@ function runImport(fullMode: boolean): ImportReport {
         ];
         cleanupBar?.start(cleanupDirs.length, 0, { detail: "" });
 
+        let skippedMissing = 0;
+
         for (const entry of cleanupDirs) {
             const bookId = parseInt(entry.id, 10);
             const bookDir = entry.sourceDir;
-
-            const row = countChaptersStmt.get(bookId) as
-                | { cnt: number }
-                | undefined;
-            const chaptersInDb = row?.cnt ?? 0;
-
-            if (chaptersInDb === 0) {
-                cleanupBar?.increment(1, {
-                    detail: `skip ${bookId} (not in DB)`,
-                });
-                continue;
-            }
 
             const txtFiles = fs
                 .readdirSync(bookDir)
@@ -753,23 +738,33 @@ function runImport(fullMode: boolean): ImportReport {
             }
 
             let bytesFreed = 0;
+            let deleted = 0;
             for (const f of txtFiles) {
+                const match = f.match(/^(\d+)_/);
+                if (!match) continue;
+                const indexNum = parseInt(match[1], 10);
+
+                if (!chapterFileExists(bookId, indexNum)) {
+                    skippedMissing++;
+                    continue;
+                }
+
                 const fp = path.join(bookDir, f);
                 try {
                     bytesFreed += fs.statSync(fp).size;
                     fs.unlinkSync(fp);
                     report.cleanupFilesDeleted++;
+                    deleted++;
                 } catch {
                     /* skip unreadable files */
                 }
             }
             report.cleanupBytesFreed += bytesFreed;
             cleanupBar?.increment(1, {
-                detail: `${bookId}: ${txtFiles.length} files`,
+                detail: `${bookId}: ${deleted}/${txtFiles.length} files`,
             });
         }
         cleanupBar?.stop();
-        cleanupDb.close();
 
         if (report.cleanupFilesDeleted > 0) {
             const gb = (
@@ -781,6 +776,11 @@ function runImport(fullMode: boolean): ImportReport {
             );
         } else {
             log(`${c.dim}Cleanup: no .txt files to remove${c.reset}`);
+        }
+        if (skippedMissing > 0) {
+            log(
+                `${c.yellow}Cleanup: ${skippedMissing} .txt files kept (compressed .gz not found)${c.reset}`
+            );
         }
     }
 
