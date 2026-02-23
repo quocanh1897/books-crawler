@@ -75,6 +75,7 @@ const META_PULLER_DIR =
     path.resolve(__dirname, "../../meta-puller");
 const COVERS_DIR = path.resolve(__dirname, "../public/covers");
 const LOG_FILE = path.resolve(__dirname, "../data/import-log.txt");
+const DETAIL_LOG_FILE = path.resolve(__dirname, "../data/import-detail.log");
 
 // ─── Colors (ANSI) ──────────────────────────────────────────────────────────
 
@@ -178,6 +179,18 @@ function timestamp(): string {
     return new Date().toISOString().replace("T", " ").slice(0, 19);
 }
 
+function formatBytes(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+function logDetail(msg: string) {
+    fs.mkdirSync(path.dirname(DETAIL_LOG_FILE), { recursive: true });
+    fs.appendFileSync(DETAIL_LOG_FILE, `[${timestamp()}] ${msg}\n`);
+}
+
 // ─── Import Report ───────────────────────────────────────────────────────────
 
 interface ImportReport {
@@ -195,12 +208,16 @@ interface ImportReport {
     failures: { bookId: number; error: string }[];
     cleanupFilesDeleted: number;
     cleanupBytesFreed: number;
+    mtcBooks: number;
+    ttvBooks: number;
+    totalChapterFiles: number;
 }
 
 function printReport(report: ImportReport) {
     const duration = report.finishedAt.getTime() - report.startedAt.getTime();
+    const durationSec = duration / 1000;
     const dbSize = fs.existsSync(DB_PATH)
-        ? (fs.statSync(DB_PATH).size / (1024 * 1024)).toFixed(1) + " MB"
+        ? formatBytes(fs.statSync(DB_PATH).size)
         : "N/A";
 
     const sqlite = openDb();
@@ -210,6 +227,9 @@ function printReport(report: ImportReport) {
         )
         .get() as { books: number; chapters: number };
     sqlite.close();
+
+    const booksPerMin = durationSec > 0 ? ((report.booksImported + report.booksSkipped) / durationSec * 60).toFixed(0) : "0";
+    const chapsPerSec = durationSec > 0 ? (report.chaptersAdded / durationSec).toFixed(1) : "0";
 
     const border = `${c.blue}┌${"─".repeat(52)}┐${c.reset}`;
     const bottom = `${c.blue}└${"─".repeat(52)}┘${c.reset}`;
@@ -225,8 +245,9 @@ function printReport(report: ImportReport) {
         row("Mode:", report.mode),
         row("Started:", timestamp()),
         row("Duration:", formatDuration(duration)),
+        row("Speed:", `${booksPerMin} books/min, ${chapsPerSec} ch/s`),
         sep,
-        row("Books scanned:", formatNum(report.booksScanned)),
+        row("Books scanned:", `${formatNum(report.booksScanned)}  (${formatNum(report.mtcBooks)} mtc, ${formatNum(report.ttvBooks)} ttv)`),
         row(
             "Books imported:",
             `${formatNum(report.booksImported)}  (new/updated)`,
@@ -249,6 +270,7 @@ function printReport(report: ImportReport) {
             report.metaResynced > 0 ? c.cyan : c.white
         ),
         row("Chapters added:", formatNum(report.chaptersAdded), c.green),
+        row("Chapters scanned:", formatNum(report.totalChapterFiles)),
         row("Covers copied:", formatNum(report.coversCopied)),
         row("Meta-puller runs:", formatNum(report.metaPullerRuns)),
         sep,
@@ -265,7 +287,7 @@ function printReport(report: ImportReport) {
                   ),
                   row(
                       "Cleanup: freed:",
-                      `${(report.cleanupBytesFreed / (1024 * 1024 * 1024)).toFixed(1)} GB`,
+                      formatBytes(report.cleanupBytesFreed),
                       c.yellow
                   ),
               ]
@@ -281,12 +303,19 @@ function printReport(report: ImportReport) {
         process.stdout.write(
             `\n${c.red}${c.bold}Failed books:${c.reset}\n`
         );
-        for (const f of report.failures) {
+        for (const f of report.failures.slice(0, 30)) {
             process.stdout.write(
                 `  ${c.red}•${c.reset} Book ${f.bookId}: ${f.error}\n`
             );
         }
+        if (report.failures.length > 30) {
+            process.stdout.write(
+                `  ${c.dim}... and ${report.failures.length - 30} more${c.reset}\n`
+            );
+        }
     }
+
+    log(`\n  ${c.dim}Detail log:${c.reset} ${DETAIL_LOG_FILE}`);
 }
 
 function appendLog(report: ImportReport) {
@@ -390,10 +419,9 @@ function runImport(fullMode: boolean): ImportReport {
             .map((e) => ({ id: e, sourceDir: path.join(dir, e), source }));
     }
 
-    let allEntries = [
-        ...scanNumericDirs(CRAWLER_OUTPUT, "mtc"),
-        ...scanNumericDirs(TTV_CRAWLER_OUTPUT, "ttv"),
-    ];
+    const mtcEntries = scanNumericDirs(CRAWLER_OUTPUT, "mtc");
+    const ttvEntries = scanNumericDirs(TTV_CRAWLER_OUTPUT, "ttv");
+    let allEntries = [...mtcEntries, ...ttvEntries];
 
     if (SPECIFIC_IDS.length > 0) {
         const idSet = new Set(SPECIFIC_IDS.map(String));
@@ -408,6 +436,18 @@ function runImport(fullMode: boolean): ImportReport {
         entryBookSource.set(e.id, e.source);
     }
     const entries = allEntries.map((e) => e.id);
+
+    // Pre-scan total chapter files for accurate progress tracking
+    log(`  ${c.dim}Scanning chapter files...${c.reset}`);
+    let totalChapterFiles = 0;
+    const bookChapterCounts = new Map<string, number>();
+    for (const e of allEntries) {
+        const count = fs.readdirSync(e.sourceDir)
+            .filter((f) => f.endsWith(".txt") && /^\d{4}_/.test(f)).length;
+        bookChapterCounts.set(e.id, count);
+        totalChapterFiles += count;
+    }
+    log(`  ${c.dim}Found ${c.cyan}${formatNum(totalChapterFiles)}${c.reset}${c.dim} chapter files across ${c.cyan}${formatNum(entries.length)}${c.reset}${c.dim} books${c.reset}\n`);
 
     const report: ImportReport = {
         mode: fullMode ? "full" : "incremental",
@@ -424,22 +464,42 @@ function runImport(fullMode: boolean): ImportReport {
         failures: [],
         cleanupFilesDeleted: 0,
         cleanupBytesFreed: 0,
+        mtcBooks: SPECIFIC_IDS.length > 0
+            ? allEntries.filter((e) => e.source === "mtc").length
+            : mtcEntries.length,
+        ttvBooks: SPECIFIC_IDS.length > 0
+            ? allEntries.filter((e) => e.source === "ttv").length
+            : ttvEntries.length,
+        totalChapterFiles,
     };
 
-    // Progress bars (using SingleBar for reliable total tracking)
-    const bookBar = QUIET
+    // Initialize detail log for this run
+    logDetail(`${"=".repeat(60)}`);
+    logDetail(`Import started — ${report.mode} mode, ${formatNum(entries.length)} books, ${formatNum(totalChapterFiles)} chapter files`);
+    logDetail(`${"=".repeat(60)}`);
+
+    // Progress bars (MultiBar with books + chapters, matching export style)
+    const multiBar = QUIET
         ? null
-        : new cliProgress.SingleBar(
-            {
-                clearOnComplete: false,
-                hideCursor: true,
-                barCompleteChar: "\u2588",
-                barIncompleteChar: "\u2591",
-                barsize: 30,
-                format: `  Books    ${c.cyan}{bar}${c.reset} {value}/{total}  {percentage}%  ${c.dim}{detail}${c.reset}`,
-            }
-        );
-    bookBar?.start(entries.length, 0, { detail: "" });
+        : new cliProgress.MultiBar({
+              clearOnComplete: false,
+              hideCursor: true,
+              barsize: 20,
+              noTTYOutput: true,
+          });
+
+    const barFormat = (label: string, color: string) =>
+        `  ${color}${label}${c.reset} {bar} {value}/{total}  {percentage}%  ETA: {eta_formatted}  ${c.dim}{detail}${c.reset}`;
+
+    const bookBar = multiBar?.create(entries.length, 0, { detail: "starting..." }, {
+        format: barFormat("Books   ", c.cyan),
+    });
+    const chapterBar = multiBar?.create(totalChapterFiles || 1, 0, { detail: "" }, {
+        format: barFormat("Chapters", c.green),
+    });
+    // Ensure total is set correctly (workaround for cli-progress MultiBar)
+    if (chapterBar && totalChapterFiles > 0) chapterBar.setTotal(totalChapterFiles);
+    let chaptersProcessed = 0;
 
     for (const bookIdStr of entries) {
         const bookId = parseInt(bookIdStr, 10);
@@ -454,7 +514,11 @@ function runImport(fullMode: boolean): ImportReport {
             }
             if (!fs.existsSync(metaPath)) {
                 report.booksSkipped++;
+                const skipChaps = bookChapterCounts.get(bookIdStr) || 0;
+                chaptersProcessed += skipChaps;
                 bookBar?.increment(1, { detail: `skip ${bookId} (no metadata)` });
+                chapterBar?.update(chaptersProcessed, { detail: `skip ${bookId}` });
+                logDetail(`SKIP ${bookId}: no metadata.json`);
                 continue;
             }
 
@@ -505,7 +569,10 @@ function runImport(fullMode: boolean): ImportReport {
                         }
 
                         report.booksSkipped++;
+                        const skipChaps = bookChapterCounts.get(bookIdStr) || 0;
+                        chaptersProcessed += skipChaps;
                         bookBar?.increment(1, { detail: `skip ${meta.name}` });
+                        chapterBar?.update(chaptersProcessed, { detail: `skip ${bookId}` });
                         continue;
                     }
                 }
@@ -520,7 +587,10 @@ function runImport(fullMode: boolean): ImportReport {
 
             if (DRY_RUN) {
                 report.booksImported++;
+                const dryChaps = bookChapterCounts.get(bookIdStr) || 0;
+                chaptersProcessed += dryChaps;
                 bookBar?.increment(1, { detail: `[dry] ${meta.name}` });
+                chapterBar?.update(chaptersProcessed, { detail: `[dry] ${bookId}` });
                 continue;
             }
 
@@ -729,42 +799,66 @@ function runImport(fullMode: boolean): ImportReport {
             });
             importBook();
             report.chaptersAdded += chaptersThisBook;
-            if (chaptersThisBook > 0) {
-                bookBar?.update({ detail: `${meta.name} (${chaptersThisBook} chaps)` });
-            }
+            const bookChapTotal = bookChapterCounts.get(bookIdStr) || 0;
+            chaptersProcessed += bookChapTotal;
+            chapterBar?.update(chaptersProcessed, {
+                detail: chaptersThisBook > 0
+                    ? `+${chaptersThisBook} new from ${bookId}`
+                    : `${bookId} (0 new)`,
+            });
 
             report.booksImported++;
-            bookBar?.increment(1, { detail: meta.name });
+            bookBar?.increment(1, {
+                detail: chaptersThisBook > 0
+                    ? `${meta.name} (+${chaptersThisBook} ch)`
+                    : meta.name,
+            });
+
+            // Detail log for books with new chapters
+            if (chaptersThisBook > 0) {
+                logDetail(`IMPORT ${bookId} "${meta.name}": +${chaptersThisBook} chapters (${bookChapTotal} total files)`);
+            }
         } catch (err) {
             const msg = (err as Error).message?.slice(0, 120) || "Unknown error";
             report.booksFailed++;
             report.failures.push({ bookId, error: msg });
+            const failChaps = bookChapterCounts.get(bookIdStr) || 0;
+            chaptersProcessed += failChaps;
             bookBar?.increment(1, { detail: `FAIL ${bookId}` });
+            chapterBar?.update(chaptersProcessed, { detail: `FAIL ${bookId}` });
+            logDetail(`FAIL ${bookId}: ${msg}`);
         }
     }
 
-    bookBar?.stop();
+    // Finalize progress bars
+    bookBar?.update(entries.length, { detail: "done" });
+    chapterBar?.update(totalChapterFiles, { detail: "done" });
+    multiBar?.stop();
+
+    // Write summary to detail log
+    logDetail(`${"─".repeat(40)}`);
+    logDetail(`Imported: ${report.booksImported}, Skipped: ${report.booksSkipped}, Failed: ${report.booksFailed}, Chapters: +${report.chaptersAdded}`);
 
     // ─── Cleanup: remove .txt chapter files whose body is safely in compressed storage
     if (CLEANUP_MODE && !DRY_RUN) {
         log(`\n${c.yellow}Cleanup: removing .txt chapter files from crawler/output...${c.reset}`);
 
-        const cleanupBar = QUIET
+        const cleanupMultiBar = QUIET
             ? null
-            : new cliProgress.SingleBar({
+            : new cliProgress.MultiBar({
                   clearOnComplete: false,
                   hideCursor: true,
-                  barCompleteChar: "\u2588",
-                  barIncompleteChar: "\u2591",
-                  barsize: 30,
-                  format: `  Cleanup  ${c.yellow}{bar}${c.reset} {value}/{total}  {percentage}%  ${c.dim}{detail}${c.reset}`,
+                  barsize: 20,
+                  noTTYOutput: true,
               });
 
         const cleanupDirs = [
             ...scanNumericDirs(CRAWLER_OUTPUT, "mtc"),
             ...scanNumericDirs(TTV_CRAWLER_OUTPUT, "ttv"),
         ];
-        cleanupBar?.start(cleanupDirs.length, 0, { detail: "" });
+        const cleanupBar = cleanupMultiBar?.create(cleanupDirs.length, 0, { detail: "starting..." }, {
+            format: `  ${c.yellow}Cleanup ${c.reset} {bar} {value}/{total}  {percentage}%  ETA: {eta_formatted}  ${c.dim}{detail}${c.reset}`,
+        });
 
         let skippedMissing = 0;
 
@@ -810,15 +904,12 @@ function runImport(fullMode: boolean): ImportReport {
                 detail: `${bookId}: ${deleted}/${txtFiles.length} files`,
             });
         }
-        cleanupBar?.stop();
+        cleanupBar?.update(cleanupDirs.length, { detail: "done" });
+        cleanupMultiBar?.stop();
 
         if (report.cleanupFilesDeleted > 0) {
-            const gb = (
-                report.cleanupBytesFreed /
-                (1024 * 1024 * 1024)
-            ).toFixed(1);
             log(
-                `${c.green}Cleanup done:${c.reset} ${report.cleanupFilesDeleted.toLocaleString()} files deleted, ${gb} GB freed`
+                `${c.green}Cleanup done:${c.reset} ${report.cleanupFilesDeleted.toLocaleString()} files deleted, ${formatBytes(report.cleanupBytesFreed)} freed`
             );
         } else {
             log(`${c.dim}Cleanup: no .txt files to remove${c.reset}`);
@@ -831,6 +922,10 @@ function runImport(fullMode: boolean): ImportReport {
     }
 
     report.finishedAt = new Date();
+    const totalDuration = report.finishedAt.getTime() - report.startedAt.getTime();
+    logDetail(`${"=".repeat(60)}`);
+    logDetail(`COMPLETED in ${formatDuration(totalDuration)}: ${report.booksImported} imported, ${report.booksSkipped} skipped, ${report.booksFailed} failed, +${report.chaptersAdded} chapters`);
+    logDetail(`${"=".repeat(60)}\n`);
     sqlite.close();
     return report;
 }
@@ -846,10 +941,12 @@ async function cronLoop() {
         [
             "",
             `${c.bgBlue}${c.white}${c.bold} Binslib Import Daemon ${c.reset}`,
-            `  ${c.dim}Polling:${c.reset}   ${CRAWLER_OUTPUT}`,
+            `  ${c.dim}MTC src:${c.reset}   ${CRAWLER_OUTPUT}`,
+            `  ${c.dim}TTV src:${c.reset}   ${TTV_CRAWLER_OUTPUT}`,
             `  ${c.dim}Interval:${c.reset}  every ${CRON_INTERVAL} minutes`,
             `  ${c.dim}Database:${c.reset}  ${DB_PATH}`,
             `  ${c.dim}Log:${c.reset}       ${LOG_FILE}`,
+            `  ${c.dim}Detail:${c.reset}    ${DETAIL_LOG_FILE}`,
             `  ${c.dim}Press Ctrl+C to stop${c.reset}`,
             "",
         ].join("\n")
@@ -903,8 +1000,25 @@ async function cronLoop() {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
+const FULL_MODE_SIZE_LIMIT = 100 * 1024 * 1024; // 100 MB
+
 function main() {
     const mode = FULL_MODE ? "full" : "incremental";
+
+    // Guard: block --full when the DB is large to prevent accidental data loss
+    if (FULL_MODE && fs.existsSync(DB_PATH)) {
+        const dbSize = fs.statSync(DB_PATH).size;
+        if (dbSize > FULL_MODE_SIZE_LIMIT) {
+            process.stdout.write(
+                `\n${c.red}${c.bold}ABORT:${c.reset} --full mode is disabled when the database exceeds ${formatBytes(FULL_MODE_SIZE_LIMIT)}.\n` +
+                `  Current DB size: ${c.yellow}${formatBytes(dbSize)}${c.reset}\n` +
+                `  Path: ${DB_PATH}\n` +
+                `  ${c.dim}This safeguard prevents accidental deletion of a large dataset.${c.reset}\n` +
+                `  ${c.dim}Use incremental mode (no --full flag) or delete the DB manually first.${c.reset}\n\n`
+            );
+            process.exit(1);
+        }
+    }
 
     if (CRON_MODE) {
         cronLoop().catch((err) => {
@@ -918,9 +1032,11 @@ function main() {
     process.stdout.write(
         [
             "",
-            `${c.bold}Binslib Import${c.reset} — ${mode} mode${DRY_RUN ? " (dry run)" : ""}`,
-            `  ${c.dim}Database:${c.reset} ${DB_PATH}`,
-            `  ${c.dim}Source:${c.reset}   ${CRAWLER_OUTPUT}`,
+            `${c.bold}Binslib Import${c.reset} — ${mode} mode${DRY_RUN ? " (dry run)" : ""}${CLEANUP_MODE ? " +cleanup" : ""}`,
+            `  ${c.dim}Database:${c.reset}  ${DB_PATH}`,
+            `  ${c.dim}MTC src:${c.reset}   ${CRAWLER_OUTPUT}`,
+            `  ${c.dim}TTV src:${c.reset}   ${TTV_CRAWLER_OUTPUT}`,
+            `  ${c.dim}Log:${c.reset}       ${DETAIL_LOG_FILE}`,
             "",
         ].join("\n")
     );
