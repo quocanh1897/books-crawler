@@ -588,31 +588,27 @@ function runImport(fullMode: boolean): ImportReport {
       // Use directory name as canonical ID (meta.id can differ after meta-puller updates)
       meta.id = bookId;
 
-      // Skip unchanged in incremental mode
+      // Skip already-imported books in incremental mode
       if (!fullMode) {
         const existing = bookExistsStmt.get(bookId) as
           | { id: number; updated_at: string; meta_hash: string | null }
           | undefined;
 
-        const metaUnchanged = existing?.meta_hash === metaHash;
-        const updatedAtUnchanged = existing?.updated_at === meta.updated_at;
+        if (existing) {
+          const savedInDb = sqlite
+            .prepare("SELECT COUNT(*) as cnt FROM chapters WHERE book_id = ?")
+            .get(bookId) as { cnt: number };
 
-        if (existing && metaUnchanged && updatedAtUnchanged) {
-          let shouldSkip = false;
-          const chapterCount = meta.chapter_count || 0;
-          if (chapterCount > 0) {
-            const savedInDb = sqlite
-              .prepare("SELECT COUNT(*) as cnt FROM chapters WHERE book_id = ?")
-              .get(bookId) as { cnt: number };
-            if (savedInDb.cnt >= chapterCount) {
-              shouldSkip = true;
-            }
-          } else {
-            shouldSkip = true;
-          }
+          // Count actual .txt chapter files on disk (cheap readdir, no file reads).
+          // We compare against this instead of meta.chapter_count because the API
+          // count often exceeds what's on disk (some chapters empty/missing).
+          const txtOnDisk = fs
+            .readdirSync(bookDir)
+            .filter((f) => f.endsWith(".txt") && /^\d{4}_/.test(f)).length;
 
-          if (shouldSkip) {
-            // Even for skipped books, sync cover if missing
+          // Skip if DB already has all chapters that exist on disk
+          if (txtOnDisk > 0 && savedInDb.cnt >= txtOnDisk) {
+            // Sync cover if missing
             const coverSrc = path.join(bookDir, "cover.jpg");
             const coverDest = path.join(COVERS_DIR, `${bookId}.jpg`);
             if (fs.existsSync(coverSrc) && !fs.existsSync(coverDest)) {
@@ -630,13 +626,12 @@ function runImport(fullMode: boolean): ImportReport {
             chapterBar?.update(chaptersProcessed, { detail: `skip ${bookId}` });
             continue;
           }
-        }
 
-        // If only metadata changed (hash differs) but updated_at is the same,
-        // count it and log it so it's visible in the report
-        if (existing && !metaUnchanged) {
-          report.metaResynced++;
-          bookBar?.update({ detail: `resync ${meta.name} (meta changed)` });
+          // Book exists but has new chapters on disk -- only import missing ones
+          // (chapterExistsStmt handles per-chapter dedup below)
+          if (existing.meta_hash !== metaHash) {
+            report.metaResynced++;
+          }
         }
       }
 
