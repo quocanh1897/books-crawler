@@ -515,6 +515,7 @@ const workerPromises = chunks.map((chunk, idx) => {
         dryRun: DRY_RUN,
         dictPath: DICT_PATH,
       },
+      execArgv: ["--require", "tsx/cjs"],
     });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -434,18 +434,22 @@ function runImport(fullMode: boolean): ImportReport {
   }
   const entries = allEntries.map((e) => e.id);
 
-  // Estimate total chapter counts from book.json (avoids expensive dir scans
+  // Estimate total chapter counts from metadata (avoids expensive dir scans
   // that previously called readdirSync on every source dir — millions of stat calls)
   log(`  ${c.dim}Estimating chapter counts...${c.reset}`);
   let totalChapterFiles = 0;
   const bookChapterCounts = new Map<string, number>();
   for (const e of allEntries) {
     let count = 0;
-    const bookJsonPath = path.join(e.sourceDir, "book.json");
     try {
-      if (fs.existsSync(bookJsonPath)) {
+      const metaPath = path.join(e.sourceDir, "metadata.json");
+      const bookJsonPath = path.join(e.sourceDir, "book.json");
+      if (fs.existsSync(metaPath)) {
+        const mj = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
+        count = mj.chapter_count || mj.chapters_saved || 0;
+      } else if (fs.existsSync(bookJsonPath)) {
         const bj = JSON.parse(fs.readFileSync(bookJsonPath, "utf-8"));
-        count = bj.chapters_saved || 0;
+        count = bj.chapters_saved || bj.chapter_count || 0;
       }
     } catch {
       /* use 0 */
