@@ -429,15 +429,19 @@ log(`  Workers: ${c.cyan}${NUM_WORKERS}${c.reset}`);
 log(`  Dry run: ${DRY_RUN ? "yes" : "no"}`);
 log("");
 
-// Estimate chapter counts from book.json (avoids expensive readdirSync scans)
+// Estimate chapter counts from metadata (avoids expensive readdirSync scans)
 log(`  ${c.dim}Estimating chapter counts...${c.reset}`);
 let totalChapters = 0;
 for (const { bookDir } of allBooks) {
-  const bookJsonPath = path.join(bookDir, "book.json");
   try {
-    if (fs.existsSync(bookJsonPath)) {
+    const metaPath = path.join(bookDir, "metadata.json");
+    const bookJsonPath = path.join(bookDir, "book.json");
+    if (fs.existsSync(metaPath)) {
+      const mj = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
+      totalChapters += mj.chapter_count || mj.chapters_saved || 0;
+    } else if (fs.existsSync(bookJsonPath)) {
       const bj = JSON.parse(fs.readFileSync(bookJsonPath, "utf-8"));
-      totalChapters += bj.chapters_saved || 0;
+      totalChapters += bj.chapters_saved || bj.chapter_count || 0;
     }
   } catch {
     /* use 0 */
