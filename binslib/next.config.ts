@@ -4,7 +4,7 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverExternalPackages: ["better-sqlite3"],
+  serverExternalPackages: ["better-sqlite3", "zstd-napi"],
   turbopack: {
     root: path.resolve(__dirname),
     resolveAlias: {

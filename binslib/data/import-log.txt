@@ -37,3 +37,12 @@
 [2026-02-23 08:25:16] mode=full duration=0s
   scanned=1 imported=1 skipped=0 failed=0 meta_resynced=0
   chapters=53 covers=0 meta_pulls=1
+[2026-02-23 09:25:57] mode=full duration=1h 18m 16s
+  scanned=22277 imported=22274 skipped=3 failed=0 meta_resynced=0
+  chapters=1695862 covers=0 meta_pulls=22277
+[2026-02-23 12:29:44] mode=incremental duration=0s
+  scanned=100 imported=0 skipped=100 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 12:30:48] mode=incremental duration=22s
+  scanned=100 imported=100 skipped=0 failed=0 meta_resynced=0
+  chapters=6961 covers=0 meta_pulls=100

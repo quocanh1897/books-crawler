@@ -12,7 +12,8 @@
     "db:studio": "drizzle-kit studio",
     "import": "tsx scripts/import.ts",
     "import:full": "tsx scripts/import.ts --full",
-    "import:cron": "tsx scripts/import.ts --cron"
+    "import:cron": "tsx scripts/import.ts --cron",
+    "pre-compress": "tsx scripts/pre-compress.ts"
   },
   "dependencies": {
     "zstd-napi": "^0.0.12",

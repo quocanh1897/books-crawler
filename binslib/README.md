@@ -21,7 +21,60 @@ npm run dev              # http://localhost:3000
 
 ## Data Pipeline
 
-The pipeline has two stages: **import** (crawler files → SQLite + compressed disk storage) and **export** (DB chapter bodies → compressed disk files, for migration).
+```mermaid
+flowchart LR
+  subgraph Crawler["Crawler Output"]
+    TXT["0001_slug.txt\n0002_slug.txt\n..."]
+    META["metadata.json"]
+    BOOK["book.json"]
+    COVER["cover.jpg"]
+  end
+
+  subgraph PreCompress["Pre-compress (optional)"]
+    PC["scripts/pre-compress.ts\n(parallel workers)"]
+  end
+
+  subgraph Import["Import"]
+    IMP["scripts/import.ts"]
+  end
+
+  subgraph Storage["Disk Storage"]
+    BUNDLE["{book_id}.bundle\nBLIB binary format\nindex + zstd chunks"]
+  end
+
+  subgraph DB["SQLite"]
+    BOOKS["books\n(metadata, stats)"]
+    CHAPS["chapters\n(title, slug, word_count)\nno body column"]
+    FTS["books_fts\n(full-text search)"]
+  end
+
+  subgraph Web["Web / API"]
+    SSR["Next.js SSR\ndoc-truyen/[slug]/[chapter]"]
+    API["JSON API\n/api/books/..."]
+  end
+
+  TXT --> PC --> BUNDLE
+  TXT --> IMP
+  META --> IMP
+  BOOK --> IMP
+  COVER --> IMP
+  BUNDLE -.->|"already compressed?\nskip compression"| IMP
+  IMP -->|"BundleWriter.flush()"| BUNDLE
+  IMP -->|"SQLite transaction"| BOOKS
+  IMP --> CHAPS
+  IMP -->|"copy cover.jpg"| SSR
+
+  BUNDLE -->|"readChapterBody()"| SSR
+  BUNDLE -->|"readChapterBody()"| API
+  CHAPS --> SSR
+  CHAPS --> API
+  BOOKS --> FTS
+```
+
+The pipeline has two stages:
+
+1. **Pre-compress** (optional) — compress crawler `.txt` files into `.bundle` files in parallel using worker threads. Useful when rsyncing compressed data to another machine before import.
+2. **Import** — scan crawler output, read chapter text (from `.txt` files or pre-compressed bundles), write bundles to disk, insert metadata into SQLite.
 
 ### Storage layout
 
@@ -29,18 +82,76 @@ The pipeline has two stages: **import** (crawler files → SQLite + compressed d
 data/
   binslib.db                  # SQLite — metadata, chapter index, users, FTS
   compressed/
-    {book_id}/
-      {index}.txt.zst         # zstd-compressed chapter body
+    {book_id}.bundle          # per-book bundle: all chapters in one file
   import-log.txt              # import run history
-  export-log.txt              # export run history
+  pre-compress-log.txt        # pre-compress run history
   global.dict                 # optional zstd dictionary for better compression
 ```
 
-Chapter bodies are stored as individual zstd-compressed files on disk, not in the database. The `chapters` table in SQLite holds only metadata (title, slug, word count, book/index references). This keeps the DB small (< 1 GB) while supporting millions of chapters.
+Chapter bodies are stored in **per-book bundle files** on disk, not in the database. Each `.bundle` file contains a binary index + concatenated zstd-compressed chapter bodies, enabling O(1) random access to any chapter while keeping only one file per book. The `chapters` table in SQLite holds only metadata (title, slug, word count, book/index references). This keeps the DB small (< 1 GB) while supporting millions of chapters.
+
+### Bundle format
+
+The `.bundle` binary format (little-endian):
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 4 | Magic bytes `BLIB` |
+| 4 | 4 | Version (uint32, currently `1`) |
+| 8 | 4 | Entry count N (uint32) |
+| 12 | N × 16 | Index entries (sorted by chapter index) |
+| 12 + N×16 | variable | Concatenated zstd-compressed chapter data |
+
+Each 16-byte index entry:
+
+| Offset | Size | Field |
+|---|---|---|
+| 0 | 4 | Chapter index number (uint32) |
+| 4 | 4 | Data offset from file start (uint32) |
+| 8 | 4 | Compressed data length (uint32) |
+| 12 | 4 | Uncompressed data length (uint32) |
+
+This reduces file count from millions of individual `.zst` files to one `.bundle` per book, eliminating filesystem overhead and dramatically improving I/O performance on both NTFS and ext4.
+
+### Legacy compatibility
+
+The reader falls back to individual `.zst`/`.gz` files if no bundle exists for a book. This allows a gradual transition — once all books are re-imported, legacy per-file directories can be deleted.
 
 ---
 
-## Import Process
+## Pre-compress (optional)
+
+**Script**: `scripts/pre-compress.ts`
+
+Reads `.txt` chapter files directly from crawler output directories and compresses them into per-book `.bundle` files using parallel worker threads. This is useful for pre-compressing on a build machine before rsyncing bundles to production — the import script will detect pre-compressed bundles and skip compression for those books.
+
+```bash
+# Pre-compress with auto-detected worker count (= CPU cores)
+npm run pre-compress
+npx tsx scripts/pre-compress.ts
+
+# Custom worker count
+npx tsx scripts/pre-compress.ts --workers 6
+
+# Preview
+npx tsx scripts/pre-compress.ts --dry-run
+```
+
+**How it works:**
+
+1. Scans both `crawler/output/` and `crawler-tangthuvien/output/` for book directories
+2. Estimates chapter counts from `book.json` (avoids expensive directory enumeration)
+3. Splits work across N worker threads (round-robin by book)
+4. Each worker, for each book:
+   - Reads all chapter `.txt` files, extracts body (strips title line)
+   - Compresses each body with zstd (using global dictionary if available)
+   - Collects all chapters in memory, then writes a single `{book_id}.bundle` file
+5. Skips books whose bundle already has enough chapters (safe to re-run)
+6. Reports compression ratio, throughput, and per-worker stats
+
+---
+
+## Import
 
 **Script**: `scripts/import.ts`
 
@@ -58,21 +169,39 @@ crawler/output/{book_id}/
 
 ### What the import does
 
+```mermaid
+flowchart TD
+  Start["For each book directory"] --> ReadMeta["Read metadata.json\nCompute MD5 hash"]
+  ReadMeta --> Skip{"Incremental:\nhash + updated_at\nunchanged?"}
+  Skip -->|Yes| SkipBook["Skip book\n(sync cover if missing)"]
+  Skip -->|No| Cover["Copy cover.jpg\nto public/covers/"]
+  Cover --> BW["Create BundleWriter\n(load existing bundle)"]
+  BW --> TX["Begin SQLite transaction"]
+  TX --> Upsert["Upsert author, genres, tags\nInsert/replace book row"]
+  Upsert --> PreComp{"Pre-compressed\nchapters in bundle?"}
+  PreComp -->|Yes| ReadBundle["Read body from bundle\nExtract title\nInsert chapter metadata"]
+  PreComp -->|No| ReadTxt["Read .txt file\nExtract title + body\nAdd to BundleWriter\nInsert chapter metadata"]
+  ReadBundle --> Commit["Commit transaction"]
+  ReadTxt --> Commit
+  Commit --> Flush["BundleWriter.flush()\nWrite single .bundle file"]
+  Flush --> Report["Update progress bars\nLog details"]
+```
+
 For each book directory (scanned from both `crawler/output/` and `crawler-tangthuvien/output/`):
 
-1. **Reads `metadata.json`** — if missing, tries to fetch it by running `meta-puller/pull_metadata.py`
-2. **Computes a metadata hash** (MD5) for change detection in incremental mode
-3. **Incremental skip logic** — in default mode, skips books where both the metadata hash and `updated_at` timestamp are unchanged, and the DB already has all chapters from `book.json`
-4. **Copies `cover.jpg`** to `public/covers/{book_id}.jpg` for serving by Next.js
-5. **Imports in a single SQLite transaction** per book:
+1. **Estimates chapter counts** from `book.json` (no directory enumeration needed)
+2. **Reads `metadata.json`** — if missing, tries to fetch it by running `meta-puller/pull_metadata.py`
+3. **Computes a metadata hash** (MD5) for change detection in incremental mode
+4. **Incremental skip logic** — in default mode, skips books where both the metadata hash and `updated_at` timestamp are unchanged, and the DB already has all chapters from `book.json`
+5. **Copies `cover.jpg`** to `public/covers/{book_id}.jpg` for serving by Next.js
+6. **Creates a `BundleWriter`** that loads any existing bundle data for the book, so new chapters are merged with existing ones
+7. **Imports in a single SQLite transaction** per book:
    - Upserts author, genres (auto-assigns IDs for TTV genres without numeric IDs), and tags
    - Inserts or replaces the book row with all metadata fields and a `source` column (`mtc` or `ttv`)
-   - For each chapter `.txt` file:
-     - Extracts the title from the first line
-     - Strips the title and leading blanks to get the body text
-     - Writes the body to disk as a zstd-compressed file via `chapter-storage.ts`
-     - Inserts a chapter metadata row (title, slug, word count) into SQLite
-6. **Prints a boxed report** with counts of scanned/imported/skipped/failed books, chapters added, covers copied, and DB size
+   - For pre-compressed chapters (already in a bundle, no `.txt` source): extracts title from body, inserts metadata row
+   - For each chapter `.txt` file: extracts title, strips leading blanks, adds body to the `BundleWriter`, inserts metadata row
+8. **Flushes the `BundleWriter`** after the DB transaction commits — writes a single `.bundle` file per book instead of thousands of individual `.zst` files
+9. **Prints a boxed report** with counts of scanned/imported/skipped/failed books, chapters added, covers copied, and DB size
 
 ### Import modes
 
@@ -95,9 +224,6 @@ npx tsx scripts/import.ts --ids 100267 102205
 # Dry run — reports what would be imported without making changes
 npx tsx scripts/import.ts --dry-run
 
-# Cleanup — deletes source .txt files from crawler/output after successful import
-npx tsx scripts/import.ts --cleanup
-
 # Quiet — suppresses progress bars (for scripts/CI)
 npx tsx scripts/import.ts --quiet
 ```
@@ -110,61 +236,8 @@ npx tsx scripts/import.ts --quiet
 | `CRAWLER_OUTPUT_DIR` | `../crawler/output` | MTC crawler output directory |
 | `TTV_CRAWLER_OUTPUT_DIR` | `../crawler-tangthuvien/output` | TTV crawler output directory |
 | `META_PULLER_DIR` | `../meta-puller` | Path to meta-puller scripts |
-| `CHAPTERS_DIR` | `./data/compressed` | Where compressed chapter files are stored |
+| `CHAPTERS_DIR` | `./data/compressed` | Where bundle files are stored |
 | `ZSTD_DICT_PATH` | `./data/global.dict` | Optional zstd dictionary for compression |
-
----
-
-## Export Process
-
-Two export scripts move chapter body text from the database (or crawler files) to compressed files on disk. These were created as part of a storage migration to shrink the database from ~39 GB to < 1 GB.
-
-### Export from DB (`scripts/export-chapters.ts`)
-
-Reads chapter bodies from the `chapters.body` column in SQLite, writes them as zstd-compressed files, and optionally NULLs the DB body to reclaim space.
-
-```bash
-# Export all chapters, NULL DB body in batches of 1000
-npx tsx scripts/export-chapters.ts
-
-# Preview what would be exported
-npx tsx scripts/export-chapters.ts --dry-run
-
-# Write to disk but keep DB body intact
-npx tsx scripts/export-chapters.ts --keep-db
-
-# Custom batch size for NULLing DB rows
-npx tsx scripts/export-chapters.ts --batch 5000
-```
-
-**How it works:**
-1. Queries all chapters where `body IS NOT NULL`
-2. For each chapter: skips if a `.zst` or `.gz` file already exists on disk, otherwise compresses with zstd and writes to `data/compressed/{book_id}/{index}.txt.zst`
-3. In batches of N, runs `UPDATE chapters SET body = NULL` to free DB space
-4. Prints a report with export counts, bytes written, and DB size before/after
-5. Suggests running `VACUUM` afterward to reclaim freed space in the DB file
-
-### Export from files (`scripts/export-from-files.ts`)
-
-Reads `.txt` chapter files directly from crawler output directories (bypassing the database) and compresses them to disk using parallel worker threads.
-
-```bash
-# Export with auto-detected worker count (= CPU cores)
-npx tsx scripts/export-from-files.ts
-
-# Custom worker count
-npx tsx scripts/export-from-files.ts --workers 6
-
-# Preview
-npx tsx scripts/export-from-files.ts --dry-run
-```
-
-**How it works:**
-1. Scans both `crawler/output/` and `crawler-tangthuvien/output/` for book directories
-2. Splits work across N worker threads (round-robin by book)
-3. Each worker: reads chapter `.txt` files, extracts body (strips title line), compresses with zstd (using global dictionary if available), writes to `data/compressed/{book_id}/{index}.txt.zst`
-4. Skips chapters that already have `.zst` or `.gz` files on disk (safe to re-run)
-5. Reports compression ratio, throughput, and per-worker stats
 
 ---
 
@@ -172,16 +245,31 @@ npx tsx scripts/export-from-files.ts --dry-run
 
 **File**: `src/lib/chapter-storage.ts`
 
-The central read/write layer for chapter bodies on disk. All import and export scripts, plus the web reader, go through this module.
+The central read/write layer for chapter bodies on disk. All scripts and the web reader go through this module.
+
+### Public API
 
 | Function | Description |
 |---|---|
-| `writeChapterBody(bookId, index, body)` | Compresses with zstd (level 3) and writes to `data/compressed/{bookId}/{index}.txt.zst` |
-| `readChapterBody(bookId, index)` | Reads from disk — tries `.zst` first, falls back to `.gz` (migration compat). Returns `null` if no file exists |
-| `resolveChapterBody(bookId, index, dbBody)` | Tries disk first, falls back to the DB body value. Enables the dual-read migration layer |
-| `chapterFileExists(bookId, index)` | Returns `true` if either `.zst` or `.gz` file exists |
+| `readChapterBody(bookId, index)` | Reads from bundle, falls back to legacy `.zst`/`.gz`. Returns `null` if not found |
+| `writeChapterBody(bookId, index, body)` | Read-modify-write a single chapter into the book's bundle file |
+| `listCompressedChapters(bookId)` | Returns sorted chapter indices from bundle + legacy files |
+| `compressBody(body)` | Compress a string using the shared zstd compressor + dictionary |
 
-The compressor/decompressor instances are lazily initialized singletons. If `data/global.dict` exists, it is loaded as a shared zstd dictionary for better compression ratios on small chapters.
+### BundleWriter (batch API)
+
+For importing many chapters at once, use `BundleWriter` instead of calling `writeChapterBody()` per chapter (which would do O(N²) read-modify-write cycles):
+
+```
+import { BundleWriter } from "@/lib/chapter-storage";
+
+const writer = new BundleWriter(bookId, { loadExisting: true });
+writer.addChapter(1, bodyText1);
+writer.addChapter(2, bodyText2);
+writer.flush(); // writes a single .bundle file
+```
+
+The compressor/decompressor instances are lazily initialized singletons. If `data/global.dict` exists, it is loaded as a shared zstd dictionary for better compression ratios on small chapters. Bundle indexes are LRU-cached in memory for fast repeated reads.
 
 ## Docker
 
@@ -200,6 +288,7 @@ The `docker-compose.yml` mounts crawler output directories, meta-puller, epub-co
 | `npm run start` | Start production server |
 | `npm run db:generate` | Generate Drizzle migrations |
 | `npm run db:migrate` | Run migrations + create FTS tables |
+| `npm run pre-compress` | Pre-compress crawler .txt files into bundles (parallel) |
 | `npm run import` | Incremental import |
 | `npm run import:full` | Full re-import (clears existing data) |
 | `npm run import:cron` | Import daemon (polls every 30 min) |
