@@ -4,6 +4,44 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.3] - 2026-02-23
+
+### Changed
+
+- **Rename `download_top1000.py` → `download_topN.py`** (`crawler-descryptor/`)
+  - Accepts a positional argument `N` for the number of top books to download (replaces the implicit "1000" in the old name)
+  - Default plan file changed from `ranking_books.json` (missing) to `fresh_books_download.json`
+  - All download logic extracted to shared module; script is now a thin orchestrator
+- **Rename `batch_download.py` → `download_batch.py`** (`crawler-descryptor/`)
+  - Imports `AsyncBookClient` and `download_book` from shared `src/downloader.py` instead of inline copies
+- **Bundle-aware download skip** (`crawler-descryptor/src/utils.py`)
+  - `count_existing_chapters()` now returns the union of `.txt` file indices AND chapters in `binslib/data/compressed/{book_id}.bundle`
+  - Downloads skip chapters that already exist in either form, avoiding redundant re-downloads
+- **Bundle-aware catalog audit** (`crawler-descryptor/fetch_catalog.py`)
+  - `audit()` now checks both crawler output and compressed bundles when classifying books as complete/partial/missing
+  - Completion threshold changed from `>= api_ch * 0.95` to exact `>= api_ch`
+- **Incremental pre-compress with gap validation** (`binslib/scripts/pre-compress.ts`)
+  - Existing bundles are read and merged incrementally — only new `.txt` chapters are compressed, existing bundle data is preserved
+  - Gap validation: if the first new chapter index is not `max(bundle) + 1`, the book is skipped and reported as a gap error
+  - Gap errors are aggregated across all workers and displayed in the summary report and detail log
+  - Exit code 1 if any gap errors occur (alongside existing failure check)
+- **Import gap validation** (`binslib/scripts/import.ts`)
+  - Before inserting chapters, validates that new `.txt` file indices are contiguous from the bundle's highest index
+  - Gap errors are tracked in `ImportReport` with `gapErrors` count and `gapErrorDetails` list
+  - Gap errors printed in the boxed report, detail log, and appended to the run log
+
+### Added
+
+- **`src/downloader.py`** (`crawler-descryptor/src/`)
+  - Shared async download engine extracted from `download_top1000.py` and `batch_download.py`
+  - `AsyncBookClient` class with parameterized `max_concurrent` and `request_delay`
+  - `download_book(client, book_entry, label)` — unified function that accepts plan-file entries (with `first_chapter`) or bare `{"id": N}` dicts (fetches metadata automatically)
+- **`read_bundle_indices(book_id)`** (`crawler-descryptor/src/utils.py`)
+  - Reads BLIB binary header + index section to extract chapter indices from a `.bundle` file
+- **`BundleWriter.maxIndex()` and `BundleWriter.indices()`** (`binslib/src/lib/chapter-storage.ts`)
+  - `maxIndex()` returns the highest chapter index in the buffer (or `null` if empty)
+  - `indices()` returns the full set of chapter indices currently buffered
+
 ## [0.2.2] - 2026-02-23
 
 ### Fixed
@@ -85,6 +123,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `PARALLEL_DOWNLOAD.md` — dual-emulator setup and usage
   - `crawler/CONTEXT.md` — crawler architecture and flow notes
 
+[0.2.3]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/quocanh1897/mtc-crawler/compare/v0.1.0...v0.2.0

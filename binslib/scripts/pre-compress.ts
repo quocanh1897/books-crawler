@@ -74,28 +74,41 @@ if (!isMainThread) {
   let bytesWritten = 0;
   let bytesRead = 0;
   const failures: { bookId: string; file: string; error: string }[] = [];
+  const gapErrors: { bookId: string; maxBundle: number; minNew: number }[] = [];
 
   /**
-   * Read the chapter count from an existing .bundle file header.
-   * Returns 0 if the bundle doesn't exist or is invalid.
+   * Read all raw chapter data from an existing .bundle file.
+   * Returns a Map of indexNum → {compressed, rawLen}, empty if no bundle.
    */
-  function readBundleChapterCount(bundlePath: string): number {
-    let fd: number;
+  function readBundleRaw(
+    bundlePath: string,
+  ): Map<number, { compressed: Buffer; rawLen: number }> {
+    const result = new Map<number, { compressed: Buffer; rawLen: number }>();
+    let fileBuf: Buffer;
     try {
-      fd = fs.openSync(bundlePath, "r");
+      fileBuf = fs.readFileSync(bundlePath);
     } catch {
-      return 0;
+      return result;
     }
-    try {
-      const hdr = Buffer.alloc(BUNDLE_HEADER_SIZE);
-      const read = fs.readSync(fd, hdr, 0, BUNDLE_HEADER_SIZE, 0);
-      if (read < BUNDLE_HEADER_SIZE) return 0;
-      if (!hdr.subarray(0, 4).equals(BUNDLE_MAGIC)) return 0;
-      if (hdr.readUInt32LE(4) !== BUNDLE_VERSION) return 0;
-      return hdr.readUInt32LE(8);
-    } finally {
-      fs.closeSync(fd);
+    if (fileBuf.length < BUNDLE_HEADER_SIZE) return result;
+    if (!fileBuf.subarray(0, 4).equals(BUNDLE_MAGIC)) return result;
+    if (fileBuf.readUInt32LE(4) !== BUNDLE_VERSION) return result;
+    const count = fileBuf.readUInt32LE(8);
+    const indexEnd = BUNDLE_HEADER_SIZE + count * BUNDLE_ENTRY_SIZE;
+    if (fileBuf.length < indexEnd) return result;
+    for (let i = 0; i < count; i++) {
+      const base = BUNDLE_HEADER_SIZE + i * BUNDLE_ENTRY_SIZE;
+      const indexNum = fileBuf.readUInt32LE(base);
+      const offset = fileBuf.readUInt32LE(base + 4);
+      const compLen = fileBuf.readUInt32LE(base + 8);
+      const rawLen = fileBuf.readUInt32LE(base + 12);
+      if (offset + compLen <= fileBuf.length) {
+        const compressed = Buffer.alloc(compLen);
+        fileBuf.copy(compressed, 0, offset, offset + compLen);
+        result.set(indexNum, { compressed, rawLen });
+      }
     }
+    return result;
   }
 
   /**
@@ -188,9 +201,23 @@ if (!isMainThread) {
 
     const bundlePath = path.join(chaptersDir, `${bookId}.bundle`);
 
-    // Skip if bundle already has all chapters
-    const existingCount = readBundleChapterCount(bundlePath);
-    if (existingCount >= chapterFiles.length) {
+    // Read existing bundle data for incremental merge
+    const existingData = readBundleRaw(bundlePath);
+    const existingIndices = new Set(existingData.keys());
+
+    // Identify new .txt files not already in the bundle
+    const newFiles: { file: string; indexNum: number }[] = [];
+    for (const file of chapterFiles) {
+      const match = file.match(/^(\d+)_(.+)\.txt$/);
+      if (!match) continue;
+      const indexNum = parseInt(match[1], 10);
+      if (!existingIndices.has(indexNum)) {
+        newFiles.push({ file, indexNum });
+      }
+    }
+
+    if (newFiles.length === 0) {
+      // All chapters already in bundle — skip
       skipped += chapterFiles.length;
       parentPort!.postMessage({
         type: "book_done",
@@ -203,32 +230,45 @@ if (!isMainThread) {
       continue;
     }
 
+    // Gap validation: new chapter indices must start right after
+    // the bundle's highest existing index (no gaps allowed).
+    if (existingIndices.size > 0) {
+      const maxBundle = Math.max(...existingIndices);
+      const minNew = Math.min(...newFiles.map((f) => f.indexNum));
+      if (minNew !== maxBundle + 1) {
+        gapErrors.push({ bookId, maxBundle, minNew });
+        skipped += chapterFiles.length;
+        parentPort!.postMessage({
+          type: "book_gap_error",
+          bookId,
+          maxBundle,
+          minNew,
+          chapters: chapterFiles.length,
+        });
+        continue;
+      }
+    }
+
     if (dryRun) {
-      exported += chapterFiles.length;
+      exported += newFiles.length;
+      skipped += chapterFiles.length - newFiles.length;
       parentPort!.postMessage({
         type: "book_done",
         bookId,
         chapters: chapterFiles.length,
-        exported: chapterFiles.length,
-        skipped: 0,
+        exported: newFiles.length,
+        skipped: chapterFiles.length - newFiles.length,
         failed: 0,
       });
       continue;
     }
 
-    // Collect all chapters for this book into memory, then write one bundle
-    const chaptersMap = new Map<
-      number,
-      { compressed: Buffer; rawLen: number }
-    >();
+    // Incremental merge: start with existing bundle data, add only new chapters
+    const chaptersMap = new Map(existingData);
     let bookExported = 0;
     let bookFailed = 0;
 
-    for (const file of chapterFiles) {
-      const match = file.match(/^(\d+)_(.+)\.txt$/);
-      if (!match) continue;
-      const indexNum = parseInt(match[1], 10);
-
+    for (const { file, indexNum } of newFiles) {
       try {
         const srcPath = path.join(bookDir, file);
         const content = fs.readFileSync(srcPath, "utf-8");
@@ -259,17 +299,16 @@ if (!isMainThread) {
       }
     }
 
-    // Write the single bundle file for this book
-    if (chaptersMap.size > 0) {
+    // Write the merged bundle file
+    if (bookExported > 0) {
       try {
         fs.mkdirSync(chaptersDir, { recursive: true });
         const bundleSize = writeBundle(bundlePath, chaptersMap);
         bytesWritten += bundleSize;
         exported += bookExported;
+        skipped += existingIndices.size;
       } catch (err) {
-        // If bundle write itself fails, count all chapters as failed
         failed += bookExported;
-        exported -= 0; // didn't add yet
         bookFailed += bookExported;
         bookExported = 0;
         failures.push({
@@ -285,7 +324,7 @@ if (!isMainThread) {
       bookId,
       chapters: chapterFiles.length,
       exported: bookExported,
-      skipped: 0,
+      skipped: existingIndices.size,
       failed: bookFailed,
     });
   }
@@ -298,6 +337,7 @@ if (!isMainThread) {
     bytesWritten,
     bytesRead,
     failures,
+    gapErrors,
   });
 
   process.exit(0);
@@ -498,6 +538,7 @@ let totalFailed = 0;
 let totalBytesWritten = 0;
 let totalBytesRead = 0;
 const allFailures: { bookId: string; file: string; error: string }[] = [];
+const allGapErrors: { bookId: string; maxBundle: number; minNew: number }[] = [];
 let workersFinished = 0;
 const progressInterval = Math.max(10, Math.round(allBooks.length / 20));
 const compressStartMs = Date.now();
@@ -547,6 +588,18 @@ const workerPromises = chunks.map((chunk, idx) => {
             `PROGRESS: ${formatNum(booksProcessed)}/${formatNum(allBooks.length)} books (${pct}%), ${formatNum(totalExported + msg.exported)} exported, elapsed ${formatDuration(elapsed)}, ETA ${formatDuration(remaining * 1000)}`,
           );
         }
+      } else if (msg.type === "book_gap_error") {
+        booksProcessed++;
+        chaptersProcessed += msg.chapters;
+        bookBar?.update(booksProcessed, {
+          detail: `GAP ${msg.bookId}`,
+        });
+        chapterBar?.update(chaptersProcessed, {
+          detail: `gap err ${msg.bookId}`,
+        });
+        logDetail(
+          `GAP_ERROR Book ${msg.bookId}: bundle max=${msg.maxBundle}, first new=${msg.minNew}, expected=${msg.maxBundle + 1}`,
+        );
       } else if (msg.type === "done") {
         totalExported += msg.exported;
         totalSkipped += msg.skipped;
@@ -554,6 +607,7 @@ const workerPromises = chunks.map((chunk, idx) => {
         totalBytesWritten += msg.bytesWritten;
         totalBytesRead += msg.bytesRead;
         allFailures.push(...msg.failures);
+        allGapErrors.push(...(msg.gapErrors || []));
         workersFinished++;
       }
     });
@@ -585,7 +639,7 @@ Promise.all(workerPromises)
     const lines = [
       "",
       border,
-      `${c.blue}│${c.reset}${c.bold}     Pre-compress Report                             ${c.reset}${c.blue}│${c.reset}`,
+      `${c.blue}│${c.reset}${c.bold}     Pre-compress Report                            ${c.reset}${c.blue}│${c.reset}`,
       sep,
       row("Mode:", DRY_RUN ? "dry-run" : "export"),
       row("Workers:", String(NUM_WORKERS)),
@@ -599,6 +653,11 @@ Promise.all(workerPromises)
         "Chapters failed:",
         formatNum(totalFailed),
         totalFailed > 0 ? c.red : c.white,
+      ),
+      row(
+        "Gap errors (skipped):",
+        formatNum(allGapErrors.length),
+        allGapErrors.length > 0 ? c.red : c.white,
       ),
       sep,
       row("Source read:", formatBytes(totalBytesRead)),
@@ -631,6 +690,17 @@ Promise.all(workerPromises)
         log(`  ${c.dim}... and ${allFailures.length - 20} more${c.reset}`);
     }
 
+    if (allGapErrors.length > 0) {
+      log(`\n${c.red}${c.bold}Gap errors (${allGapErrors.length} books skipped):${c.reset}`);
+      for (const g of allGapErrors.slice(0, 20)) {
+        log(
+          `  ${c.red}•${c.reset} Book ${g.bookId}: bundle max=${g.maxBundle}, first new=${g.minNew}, expected=${g.maxBundle + 1}`,
+        );
+      }
+      if (allGapErrors.length > 20)
+        log(`  ${c.dim}... and ${allGapErrors.length - 20} more${c.reset}`);
+    }
+
     const entry = [
       `[${timestamp()}] pre-compress workers=${NUM_WORKERS} duration=${formatDuration(duration)}`,
       `  books=${allBooks.length} exported=${totalExported} skipped=${totalSkipped} failed=${totalFailed}`,
@@ -652,7 +722,7 @@ Promise.all(workerPromises)
 
     log(`\n  ${c.cyan}Detail log:${c.reset} ${DETAIL_LOG_FILE}\n`);
 
-    if (totalFailed > 0) process.exit(1);
+    if (totalFailed > 0 || allGapErrors.length > 0) process.exit(1);
   })
   .catch((err) => {
     multiBar?.stop();

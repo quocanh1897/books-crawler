@@ -462,6 +462,21 @@ export class BundleWriter {
     return this.chapters.size;
   }
 
+  /** Return the highest chapter index in the buffer, or null if empty. */
+  maxIndex(): number | null {
+    if (this.chapters.size === 0) return null;
+    let max = -1;
+    for (const k of this.chapters.keys()) {
+      if (k > max) max = k;
+    }
+    return max;
+  }
+
+  /** Return the set of all chapter indices currently in the buffer. */
+  indices(): Set<number> {
+    return new Set(this.chapters.keys());
+  }
+
   /**
    * Write the bundle to disk. Returns number of chapters written.
    * After flush the writer is empty and can be reused or discarded.
