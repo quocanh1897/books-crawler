@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.2.2] - 2026-02-23
+
+### Fixed
+
+- **`zstd-napi` not in `serverExternalPackages`** (`binslib/next.config.ts`)
+  - Turbopack failed to resolve `./build/Release/binding.node`, causing HTTP 500 on every page
+  - Added `"zstd-napi"` alongside `"better-sqlite3"` so native addons are required at runtime instead of bundled
+
+### Changed
+
+- **Pre-compress fatal on missing dictionary** (`binslib/scripts/pre-compress.ts`)
+  - Main thread now checks `data/global.dict` existence before scanning or spawning workers; exits with `FATAL` and code 1 if missing
+  - Worker thread also validates the dict path on startup as defense-in-depth, reporting failure back to the main thread before exiting
+  - `dictPath` is now passed unconditionally to workers (no longer silently downgraded to `null`)
+
+### Added
+
+- **Library audit script** (`binslib/scripts/audit.ts`)
+  - Scans all crawler output directories and compressed bundles to report download completion and compression status
+  - Reports: total book dirs, download complete vs partial vs empty, chapter deficit, metadata/cover presence, bundle coverage, compression ratio
+  - Supports `--verbose` (list individual incomplete/uncompressed books), `--source mtc|ttv`, `--ids`
+- **Decompression test script** (`binslib/scripts/test-decompress-100114.ts`)
+  - Round-trip verification: decompresses every chapter from a `.bundle` and compares byte-for-byte against the original crawler `.txt` files
+
 ## [0.2.1] - 2026-02-22
 
 ### Changed
@@ -61,6 +85,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `PARALLEL_DOWNLOAD.md` — dual-emulator setup and usage
   - `crawler/CONTEXT.md` — crawler architecture and flow notes
 
+[0.2.2]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/quocanh1897/mtc-crawler/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/quocanh1897/mtc-crawler/releases/tag/v0.1.0
