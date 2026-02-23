@@ -23,6 +23,7 @@
  */
 
 import fs from "fs";
+import { readFile } from "fs/promises";
 import path from "path";
 import os from "os";
 import { Worker, isMainThread, parentPort, workerData } from "worker_threads";
@@ -243,198 +244,255 @@ if (!isMainThread) {
     return buf.length;
   }
 
-  for (const { bookId, bookDir, metaChapterCount } of books) {
-    const bundlePath = path.join(chaptersDir, `${bookId}.bundle`);
+  const READ_CONCURRENCY = 32;
 
-    // ── Tier 1: Fast skip via mtime comparison (2 stat calls, no reads) ──
-    // If the source directory hasn't been modified since the bundle was
-    // written, there are no new chapter files — skip instantly.
-    try {
-      const bundleStat = fs.statSync(bundlePath);
-      const dirStat = fs.statSync(bookDir);
-      if (dirStat.mtimeMs <= bundleStat.mtimeMs) {
-        const chapCount =
-          metaChapterCount > 0
-            ? metaChapterCount
-            : readBundleCount(bundlePath);
-        skipped += chapCount;
+  async function processBooks() {
+    for (const { bookId, bookDir, metaChapterCount } of books) {
+      const bundlePath = path.join(chaptersDir, `${bookId}.bundle`);
+
+      // ── Tier 1: Fast skip via mtime comparison (2 stat calls, no reads) ──
+      try {
+        const bundleStat = fs.statSync(bundlePath);
+        const dirStat = fs.statSync(bookDir);
+        if (dirStat.mtimeMs <= bundleStat.mtimeMs) {
+          const chapCount =
+            metaChapterCount > 0
+              ? metaChapterCount
+              : readBundleCount(bundlePath);
+          skipped += chapCount;
+          parentPort!.postMessage({
+            type: "book_done",
+            bookId,
+            chapters: chapCount,
+            exported: 0,
+            skipped: chapCount,
+            failed: 0,
+          });
+          continue;
+        }
+      } catch {
+        // Bundle doesn't exist or stat failed — proceed to readdir
+      }
+
+      // ── Tier 2: Readdir + index-only check (~16KB bundle read) ──
+      const chapterFiles = fs
+        .readdirSync(bookDir)
+        .filter((f: string) => /^\d{4}_/.test(f) && f.endsWith(".txt"))
+        .sort();
+
+      if (chapterFiles.length === 0) {
         parentPort!.postMessage({
           type: "book_done",
           bookId,
-          chapters: chapCount,
+          chapters: 0,
           exported: 0,
-          skipped: chapCount,
+          skipped: 0,
           failed: 0,
         });
         continue;
       }
-    } catch {
-      // Bundle doesn't exist or stat failed — proceed to readdir
-    }
 
-    // ── Tier 2: Readdir + index-only check (~16KB bundle read) ──
-    const chapterFiles = fs
-      .readdirSync(bookDir)
-      .filter((f: string) => /^\d{4}_/.test(f) && f.endsWith(".txt"))
-      .sort();
+      const existingIndices =
+        readBundleIndices(bundlePath) ?? new Set<number>();
 
-    if (chapterFiles.length === 0) {
-      parentPort!.postMessage({
-        type: "book_done",
-        bookId,
-        chapters: 0,
-        exported: 0,
-        skipped: 0,
-        failed: 0,
-      });
-      continue;
-    }
-
-    // Read only the bundle index (chapter indices), not compressed data
-    const existingIndices = readBundleIndices(bundlePath) ?? new Set<number>();
-
-    // Identify new .txt files not already in the bundle
-    const newFiles: { file: string; indexNum: number }[] = [];
-    for (const file of chapterFiles) {
-      const match = file.match(/^(\d+)_(.+)\.txt$/);
-      if (!match) continue;
-      const indexNum = parseInt(match[1], 10);
-      if (!existingIndices.has(indexNum)) {
-        newFiles.push({ file, indexNum });
+      const newFiles: { file: string; indexNum: number }[] = [];
+      for (const file of chapterFiles) {
+        const match = file.match(/^(\d+)_(.+)\.txt$/);
+        if (!match) continue;
+        const indexNum = parseInt(match[1], 10);
+        if (!existingIndices.has(indexNum)) {
+          newFiles.push({ file, indexNum });
+        }
       }
-    }
 
-    if (newFiles.length === 0) {
-      skipped += chapterFiles.length;
-      parentPort!.postMessage({
-        type: "book_done",
-        bookId,
-        chapters: chapterFiles.length,
-        exported: 0,
-        skipped: chapterFiles.length,
-        failed: 0,
-      });
-      continue;
-    }
-
-    // Gap validation: new chapter indices must start right after
-    // the bundle's highest existing index (no gaps allowed).
-    if (existingIndices.size > 0) {
-      const maxBundle = Math.max(...existingIndices);
-      const minNew = Math.min(...newFiles.map((f) => f.indexNum));
-      if (minNew !== maxBundle + 1) {
-        gapErrors.push({ bookId, maxBundle, minNew });
+      if (newFiles.length === 0) {
         skipped += chapterFiles.length;
         parentPort!.postMessage({
-          type: "book_gap_error",
+          type: "book_done",
           bookId,
-          maxBundle,
-          minNew,
           chapters: chapterFiles.length,
+          exported: 0,
+          skipped: chapterFiles.length,
+          failed: 0,
         });
         continue;
       }
-    }
 
-    if (dryRun) {
-      exported += newFiles.length;
-      skipped += chapterFiles.length - newFiles.length;
+      // Gap validation
+      if (existingIndices.size > 0) {
+        const maxBundle = Math.max(...existingIndices);
+        const minNew = Math.min(...newFiles.map((f) => f.indexNum));
+        if (minNew !== maxBundle + 1) {
+          gapErrors.push({ bookId, maxBundle, minNew });
+          skipped += chapterFiles.length;
+          parentPort!.postMessage({
+            type: "book_gap_error",
+            bookId,
+            maxBundle,
+            minNew,
+            chapters: chapterFiles.length,
+          });
+          continue;
+        }
+      }
+
+      if (dryRun) {
+        exported += newFiles.length;
+        skipped += chapterFiles.length - newFiles.length;
+        parentPort!.postMessage({
+          type: "book_done",
+          bookId,
+          chapters: chapterFiles.length,
+          exported: newFiles.length,
+          skipped: chapterFiles.length - newFiles.length,
+          failed: 0,
+        });
+        continue;
+      }
+
+      // ── Tier 3: Full merge with async batch I/O ──
+      // Queue concurrent file reads so the kernel I/O scheduler can
+      // reorder disk seeks, giving ~2-5x speedup on HDD.
+      const existingData = readBundleRaw(bundlePath);
+      const chaptersMap = new Map(existingData);
+      let bookExported = 0;
+      let bookFailed = 0;
+
+      const fileContents = new Map<number, string>();
+      let readIdx = 0;
+      const readWorker = async () => {
+        while (readIdx < newFiles.length) {
+          const { file, indexNum } = newFiles[readIdx++];
+          try {
+            const content = await readFile(
+              path.join(bookDir, file),
+              "utf-8",
+            );
+            fileContents.set(indexNum, content);
+          } catch (err) {
+            bookFailed++;
+            failed++;
+            failures.push({
+              bookId,
+              file,
+              error: (err as Error).message?.slice(0, 120) || "Unknown",
+            });
+          }
+        }
+      };
+      await Promise.all(
+        Array.from(
+          { length: Math.min(READ_CONCURRENCY, newFiles.length) },
+          () => readWorker(),
+        ),
+      );
+
+      // Compress all successfully read chapters (CPU-bound, sync is fine)
+      for (const { file, indexNum } of newFiles) {
+        const content = fileContents.get(indexNum);
+        if (content === undefined) continue;
+        try {
+          const srcSize = Buffer.byteLength(content, "utf-8");
+          bytesRead += srcSize;
+
+          const lines = content.split("\n");
+          const title = lines[0]?.trim() || "";
+          let bodyStart = 1;
+          while (bodyStart < lines.length && lines[bodyStart].trim() === "")
+            bodyStart++;
+          if (bodyStart < lines.length && lines[bodyStart].trim() === title)
+            bodyStart++;
+          const body = lines.slice(bodyStart).join("\n").trim();
+
+          const raw = Buffer.from(body, "utf-8");
+          const compressed = compressor.compress(raw);
+          chaptersMap.set(indexNum, { compressed, rawLen: raw.length });
+          bookExported++;
+        } catch (err) {
+          bookFailed++;
+          failed++;
+          failures.push({
+            bookId,
+            file,
+            error: (err as Error).message?.slice(0, 120) || "Unknown",
+          });
+        }
+      }
+
+      if (bookExported > 0) {
+        try {
+          fs.mkdirSync(chaptersDir, { recursive: true });
+          const bundleSize = writeBundle(bundlePath, chaptersMap);
+          bytesWritten += bundleSize;
+          exported += bookExported;
+          skipped += existingIndices.size;
+        } catch (err) {
+          failed += bookExported;
+          bookFailed += bookExported;
+          bookExported = 0;
+          failures.push({
+            bookId,
+            file: `${bookId}.bundle`,
+            error:
+              (err as Error).message?.slice(0, 120) || "Bundle write failed",
+          });
+        }
+      }
+
       parentPort!.postMessage({
         type: "book_done",
         bookId,
         chapters: chapterFiles.length,
-        exported: newFiles.length,
-        skipped: chapterFiles.length - newFiles.length,
-        failed: 0,
+        exported: bookExported,
+        skipped: existingIndices.size,
+        failed: bookFailed,
       });
-      continue;
     }
-
-    // ── Tier 3: Full merge — only reached when there are new chapters ──
-    // Now read the full bundle data for merging with new chapters.
-    const existingData = readBundleRaw(bundlePath);
-    const chaptersMap = new Map(existingData);
-    let bookExported = 0;
-    let bookFailed = 0;
-
-    for (const { file, indexNum } of newFiles) {
-      try {
-        const srcPath = path.join(bookDir, file);
-        const content = fs.readFileSync(srcPath, "utf-8");
-        const srcSize = Buffer.byteLength(content, "utf-8");
-        bytesRead += srcSize;
-
-        const lines = content.split("\n");
-        const title = lines[0]?.trim() || "";
-        let bodyStart = 1;
-        while (bodyStart < lines.length && lines[bodyStart].trim() === "")
-          bodyStart++;
-        if (bodyStart < lines.length && lines[bodyStart].trim() === title)
-          bodyStart++;
-        const body = lines.slice(bodyStart).join("\n").trim();
-
-        const raw = Buffer.from(body, "utf-8");
-        const compressed = compressor.compress(raw);
-        chaptersMap.set(indexNum, { compressed, rawLen: raw.length });
-        bookExported++;
-      } catch (err) {
-        bookFailed++;
-        failed++;
-        failures.push({
-          bookId,
-          file,
-          error: (err as Error).message?.slice(0, 120) || "Unknown",
-        });
-      }
-    }
-
-    // Write the merged bundle file
-    if (bookExported > 0) {
-      try {
-        fs.mkdirSync(chaptersDir, { recursive: true });
-        const bundleSize = writeBundle(bundlePath, chaptersMap);
-        bytesWritten += bundleSize;
-        exported += bookExported;
-        skipped += existingIndices.size;
-      } catch (err) {
-        failed += bookExported;
-        bookFailed += bookExported;
-        bookExported = 0;
-        failures.push({
-          bookId,
-          file: `${bookId}.bundle`,
-          error: (err as Error).message?.slice(0, 120) || "Bundle write failed",
-        });
-      }
-    }
-
-    parentPort!.postMessage({
-      type: "book_done",
-      bookId,
-      chapters: chapterFiles.length,
-      exported: bookExported,
-      skipped: existingIndices.size,
-      failed: bookFailed,
-    });
   }
 
-  parentPort!.postMessage({
-    type: "done",
-    exported,
-    skipped,
-    failed,
-    bytesWritten,
-    bytesRead,
-    failures,
-    gapErrors,
-  });
-
-  process.exit(0);
+  processBooks()
+    .then(() => {
+      parentPort!.postMessage({
+        type: "done",
+        exported,
+        skipped,
+        failed,
+        bytesWritten,
+        bytesRead,
+        failures,
+        gapErrors,
+      });
+      process.exit(0);
+    })
+    .catch((err) => {
+      parentPort!.postMessage({
+        type: "done",
+        exported,
+        skipped,
+        failed,
+        bytesWritten,
+        bytesRead,
+        failures: [
+          ...failures,
+          {
+            bookId: "N/A",
+            file: "N/A",
+            error: (err as Error).message?.slice(0, 120) || "Worker crash",
+          },
+        ],
+        gapErrors,
+      });
+      process.exit(1);
+    });
 }
 
 // ─── Main Thread ─────────────────────────────────────────────────────────────
 
 import cliProgress from "cli-progress";
+
+// Guard: worker threads must not execute main-thread code below. The async
+// processBooks() above doesn't block module evaluation, so we check here.
+if (isMainThread) {
 
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes("--dry-run");
@@ -822,3 +880,5 @@ Promise.all(workerPromises)
     logDetail(`FATAL ERROR: ${err.message}`);
     process.exit(1);
   });
+
+} // end if (isMainThread)
