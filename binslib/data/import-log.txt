@@ -1,0 +1,38 @@
+[2026-02-17 18:31:01] mode=incremental duration=5s
+  scanned=240 imported=2 skipped=238 failed=0
+  chapters=2332 covers=2 meta_pulls=2
+[2026-02-17 18:32:09] mode=incremental duration=0s
+  scanned=240 imported=0 skipped=240 failed=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-17 18:33:09] mode=incremental duration=0s
+  scanned=240 imported=0 skipped=240 failed=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-17 18:34:19] mode=full duration=58s
+  scanned=2 imported=2 skipped=0 failed=0
+  chapters=1543 covers=2 meta_pulls=0
+[2026-02-17 18:37:57] mode=full duration=3m 29s
+  scanned=240 imported=240 skipped=0 failed=0
+  chapters=210520 covers=240 meta_pulls=0
+[2026-02-21 03:40:56] mode=incremental duration=19m 23s
+  scanned=3497 imported=803 skipped=2694 failed=0 meta_resynced=138
+  chapters=832255 covers=803 meta_pulls=0
+  cleanup: 2554119 files deleted, 28972.4 MB freed
+[2026-02-21 03:48:51] mode=incremental duration=3s
+  scanned=1 imported=1 skipped=0 failed=0 meta_resynced=0
+  chapters=1535 covers=1 meta_pulls=0
+[2026-02-21 03:49:15] mode=incremental duration=0s
+  scanned=1 imported=0 skipped=1 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-21 03:50:16] mode=incremental duration=42s
+  scanned=20 imported=18 skipped=2 failed=0 meta_resynced=0
+  chapters=31067 covers=18 meta_pulls=0
+[2026-02-21 03:54:15] mode=incremental duration=41s
+  scanned=20 imported=19 skipped=1 failed=0 meta_resynced=19
+  chapters=33008 covers=19 meta_pulls=0
+  cleanup: 33325 files deleted, 422.7 MB freed
+[2026-02-21 08:06:01] mode=incremental duration=6s
+  scanned=3497 imported=19 skipped=3478 failed=0 meta_resynced=0
+  chapters=0 covers=19 meta_pulls=0
+[2026-02-21 08:09:13] mode=incremental duration=2m 55s
+  scanned=3497 imported=683 skipped=2814 failed=0 meta_resynced=645
+  chapters=0 covers=683 meta_pulls=0
