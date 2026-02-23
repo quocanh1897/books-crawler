@@ -435,13 +435,9 @@ let totalChapters = 0;
 for (const { bookDir } of allBooks) {
   try {
     const metaPath = path.join(bookDir, "metadata.json");
-    const bookJsonPath = path.join(bookDir, "book.json");
     if (fs.existsSync(metaPath)) {
       const mj = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
-      totalChapters += mj.chapter_count || mj.chapters_saved || 0;
-    } else if (fs.existsSync(bookJsonPath)) {
-      const bj = JSON.parse(fs.readFileSync(bookJsonPath, "utf-8"));
-      totalChapters += bj.chapters_saved || bj.chapter_count || 0;
+      totalChapters += mj.chapter_count || 0;
     }
   } catch {
     /* use 0 */
@@ -503,6 +499,8 @@ let totalBytesWritten = 0;
 let totalBytesRead = 0;
 const allFailures: { bookId: string; file: string; error: string }[] = [];
 let workersFinished = 0;
+const progressInterval = Math.max(10, Math.round(allBooks.length / 20));
+const compressStartMs = Date.now();
 
 function logDetail(msg: string) {
   fs.appendFileSync(DETAIL_LOG_FILE, `[${timestamp()}] ${msg}\n`);
@@ -537,6 +535,16 @@ const workerPromises = chunks.map((chunk, idx) => {
         if (msg.exported > 0 || msg.failed > 0) {
           logDetail(
             `Book ${msg.bookId}: ${msg.chapters} ch, exported=${msg.exported}, skipped=${msg.skipped}, failed=${msg.failed}`,
+          );
+        }
+        // Periodic progress summary
+        if (booksProcessed % progressInterval === 0) {
+          const elapsed = Date.now() - compressStartMs;
+          const pct = ((booksProcessed / allBooks.length) * 100).toFixed(1);
+          const booksPerSec = elapsed > 0 ? (booksProcessed / elapsed) * 1000 : 0;
+          const remaining = booksPerSec > 0 ? (allBooks.length - booksProcessed) / booksPerSec : 0;
+          logDetail(
+            `PROGRESS: ${formatNum(booksProcessed)}/${formatNum(allBooks.length)} books (${pct}%), ${formatNum(totalExported + msg.exported)} exported, elapsed ${formatDuration(elapsed)}, ETA ${formatDuration(remaining * 1000)}`,
           );
         }
       } else if (msg.type === "done") {

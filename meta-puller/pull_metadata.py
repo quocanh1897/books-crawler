@@ -56,13 +56,20 @@ def fetch_book_metadata(client: httpx.Client, book_id: int) -> dict | None:
     except Exception as e:
         print(f"    /api/books/{book_id}: {e}")
 
-    # Fallback: search by name from existing book.json
-    book_json = os.path.join(OUTPUT_DIR, str(book_id), "book.json")
-    if os.path.exists(book_json):
-        with open(book_json) as f:
-            local = json.load(f)
-        name = local.get("book_name", "")
-        if name:
+    # Fallback: search by name from existing metadata.json
+    book_dir = os.path.join(OUTPUT_DIR, str(book_id))
+    meta_json = os.path.join(book_dir, "metadata.json")
+    name = ""
+    if os.path.exists(meta_json):
+        with open(meta_json) as f:
+            name = json.load(f).get("name", "")
+    if not name:
+        # Legacy fallback for old crawler directories that only have book.json
+        book_json = os.path.join(book_dir, "book.json")
+        if os.path.exists(book_json):
+            with open(book_json) as f:
+                name = json.load(f).get("book_name", "")
+    if name:
             try:
                 r = client.get(f"{BASE_URL}/api/books",
                                params={"filter[keyword]": name,
@@ -173,6 +180,25 @@ def pull_one(client: httpx.Client, book_id: int, log=print) -> bool:
     return True
 
 
+def _get_book_name(book_id: int) -> str:
+    """Get book name from metadata.json, falling back to book.json."""
+    meta_path = os.path.join(OUTPUT_DIR, str(book_id), "metadata.json")
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path) as f:
+                return json.load(f).get("name", "?")
+        except (json.JSONDecodeError, OSError):
+            pass
+    book_json = os.path.join(OUTPUT_DIR, str(book_id), "book.json")
+    if os.path.exists(book_json):
+        try:
+            with open(book_json) as f:
+                return json.load(f).get("book_name", "?")
+        except (json.JSONDecodeError, OSError):
+            pass
+    return "?"
+
+
 # ── Main ────────────────────────────────────────────────────────────────────
 
 def main():
@@ -212,11 +238,7 @@ def main():
         else:
             print("Books missing metadata.json:")
             for bid in pending:
-                book_json = os.path.join(OUTPUT_DIR, str(bid), "book.json")
-                name = "?"
-                if os.path.exists(book_json):
-                    with open(book_json) as f:
-                        name = json.load(f).get("book_name", "?")
+                name = _get_book_name(bid)
                 print(f"  {bid}: {name}")
         return
 
@@ -227,11 +249,7 @@ def main():
     if args.dry_run:
         print("Would pull metadata for:")
         for bid in pending:
-            book_json = os.path.join(OUTPUT_DIR, str(bid), "book.json")
-            name = "?"
-            if os.path.exists(book_json):
-                with open(book_json) as f:
-                    name = json.load(f).get("book_name", "?")
+            name = _get_book_name(bid)
             print(f"  {bid}: {name}")
         return
 
@@ -252,12 +270,7 @@ def main():
         task = progress.add_task("Pulling metadata", total=len(pending))
 
         for i, bid in enumerate(pending, 1):
-            book_json = os.path.join(OUTPUT_DIR, str(bid), "book.json")
-            name = "?"
-            if os.path.exists(book_json):
-                with open(book_json) as f:
-                    name = json.load(f).get("book_name", "?")
-
+            name = _get_book_name(bid)
             progress.update(task, description=f"{bid}: {name}")
 
             if pull_one(client, bid, log=progress.console.print):

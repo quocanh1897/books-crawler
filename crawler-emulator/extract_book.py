@@ -65,8 +65,21 @@ def extract_chapters(db_path: str, book_id: int, output_dir: str) -> int:
             f.write(f"{name}\n\n{content}")
         saved += 1
 
-    meta = {"book_id": book_id, "chapters_saved": saved, "total_in_db": len(rows)}
-    with open(os.path.join(output_dir, "book.json"), "w") as f:
+    # Write/update metadata.json with extraction stats
+    meta_path = os.path.join(output_dir, "metadata.json")
+    meta = {}
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path) as f:
+                meta = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    meta.update({
+        "id": book_id,
+        "chapter_count": saved,
+        "total_in_db": len(rows),
+    })
+    with open(meta_path, "w") as f:
         json.dump(meta, f, indent=2, ensure_ascii=False)
 
     return saved

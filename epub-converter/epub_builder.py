@@ -114,7 +114,7 @@ def parse_chapter_text(filepath: Path) -> tuple[str, str]:
 
 
 def load_metadata(book_dir: Path) -> dict:
-    """Load metadata.json, falling back to book.json."""
+    """Load metadata.json (legacy book.json fallback for old directories)."""
     meta_path = book_dir / "metadata.json"
     if meta_path.exists():
         with open(meta_path, encoding="utf-8") as f:

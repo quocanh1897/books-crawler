@@ -9,7 +9,7 @@ Converts books from `crawler/output/` into EPUB 3.0 files, ready for e-readers.
 3. **Cover** — embeds `cover.jpg` as the EPUB cover page (validated with Pillow)
 4. **Chapters** — parses `{INDEX}_{slug}.txt` files, sorted numerically. First line = chapter title, rest = body paragraphs converted to XHTML
 5. **Styling** — applies a clean CSS stylesheet with Vietnamese serif fonts, proper line-height, and indented paragraphs
-6. **Output** — writes `{BookName}.epub` into `epub-converter/epub-output/{book_id}/`, along with copies of all non-txt source files (metadata.json, cover.jpg, book.json)
+6. **Output** — writes `{BookName}.epub` into `epub-converter/epub-output/{book_id}/`, along with copies of all non-txt source files (metadata.json, cover.jpg)
 7. **Audit** — appends/updates an `## EPUB Conversion` section in `crawler/AUDIT.md`
 
 ## Output Structure
@@ -20,12 +20,10 @@ epub-converter/
     ├── 128390/
     │   ├── Để Ngươi Thổ Lộ, Ngươi Tìm Tới Hắc Đạo Thiên Kim.epub
     │   ├── metadata.json    ← copied from crawler/output/128390/
-    │   ├── book.json        ← copied
     │   └── cover.jpg        ← copied
     ├── 100358/
     │   ├── Vô Thượng Sát Thần.epub
     │   ├── metadata.json
-    │   ├── book.json
     │   └── cover.jpg
     └── ...
 ```

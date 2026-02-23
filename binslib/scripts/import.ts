@@ -443,13 +443,9 @@ function runImport(fullMode: boolean): ImportReport {
     let count = 0;
     try {
       const metaPath = path.join(e.sourceDir, "metadata.json");
-      const bookJsonPath = path.join(e.sourceDir, "book.json");
       if (fs.existsSync(metaPath)) {
         const mj = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
-        count = mj.chapter_count || mj.chapters_saved || 0;
-      } else if (fs.existsSync(bookJsonPath)) {
-        const bj = JSON.parse(fs.readFileSync(bookJsonPath, "utf-8"));
-        count = bj.chapters_saved || bj.chapter_count || 0;
+        count = mj.chapter_count || 0;
       }
     } catch {
       /* use 0 */
@@ -525,8 +521,21 @@ function runImport(fullMode: boolean): ImportReport {
   if (chapterBar && totalChapterFiles > 0)
     chapterBar.setTotal(totalChapterFiles);
   let chaptersProcessed = 0;
+  let booksLoopIdx = 0;
+  const progressInterval = Math.max(50, Math.round(entries.length / 20));
+  const importStartMs = Date.now();
 
   for (const bookIdStr of entries) {
+    booksLoopIdx++;
+    if (booksLoopIdx % progressInterval === 0) {
+      const elapsed = Date.now() - importStartMs;
+      const pct = ((booksLoopIdx / entries.length) * 100).toFixed(1);
+      const booksPerSec = elapsed > 0 ? (booksLoopIdx / elapsed) * 1000 : 0;
+      const remaining = booksPerSec > 0 ? (entries.length - booksLoopIdx) / booksPerSec : 0;
+      logDetail(
+        `PROGRESS: ${formatNum(booksLoopIdx)}/${formatNum(entries.length)} books (${pct}%), +${formatNum(report.chaptersAdded)} chapters, elapsed ${formatDuration(elapsed)}, ETA ${formatDuration(remaining * 1000)}`,
+      );
+    }
     const bookId = parseInt(bookIdStr, 10);
     const bookDir =
       entrySourceMap.get(bookIdStr) || path.join(CRAWLER_OUTPUT, bookIdStr);
@@ -564,14 +573,13 @@ function runImport(fullMode: boolean): ImportReport {
         const updatedAtUnchanged = existing?.updated_at === meta.updated_at;
 
         if (existing && metaUnchanged && updatedAtUnchanged) {
-          const bookJsonPath = path.join(bookDir, "book.json");
           let shouldSkip = false;
-          if (fs.existsSync(bookJsonPath)) {
-            const bookJson = JSON.parse(fs.readFileSync(bookJsonPath, "utf-8"));
+          const chapterCount = meta.chapter_count || 0;
+          if (chapterCount > 0) {
             const savedInDb = sqlite
               .prepare("SELECT COUNT(*) as cnt FROM chapters WHERE book_id = ?")
               .get(bookId) as { cnt: number };
-            if (savedInDb.cnt >= (bookJson.chapters_saved || 0)) {
+            if (savedInDb.cnt >= chapterCount) {
               shouldSkip = true;
             }
           } else {
@@ -632,17 +640,7 @@ function runImport(fullMode: boolean): ImportReport {
         report.coversCopied++;
       }
 
-      // book.json
-      let chaptersSaved = 0;
-      const bookJsonPath = path.join(bookDir, "book.json");
-      if (fs.existsSync(bookJsonPath)) {
-        try {
-          const bookJson = JSON.parse(fs.readFileSync(bookJsonPath, "utf-8"));
-          chaptersSaved = bookJson.chapters_saved || 0;
-        } catch {
-          /* ignore */
-        }
-      }
+      const chaptersSaved = meta.chapter_count || 0;
 
       // Pre-read chapter files list
       const chapterFiles = fs

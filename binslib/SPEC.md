@@ -77,7 +77,6 @@
 ```
 crawler/output/{book_id}/              ──┐
   ├── metadata.json                      │
-  ├── book.json                          │
   ├── cover.jpg                          │   scripts/import.ts
   └── *.txt (chapters)                   ├──────────────────────►  SQLite DB
                                          │     (reads & imports)
@@ -105,7 +104,6 @@ The import script (`scripts/import.ts`) runs in two modes: **one-shot** (CLI) an
 1. **Scan** `crawler/output/` and `crawler-tangthuvien/output/` for numeric book directories (configurable via `CRAWLER_OUTPUT_DIR` and `TTV_CRAWLER_OUTPUT_DIR` env vars)
 2. For each book directory:
    - Read `metadata.json` — if missing, invoke `meta-puller` for that book ID (shell out to `python3 ../meta-puller/pull_metadata.py --ids {id}`)
-   - Read `book.json` for local chapter stats
    - Insert/update book record in `books` table
    - Insert/update author, genres, tags in respective tables
    - Check for `cover.jpg` in `crawler/output/{book_id}/`:
@@ -290,7 +288,7 @@ CREATE TABLE books (
   published_at  TEXT,
   new_chap_at   TEXT,
 
-  -- Local stats (from book.json)
+  -- Local stats (from metadata.json)
   chapters_saved INTEGER DEFAULT 0,  -- chapters actually on disk
 
   -- Indexes for statistical queries

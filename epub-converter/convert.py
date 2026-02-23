@@ -4,7 +4,7 @@ Convert crawled books to EPUB format.
 
 Reads chapter .txt files, metadata.json, and cover.jpg from crawler/output/
 and produces EPUB 3.0 files in epub-converter/epub-output/{book_id}/.
-Non-txt source files (metadata.json, cover.jpg, book.json) are copied alongside.
+Non-txt source files (metadata.json, cover.jpg) are copied alongside.
 If metadata.json is missing for a book, automatically invokes the meta-puller.
 
 Usage:
@@ -358,7 +358,7 @@ def convert_books(
                     output_path=epub_file,
                     progress_callback=on_chapter,
                 )
-                # Copy non-txt files (metadata.json, cover.jpg, book.json, etc.)
+                # Copy non-txt files (metadata.json, cover.jpg, etc.)
                 copy_non_txt_files(book_dir, epub_out)
 
                 results.append({

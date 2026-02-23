@@ -143,7 +143,7 @@ docker compose logs -f binslib-importer
 
 ```
 {crawler}/output/{book_id}/
-├── book.json           # book metadata (or metadata.json)
+├── metadata.json       # book metadata (from API / meta-puller)
 ├── cover.jpg           # cover image (from meta-puller)
 ├── 0001_slug.txt       # individual chapters
 └── Book Name.txt       # combined full book

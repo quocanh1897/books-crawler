@@ -28,7 +28,7 @@ Two app instances may be running simultaneously:
 
 ### 2. `crawler/output/` directory on disk
 
-- `{book_id}/book.json` — metadata: book_id, book_name, chapters_saved, total_in_db
+- `{book_id}/metadata.json` — metadata: id, name, chapter_count, total_in_db
 - `{book_id}/*.txt` — individual chapter files (name pattern: `NNNN_slug.txt`)
 - Combined book file: `{book_name}.txt`
 
@@ -78,7 +78,7 @@ Single-file Python script (`dashboard.py`) with these logical sections:
 |---------|---------------|
 | **Constants** | ADB path, device, packages, output dir, temp DB paths |
 | **DB poller** | Pull DB from device via `adb`, open with `sqlite3`, query `BaseBook` + `Chapter` |
-| **Output scanner** | Walk `crawler/output/*/`, read `book.json`, count `.txt` files, sum disk usage |
+| **Output scanner** | Walk `crawler/output/*/`, read `metadata.json`, count `.txt` files, sum disk usage |
 | **Change detector** | Compare current vs previous poll snapshots, compute rates + ETAs |
 | **TUI renderer** | `rich.live.Live` + `Table` + `Panel` + `Progress` for real-time display |
 | **Main loop** | Parse CLI args → poll → diff → render → sleep → repeat |

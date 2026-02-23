@@ -15,10 +15,9 @@ After running, each book directory gains two new files:
 
 ```
 crawler/output/{book_id}/
-├── book.json         # (existing) minimal: id, name, chapter counts
-├── metadata.json     # (new) full API response: all fields
-├── cover.jpg         # (new) poster image
-├── 0001_*.txt        # (existing) chapter files
+├── metadata.json     # full API response: all fields
+├── cover.jpg         # poster image
+├── 0001_*.txt        # chapter files
 └── ...
 ```
 

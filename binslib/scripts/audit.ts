@@ -126,10 +126,9 @@ function scanNumericDirs(dir: string, source: "mtc" | "ttv"): BookEntry[] {
 interface BookAudit {
   bookId: string;
   source: "mtc" | "ttv";
-  expectedChapters: number; // from book.json chapters_saved
+  expectedChapters: number; // from metadata.json chapter_count
   txtFiles: number; // actual .txt chapter files on disk
   hasMetadata: boolean; // metadata.json exists
-  hasBookJson: boolean; // book.json exists
   hasCover: boolean; // cover.jpg exists
   bundleChapters: number; // chapters in .bundle (0 = no bundle)
   bundleSize: number; // bundle file size in bytes
@@ -141,15 +140,13 @@ interface BookAudit {
 function auditBook(entry: BookEntry): BookAudit {
   const { bookId, bookDir, source } = entry;
 
-  // Read book.json for expected chapter count
+  // Read metadata.json for expected chapter count
   let expectedChapters = 0;
-  let hasBookJson = false;
-  const bookJsonPath = path.join(bookDir, "book.json");
+  const metaPath = path.join(bookDir, "metadata.json");
   try {
-    if (fs.existsSync(bookJsonPath)) {
-      hasBookJson = true;
-      const bj = JSON.parse(fs.readFileSync(bookJsonPath, "utf-8"));
-      expectedChapters = bj.chapters_saved || 0;
+    if (fs.existsSync(metaPath)) {
+      const mj = JSON.parse(fs.readFileSync(metaPath, "utf-8"));
+      expectedChapters = mj.chapter_count || 0;
     }
   } catch {
     /* ignore */
@@ -190,11 +187,8 @@ function auditBook(entry: BookEntry): BookAudit {
     /* ignore */
   }
 
-  // A book is "download complete" when it has book.json and the .txt file
-  // count meets or exceeds the expected chapters_saved value.
-  // Books without book.json are counted as incomplete (unknown state).
   const downloadComplete =
-    hasBookJson && expectedChapters > 0 && txtFiles >= expectedChapters;
+    expectedChapters > 0 && txtFiles >= expectedChapters;
 
   // A book is "fully compressed" when its bundle contains at least as many
   // chapters as there are .txt source files (i.e. all downloaded chapters
@@ -207,7 +201,6 @@ function auditBook(entry: BookEntry): BookAudit {
     expectedChapters,
     txtFiles,
     hasMetadata,
-    hasBookJson,
     hasCover,
     bundleChapters,
     bundleSize,
@@ -268,13 +261,11 @@ function main() {
   let totalBundleChapters = 0;
   let totalBundleSize = 0;
 
-  let booksWithBookJson = 0;
   let booksWithMetadata = 0;
   let booksWithCover = 0;
   let booksDownloadComplete = 0;
-  let booksPartialDownload = 0; // has book.json, has some .txt, but not all
+  let booksPartialDownload = 0; // has some .txt, but not all
   let booksNoChapters = 0; // has dir but 0 .txt files
-  let booksNoBookJson = 0;
   let booksWithBundle = 0;
   let booksFullyCompressed = 0;
   let booksPartiallyCompressed = 0; // bundle exists but fewer chapters than .txt
@@ -289,8 +280,6 @@ function main() {
     totalBundleChapters += r.bundleChapters;
     totalBundleSize += r.bundleSize;
 
-    if (r.hasBookJson) booksWithBookJson++;
-    else booksNoBookJson++;
     if (r.hasMetadata) booksWithMetadata++;
     if (r.hasCover) booksWithCover++;
 
@@ -354,13 +343,8 @@ function main() {
       `${formatNum(booksNoChapters)}  (${pct(booksNoChapters, allEntries.length)})`,
       booksNoChapters > 0 ? c.red : c.white,
     ),
-    row(
-      "Missing book.json:",
-      formatNum(booksNoBookJson),
-      booksNoBookJson > 0 ? c.yellow : c.white,
-    ),
     sep,
-    row("Expected chapters (book.json):", formatNum(totalExpected)),
+    row("Expected chapters (metadata):", formatNum(totalExpected)),
     row("Actual .txt files on disk:", formatNum(totalTxtFiles)),
     row(
       "Chapter deficit:",

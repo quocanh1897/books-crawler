@@ -67,7 +67,7 @@ python3 batch_grab.py --limit 5
 
 ```
 output/{book_id}/
-├── book.json                    # metadata
+├── metadata.json                # book metadata (id, name, chapter_count, etc.)
 ├── 0001_chuong-1-slug.txt       # individual chapters
 ├── 0002_chuong-2-slug.txt
 ├── ...

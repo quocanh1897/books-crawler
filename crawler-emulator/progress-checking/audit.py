@@ -29,7 +29,7 @@ import httpx
 
 # Resolve paths relative to this script
 SCRIPT_DIR = Path(__file__).resolve().parent
-CRAWLER_DIR = SCRIPT_DIR.parent
+CRAWLER_DIR = SCRIPT_DIR.parent / "crawler"
 DEFAULT_OUTPUT_DIR = CRAWLER_DIR / "output"
 
 sys.path.insert(0, str(CRAWLER_DIR))
@@ -50,8 +50,8 @@ class BookAudit:
     book_id: int
     name: str
     api_chapters: int      # chapter_count from API (0 if not fetched)
-    saved_chapters: int    # chapters_saved from book.json
-    total_in_db: int       # total_in_db from book.json
+    saved_chapters: int    # chapter_count from metadata.json
+    total_in_db: int       # total_in_db from metadata.json
     txt_files: int         # actual .txt chapter files on disk
     disk_bytes: int
     has_folder: bool
@@ -111,24 +111,15 @@ def scan_disk(output_dir: Path) -> dict[int, BookAudit]:
         name = f"Book {book_id}"
         chapters_saved = 0
         total_in_db = 0
-        json_path = entry / "book.json"
-        if json_path.exists():
-            try:
-                with open(json_path) as f:
-                    meta = json.load(f)
-                name = meta.get("book_name", name)
-                chapters_saved = meta.get("chapters_saved", 0)
-                total_in_db = meta.get("total_in_db", 0)
-            except (json.JSONDecodeError, OSError):
-                pass
 
-        # Also check metadata.json for richer info
         meta_path = entry / "metadata.json"
         if meta_path.exists():
             try:
                 with open(meta_path) as f:
-                    full_meta = json.load(f)
-                name = full_meta.get("name", name)
+                    meta = json.load(f)
+                name = meta.get("name", name)
+                chapters_saved = meta.get("chapter_count", 0)
+                total_in_db = meta.get("total_in_db", 0)
             except (json.JSONDecodeError, OSError):
                 pass
 

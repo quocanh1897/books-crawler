@@ -673,10 +673,24 @@ def extract_chapters(book_id: int, book_name: str) -> int:
         newly_saved += 1
 
     total_on_disk = len(existing_indices) + newly_saved
-    with open(os.path.join(out, "book.json"), "w") as f:
-        json.dump({"book_id": book_id, "book_name": book_name,
-                    "chapters_saved": total_on_disk, "total_in_db": len(rows)},
-                  f, indent=2, ensure_ascii=False)
+
+    # Write/update metadata.json with extraction stats
+    meta_path = os.path.join(out, "metadata.json")
+    meta = {}
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path) as f:
+                meta = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    meta.update({
+        "id": book_id,
+        "name": book_name,
+        "chapter_count": total_on_disk,
+        "total_in_db": len(rows),
+    })
+    with open(meta_path, "w") as f:
+        json.dump(meta, f, indent=2, ensure_ascii=False)
 
     if newly_saved:
         print(f"  Extracted {newly_saved} new chapters ({total_on_disk} total on disk)")

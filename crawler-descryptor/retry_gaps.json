@@ -1,0 +1,7261 @@
+[
+  {
+    "id": 147269,
+    "name": "Thai Xuyên Nông Gia Lão Lai Tử, Dựa Vào Khoa ",
+    "expected": 370,
+    "actual": 7,
+    "gap": 363
+  },
+  {
+    "id": 152667,
+    "name": "Ở Tù Mười Năm, Ai Còn Kiến Nghĩa Dũng Vi A",
+    "expected": 370,
+    "actual": 8,
+    "gap": 362
+  },
+  {
+    "id": 130850,
+    "name": "Ta Có Thể Gia Trì Ngàn Vạn Thần Thông",
+    "expected": 362,
+    "actual": 1,
+    "gap": 361
+  },
+  {
+    "id": 146335,
+    "name": "Inter Vương Tử Từ Berbatov Bắt Đầu",
+    "expected": 370,
+    "actual": 10,
+    "gap": 360
+  },
+  {
+    "id": 112689,
+    "name": "Toàn Dân Pokemon: Bắt Đầu Nhặt Mewtwo Bảo Rươ",
+    "expected": 370,
+    "actual": 10,
+    "gap": 360
+  },
+  {
+    "id": 151578,
+    "name": "Trảm Thần: Ta Trào Tai Chi Chủ, Bắt Đầu Tinh ",
+    "expected": 364,
+    "actual": 4,
+    "gap": 360
+  },
+  {
+    "id": 130860,
+    "name": "Thật Nữ Nhân Chỉ Biết Rút Kiếm",
+    "expected": 362,
+    "actual": 3,
+    "gap": 359
+  },
+  {
+    "id": 151877,
+    "name": "Tán Tu Nghèo Không Có Tiền Đồ? Ta Tại Nhân Gi",
+    "expected": 360,
+    "actual": 1,
+    "gap": 359
+  },
+  {
+    "id": 135576,
+    "name": "Vạn Giới Thả Câu: Theo Khoa Kỹ Bá Chủ Đến Chư",
+    "expected": 365,
+    "actual": 9,
+    "gap": 356
+  },
+  {
+    "id": 125913,
+    "name": "Hồng Hoang: Ngộ Tính Nghịch Thiên, Bắt Đầu Cư",
+    "expected": 365,
+    "actual": 9,
+    "gap": 356
+  },
+  {
+    "id": 147157,
+    "name": "Siêu Võ Xâm Lấn",
+    "expected": 370,
+    "actual": 15,
+    "gap": 355
+  },
+  {
+    "id": 101756,
+    "name": "Vạn Năng Sửa Chữa Phô",
+    "expected": 363,
+    "actual": 10,
+    "gap": 353
+  },
+  {
+    "id": 151499,
+    "name": "Xuyên Về Thập Niên 70: Từ Trí Thanh Đến Kẻ Th",
+    "expected": 362,
+    "actual": 10,
+    "gap": 352
+  },
+  {
+    "id": 100595,
+    "name": "Tối Cường Hố Hàng Học Sinh",
+    "expected": 366,
+    "actual": 15,
+    "gap": 351
+  },
+  {
+    "id": 149619,
+    "name": "Khởi Đầu Với Danh Hiệu Cấp Thần, Ta Chính Là ",
+    "expected": 363,
+    "actual": 18,
+    "gap": 345
+  },
+  {
+    "id": 152277,
+    "name": "Người Chơi? Nàng Là Khủng Bố Phó Bản Npc A",
+    "expected": 363,
+    "actual": 18,
+    "gap": 345
+  },
+  {
+    "id": 149010,
+    "name": "Vạn Cổ Mạnh Nhất Bộ Lạc",
+    "expected": 375,
+    "actual": 31,
+    "gap": 344
+  },
+  {
+    "id": 135657,
+    "name": "Độ Thuần Thục Xoát Lên",
+    "expected": 369,
+    "actual": 25,
+    "gap": 344
+  },
+  {
+    "id": 147373,
+    "name": "Lãnh Chúa: Ta Nữ Bộc Quân Đoàn",
+    "expected": 384,
+    "actual": 42,
+    "gap": 342
+  },
+  {
+    "id": 152591,
+    "name": "Khủng Bố Khôi Phục, Ta Lấy Thân Tự Quỷ Chỉ Vì",
+    "expected": 374,
+    "actual": 32,
+    "gap": 342
+  },
+  {
+    "id": 113785,
+    "name": "Trà Môn Thế Gia",
+    "expected": 369,
+    "actual": 28,
+    "gap": 341
+  },
+  {
+    "id": 125147,
+    "name": "Nương Tử Cẩm Lý Vận",
+    "expected": 375,
+    "actual": 37,
+    "gap": 338
+  },
+  {
+    "id": 118044,
+    "name": "Thiên Tài Phù Sư Không Muốn Cố Gắng",
+    "expected": 375,
+    "actual": 37,
+    "gap": 338
+  },
+  {
+    "id": 143493,
+    "name": "Tài Phú Tự Do Từ Mỗi Ngày Tình Báo Bắt Đầu",
+    "expected": 374,
+    "actual": 37,
+    "gap": 337
+  },
+  {
+    "id": 147708,
+    "name": "Ta Thêm Tiền Cư Sĩ, Được Tu Tiên",
+    "expected": 364,
+    "actual": 27,
+    "gap": 337
+  },
+  {
+    "id": 145869,
+    "name": "Mười Bốn Tuổi Thất Phu, Lấy Phàm Võ Nghịch Ph",
+    "expected": 363,
+    "actual": 26,
+    "gap": 337
+  },
+  {
+    "id": 149163,
+    "name": "Nô Dịch Tiên Tử Sau, Các Nàng Lại Thành Yande",
+    "expected": 363,
+    "actual": 26,
+    "gap": 337
+  },
+  {
+    "id": 150251,
+    "name": "One Piece: Cái Này Hải Quân Chính Đến Phát Tà",
+    "expected": 374,
+    "actual": 39,
+    "gap": 335
+  },
+  {
+    "id": 145533,
+    "name": "Đấu Phá: Luyện Giả Thành Thật, Khởi Đầu Ách N",
+    "expected": 370,
+    "actual": 35,
+    "gap": 335
+  },
+  {
+    "id": 112681,
+    "name": "Xem Mắt Đi Nhầm Gian Phòng, Lại Bị Đối Phương",
+    "expected": 380,
+    "actual": 46,
+    "gap": 334
+  },
+  {
+    "id": 151221,
+    "name": "Tận Thế Di Chuyển: Đây Mới Là Pháp Tắc Sinh T",
+    "expected": 364,
+    "actual": 33,
+    "gap": 331
+  },
+  {
+    "id": 150634,
+    "name": "Bắt Đầu Lắc Lư Garp, Ban Thưởng Bát Vĩ Jinchu",
+    "expected": 384,
+    "actual": 54,
+    "gap": 330
+  },
+  {
+    "id": 130233,
+    "name": "Bị Đọc Tâm Về Sau, Thật Giả Thiên Kim Liên Th",
+    "expected": 365,
+    "actual": 35,
+    "gap": 330
+  },
+  {
+    "id": 152380,
+    "name": "Ta Thật Không Phải Đại Hung Nhân!",
+    "expected": 364,
+    "actual": 34,
+    "gap": 330
+  },
+  {
+    "id": 105103,
+    "name": "Đại Sư Huynh Lại Bại",
+    "expected": 365,
+    "actual": 36,
+    "gap": 329
+  },
+  {
+    "id": 149537,
+    "name": "Cẩu Tại Tiên Võ, Ta Tại Chư Thiên Vạn Giới Qu",
+    "expected": 375,
+    "actual": 50,
+    "gap": 325
+  },
+  {
+    "id": 142564,
+    "name": "Hồng Hoang: Vừa Thành Thi Tổ, Ngươi Để Cho Ta",
+    "expected": 375,
+    "actual": 50,
+    "gap": 325
+  },
+  {
+    "id": 147662,
+    "name": "Theo Gấp Mười Lần Hoàng Thường Thiên Phú Bắt ",
+    "expected": 377,
+    "actual": 55,
+    "gap": 322
+  },
+  {
+    "id": 136988,
+    "name": "Dị Giới Yêu Tăng Hệ Thống, Nhưng Ta Không Có ",
+    "expected": 376,
+    "actual": 54,
+    "gap": 322
+  },
+  {
+    "id": 144721,
+    "name": "Cướp Ta Công Tích, Ta Nằm Thẳng Sau Các Ngươi",
+    "expected": 379,
+    "actual": 58,
+    "gap": 321
+  },
+  {
+    "id": 128256,
+    "name": "Thần Ấn Vương Tọa",
+    "expected": 376,
+    "actual": 55,
+    "gap": 321
+  },
+  {
+    "id": 129687,
+    "name": "Bạn Gái Vượt Quá Giới Hạn Sau, Ta Thức Tỉnh  ",
+    "expected": 365,
+    "actual": 44,
+    "gap": 321
+  },
+  {
+    "id": 132320,
+    "name": "Kinh Khủng Khôi Phục: Phu Nhân, Mời Tôn Trọng",
+    "expected": 380,
+    "actual": 60,
+    "gap": 320
+  },
+  {
+    "id": 132526,
+    "name": "Huyền Huyễn: Nội Ứng Bắt Đầu Đối Mặt Vấn Tâm ",
+    "expected": 378,
+    "actual": 58,
+    "gap": 320
+  },
+  {
+    "id": 142871,
+    "name": "Lưỡng Giới: Ma Tu Ngộ Nhập Lĩnh Chủ Thế Giới",
+    "expected": 377,
+    "actual": 58,
+    "gap": 319
+  },
+  {
+    "id": 111806,
+    "name": "Trọng Sinh Toàn Năng Học Bá",
+    "expected": 386,
+    "actual": 68,
+    "gap": 318
+  },
+  {
+    "id": 125497,
+    "name": "Thiên Mệnh Trọng Nhiên",
+    "expected": 383,
+    "actual": 65,
+    "gap": 318
+  },
+  {
+    "id": 141532,
+    "name": "Luyện Thành Công Pháp Tà Môn, Bôn Tẩu Giang H",
+    "expected": 379,
+    "actual": 61,
+    "gap": 318
+  },
+  {
+    "id": 119006,
+    "name": "Nhiệt Ba Ăn Ác Ma Trái Cây, Vì Ta Điên Cuồng ",
+    "expected": 366,
+    "actual": 49,
+    "gap": 317
+  },
+  {
+    "id": 145962,
+    "name": "Siêu Cấp Giết Chóc Hệ Thống: Một Người Thành ",
+    "expected": 377,
+    "actual": 61,
+    "gap": 316
+  },
+  {
+    "id": 136809,
+    "name": "Bắt Đầu Dã Thần Sông? Ta Dựa Vào Cống Phẩm Th",
+    "expected": 377,
+    "actual": 61,
+    "gap": 316
+  },
+  {
+    "id": 142622,
+    "name": "Mẫu Nam Không Phải Hắc Lịch Sử, Đó Là Đường T",
+    "expected": 366,
+    "actual": 50,
+    "gap": 316
+  },
+  {
+    "id": 128726,
+    "name": "Tu Tiên: Ta Kỹ Năng Có Từ Khóa",
+    "expected": 379,
+    "actual": 64,
+    "gap": 315
+  },
+  {
+    "id": 116013,
+    "name": "Bắt Đầu Thành Phản Tặc, Khen Thưởng Yến Vân T",
+    "expected": 379,
+    "actual": 64,
+    "gap": 315
+  },
+  {
+    "id": 136210,
+    "name": "Mới Vừa Về Konoha, Phát Hiện Nhất Tộc Nhân Đề",
+    "expected": 380,
+    "actual": 66,
+    "gap": 314
+  },
+  {
+    "id": 118716,
+    "name": "Xuyên Thành Trong Niên Đại Văn Nhân Sinh Ngườ",
+    "expected": 377,
+    "actual": 63,
+    "gap": 314
+  },
+  {
+    "id": 121586,
+    "name": "Thần Tượng Phát Sóng Trực Tiếp Tú",
+    "expected": 385,
+    "actual": 72,
+    "gap": 313
+  },
+  {
+    "id": 143209,
+    "name": "Đấu La: Từ Làm Ruộng Bắt Đầu Thành Tựu Tự Nhi",
+    "expected": 376,
+    "actual": 63,
+    "gap": 313
+  },
+  {
+    "id": 107979,
+    "name": "Vị Hôn Thê Của Ta Là Kiếm Thánh",
+    "expected": 386,
+    "actual": 75,
+    "gap": 311
+  },
+  {
+    "id": 143083,
+    "name": "Người Tại Cao Võ, Ngôn Xuất Pháp Tùy",
+    "expected": 377,
+    "actual": 66,
+    "gap": 311
+  },
+  {
+    "id": 130322,
+    "name": "Dc Nhà Kỵ Sĩ",
+    "expected": 377,
+    "actual": 67,
+    "gap": 310
+  },
+  {
+    "id": 136316,
+    "name": "Tây Du Chi Vạn Pháp Yêu Đế",
+    "expected": 366,
+    "actual": 57,
+    "gap": 309
+  },
+  {
+    "id": 131650,
+    "name": "Hải Tặc: Bắt Đầu Thức Tỉnh Diệt Long Ma Pháp,",
+    "expected": 387,
+    "actual": 79,
+    "gap": 308
+  },
+  {
+    "id": 148782,
+    "name": "Thần Hào: Lái Xe Liền Kiếm Tiền? Ta Làm Làm L",
+    "expected": 385,
+    "actual": 77,
+    "gap": 308
+  },
+  {
+    "id": 148077,
+    "name": "Đa Tử Đa Phúc, Theo Cưới Vợ Bắt Đầu Thêm Điểm",
+    "expected": 378,
+    "actual": 70,
+    "gap": 308
+  },
+  {
+    "id": 150380,
+    "name": "One Piece: Tai Hoạ Chi Chủ",
+    "expected": 378,
+    "actual": 70,
+    "gap": 308
+  },
+  {
+    "id": 149675,
+    "name": "Từ Huyết Mạch Huyền Giám Bắt Đầu Dẫn Đầu Gia ",
+    "expected": 368,
+    "actual": 60,
+    "gap": 308
+  },
+  {
+    "id": 125580,
+    "name": "Người Tại Đấu La Phát Động Bảo Rương",
+    "expected": 366,
+    "actual": 58,
+    "gap": 308
+  },
+  {
+    "id": 102909,
+    "name": "Tennis Đại Sư",
+    "expected": 384,
+    "actual": 77,
+    "gap": 307
+  },
+  {
+    "id": 143176,
+    "name": "Thần Hào Từ Nghịch Tập Đời Người Bắt Đầu",
+    "expected": 382,
+    "actual": 76,
+    "gap": 306
+  },
+  {
+    "id": 133494,
+    "name": "Fairy Tail: Từ Yêu Tinh Nữ Vương Erza Bắt Đầu",
+    "expected": 378,
+    "actual": 73,
+    "gap": 305
+  },
+  {
+    "id": 115399,
+    "name": "Ta Thành Cổ Thần Thân Thuộc",
+    "expected": 385,
+    "actual": 81,
+    "gap": 304
+  },
+  {
+    "id": 152633,
+    "name": "Tuyệt Thế Đường Môn Chi Thuốc Xổ Thành Thần",
+    "expected": 376,
+    "actual": 72,
+    "gap": 304
+  },
+  {
+    "id": 134005,
+    "name": "Luyện Chơi Tà Công, Hạch Quang Phổ Chiếu",
+    "expected": 385,
+    "actual": 82,
+    "gap": 303
+  },
+  {
+    "id": 100448,
+    "name": "Sử Thượng Đệ Nhất Mật Thám",
+    "expected": 382,
+    "actual": 79,
+    "gap": 303
+  },
+  {
+    "id": 151058,
+    "name": "Bắt Đầu Võ N Đại, Gia Gia Là Cửu Phẩm",
+    "expected": 384,
+    "actual": 82,
+    "gap": 302
+  },
+  {
+    "id": 125908,
+    "name": "Ngự Yêu: Bắt Đầu Hợp Thành Thần Ma Thiên Phú",
+    "expected": 379,
+    "actual": 77,
+    "gap": 302
+  },
+  {
+    "id": 152868,
+    "name": "Đại Tần: Sáu Tuổi Ta, Bắt Đầu Đánh Tần Thủy H",
+    "expected": 386,
+    "actual": 85,
+    "gap": 301
+  },
+  {
+    "id": 116907,
+    "name": "Hoa Nguyệt Tụng",
+    "expected": 386,
+    "actual": 85,
+    "gap": 301
+  },
+  {
+    "id": 152562,
+    "name": "Ta Dutch Cũng Muốn Làm Tổng Thống!",
+    "expected": 387,
+    "actual": 89,
+    "gap": 298
+  },
+  {
+    "id": 125321,
+    "name": "Ta Chỉ Là Ham Cường Độ Của Các Nàng",
+    "expected": 386,
+    "actual": 88,
+    "gap": 298
+  },
+  {
+    "id": 121098,
+    "name": "Thập Niên Bảy Mươi Hương Giang Đại Lão Ánh Tr",
+    "expected": 385,
+    "actual": 88,
+    "gap": 297
+  },
+  {
+    "id": 148568,
+    "name": "Tổng Võ: Ẩn Cư Ta Bị Kim Bảng Lộ Ra Ánh Sáng",
+    "expected": 384,
+    "actual": 87,
+    "gap": 297
+  },
+  {
+    "id": 149423,
+    "name": "Thiên Tài Khu Vui Chơi",
+    "expected": 384,
+    "actual": 88,
+    "gap": 296
+  },
+  {
+    "id": 149289,
+    "name": "Người Tại Đại Học Năm Hai, Nam Thần Dưỡng Thà",
+    "expected": 383,
+    "actual": 87,
+    "gap": 296
+  },
+  {
+    "id": 134153,
+    "name": "Luyện Khí Đoạt Cưới Nguyên Anh? Ngươi Làm Đây",
+    "expected": 382,
+    "actual": 87,
+    "gap": 295
+  },
+  {
+    "id": 100854,
+    "name": "Pokemon Tùy Thân Mang Theo Master Ball",
+    "expected": 387,
+    "actual": 93,
+    "gap": 294
+  },
+  {
+    "id": 131282,
+    "name": "Ta Chính Là Thái Tử, Trùng Kiến Thần Quốc",
+    "expected": 386,
+    "actual": 92,
+    "gap": 294
+  },
+  {
+    "id": 135630,
+    "name": "Ta Chỉ Biết Mổ Heo, Ngươi Để Ta Làm Khám Nghi",
+    "expected": 370,
+    "actual": 77,
+    "gap": 293
+  },
+  {
+    "id": 149313,
+    "name": "Từ Ngu Công Di Sơn Bắt Đầu Sáng Lập Trường Si",
+    "expected": 363,
+    "actual": 70,
+    "gap": 293
+  },
+  {
+    "id": 151020,
+    "name": "Để Ngươi Ngự Thú, Ngươi Lại Trực Tiếp Khế Ước",
+    "expected": 386,
+    "actual": 94,
+    "gap": 292
+  },
+  {
+    "id": 151870,
+    "name": "Để Cho Ngươi Thi Khoa Cử, Không Có Để Cho Ngư",
+    "expected": 384,
+    "actual": 92,
+    "gap": 292
+  },
+  {
+    "id": 144934,
+    "name": "Pokemon: Mệnh Đồ Chúc Phúc, Bắt Đầu Hủy Diệt ",
+    "expected": 387,
+    "actual": 99,
+    "gap": 288
+  },
+  {
+    "id": 136132,
+    "name": "Cốt Vương: Cung Nghênh Vương Sinh Ra",
+    "expected": 384,
+    "actual": 96,
+    "gap": 288
+  },
+  {
+    "id": 122414,
+    "name": "Tuổi Già Đại Đế : Ta Có Thể Đi Vào Hồng Hoang",
+    "expected": 384,
+    "actual": 96,
+    "gap": 288
+  },
+  {
+    "id": 146830,
+    "name": "Bắt Đầu Một Tòa Tiểu Viện, Ta Dựa Vào Thăng C",
+    "expected": 384,
+    "actual": 97,
+    "gap": 287
+  },
+  {
+    "id": 104776,
+    "name": "Ta , Nhường Địa Phủ Tái Nhập Nhân Gian",
+    "expected": 369,
+    "actual": 82,
+    "gap": 287
+  },
+  {
+    "id": 132754,
+    "name": "Gia Nhập Vào Mũ Rơm Đoàn, Toàn Mạn Thuyền Ta ",
+    "expected": 368,
+    "actual": 83,
+    "gap": 285
+  },
+  {
+    "id": 146528,
+    "name": "Dòng Giao Phó? Ta Cho Huyễn Thú Gia Tăng Điểm",
+    "expected": 387,
+    "actual": 103,
+    "gap": 284
+  },
+  {
+    "id": 107905,
+    "name": "Bần Đạo Thật Không Muốn Kiếm Tiền A",
+    "expected": 387,
+    "actual": 103,
+    "gap": 284
+  },
+  {
+    "id": 106417,
+    "name": "Từ Nổ Tung Hồn Hoàn Bắt Đầu  Đấu La",
+    "expected": 368,
+    "actual": 84,
+    "gap": 284
+  },
+  {
+    "id": 103261,
+    "name": "Cương Thi Huyền Học Tinh Thông",
+    "expected": 371,
+    "actual": 88,
+    "gap": 283
+  },
+  {
+    "id": 100839,
+    "name": "Ta Xem Bói Bằng Wechat",
+    "expected": 388,
+    "actual": 106,
+    "gap": 282
+  },
+  {
+    "id": 150458,
+    "name": "Cao Võ: Ta Dựa Vào Mộng Cảnh Xuyên Qua Chư Th",
+    "expected": 383,
+    "actual": 101,
+    "gap": 282
+  },
+  {
+    "id": 151558,
+    "name": "Cửu Long Đoạt Vị, Ta Thật Không Muốn Làm Thái",
+    "expected": 382,
+    "actual": 100,
+    "gap": 282
+  },
+  {
+    "id": 128741,
+    "name": "Hokage: Ta Đều Cứng Rắn Ngũ Ảnh, Hệ Thống Mới",
+    "expected": 385,
+    "actual": 105,
+    "gap": 280
+  },
+  {
+    "id": 119082,
+    "name": "Tam Quốc: Ta Có Thể Dung Hợp Thú Hồn",
+    "expected": 384,
+    "actual": 105,
+    "gap": 279
+  },
+  {
+    "id": 137945,
+    "name": "Tổng Võ: Bắt Đầu Cầu Hôn Đảo Đào Hoa",
+    "expected": 381,
+    "actual": 102,
+    "gap": 279
+  },
+  {
+    "id": 132398,
+    "name": "Tiên Thê Như Vân",
+    "expected": 387,
+    "actual": 110,
+    "gap": 277
+  },
+  {
+    "id": 147681,
+    "name": "Đêm Động Phòng, Bắt Đầu Cưới Nhân Vật Chính B",
+    "expected": 384,
+    "actual": 108,
+    "gap": 276
+  },
+  {
+    "id": 146395,
+    "name": "Ta, Cựu Nhật Chí Cao Vị Cách, Xuất Thủ Không ",
+    "expected": 385,
+    "actual": 110,
+    "gap": 275
+  },
+  {
+    "id": 132508,
+    "name": "Trung Đông Xưng Đế: Từ Mỗi Ngày Bán Vũ Khí Bắ",
+    "expected": 380,
+    "actual": 105,
+    "gap": 275
+  },
+  {
+    "id": 113663,
+    "name": "Võng Du: Cái Này Độc Y Ức Điểm Mạnh Mẽ",
+    "expected": 369,
+    "actual": 94,
+    "gap": 275
+  },
+  {
+    "id": 144081,
+    "name": "Khóa Lại Đánh Dấu Hệ Thống, Ta Trở Thành Nhàn",
+    "expected": 374,
+    "actual": 100,
+    "gap": 274
+  },
+  {
+    "id": 139685,
+    "name": "Đấu La: Thiên Tầm Tật Cuộc Đời Vui Sướng",
+    "expected": 374,
+    "actual": 100,
+    "gap": 274
+  },
+  {
+    "id": 138564,
+    "name": "Cửu Thúc: Đa Tử Đa Phúc, Bắt Đầu Superman Huy",
+    "expected": 374,
+    "actual": 100,
+    "gap": 274
+  },
+  {
+    "id": 143340,
+    "name": "Đồng Thời Xuyên Qua: Chế Tạo Tận Thế Văn Minh",
+    "expected": 385,
+    "actual": 112,
+    "gap": 273
+  },
+  {
+    "id": 129533,
+    "name": "Phản Phái: Cùng Nữ Chính Nhóm Điên Cuồng Ân Á",
+    "expected": 388,
+    "actual": 116,
+    "gap": 272
+  },
+  {
+    "id": 146980,
+    "name": "Từ Bảo Vệ Nữ Đạo Hữu Bắt Đầu Trường Sinh",
+    "expected": 387,
+    "actual": 115,
+    "gap": 272
+  },
+  {
+    "id": 147816,
+    "name": "Chư Thiên Theo Tây Hồng Thị Phượng Sồ Bắt Đầu",
+    "expected": 368,
+    "actual": 96,
+    "gap": 272
+  },
+  {
+    "id": 106604,
+    "name": "Số Hiệu 09",
+    "expected": 385,
+    "actual": 114,
+    "gap": 271
+  },
+  {
+    "id": 115568,
+    "name": "Thần Hào: Thu Được Khoác Lác Hệ Thống Sau, Ta",
+    "expected": 384,
+    "actual": 113,
+    "gap": 271
+  },
+  {
+    "id": 152474,
+    "name": "Ai Nói Hài Tử Này Súc Sinh, Hài Tử Này Thật T",
+    "expected": 383,
+    "actual": 112,
+    "gap": 271
+  },
+  {
+    "id": 146677,
+    "name": "Võ Hiệp: Từ Đánh Dấu Biệt Tiểu Lâu Bắt Đầu Vô",
+    "expected": 380,
+    "actual": 109,
+    "gap": 271
+  },
+  {
+    "id": 135654,
+    "name": "Comic Duy Nhất Người Đột Biến, Gwen Đêm Khuya",
+    "expected": 371,
+    "actual": 100,
+    "gap": 271
+  },
+  {
+    "id": 135163,
+    "name": "Diệu Mộc Sơn Tahm Kench Tiên Nhân",
+    "expected": 371,
+    "actual": 100,
+    "gap": 271
+  },
+  {
+    "id": 108849,
+    "name": "Pháp Y Cuồng Thê Hộ Kiều Phu",
+    "expected": 371,
+    "actual": 100,
+    "gap": 271
+  },
+  {
+    "id": 132317,
+    "name": "One Piece: Thần Tốc Thời Đại Từ Đánh Cướp Nam",
+    "expected": 371,
+    "actual": 101,
+    "gap": 270
+  },
+  {
+    "id": 111852,
+    "name": "Dung Hoa Tự Cẩn",
+    "expected": 386,
+    "actual": 117,
+    "gap": 269
+  },
+  {
+    "id": 101377,
+    "name": "Đấu La Đại Lục Chi Rinnegan",
+    "expected": 381,
+    "actual": 112,
+    "gap": 269
+  },
+  {
+    "id": 143488,
+    "name": "Bắt Đầu Quán Chủ Chạy Trốn, Bị Ép Kế Thừa Đạo",
+    "expected": 385,
+    "actual": 117,
+    "gap": 268
+  },
+  {
+    "id": 133246,
+    "name": "Đấu La: Huyết Mạch Không Đủ? Bộ Não Tới Góp",
+    "expected": 383,
+    "actual": 115,
+    "gap": 268
+  },
+  {
+    "id": 118828,
+    "name": "Xuyên Qua Đến Trong Văn Niên Đại Ăn Uống No Đ",
+    "expected": 386,
+    "actual": 119,
+    "gap": 267
+  },
+  {
+    "id": 128932,
+    "name": "Mang Theo Trinh Thám Hệ Thống Xuyên Võ Hiệp",
+    "expected": 383,
+    "actual": 116,
+    "gap": 267
+  },
+  {
+    "id": 150396,
+    "name": "Hồng Hoang: Tiễn Đạo Thông Thần, Tam Tiêu Cầu",
+    "expected": 370,
+    "actual": 103,
+    "gap": 267
+  },
+  {
+    "id": 152209,
+    "name": "Hải Tặc: Bắt Đầu Tiệt Hồ Nikyu Nikyu No Mi Tr",
+    "expected": 370,
+    "actual": 103,
+    "gap": 267
+  },
+  {
+    "id": 135104,
+    "name": "Ta Tiểu Hoàng Mao! Giáo Hoa Lão Bà Đánh Chết ",
+    "expected": 387,
+    "actual": 121,
+    "gap": 266
+  },
+  {
+    "id": 136938,
+    "name": "Tứ Hợp Viện, Hà Vũ Thủy Nghịch Tập",
+    "expected": 383,
+    "actual": 118,
+    "gap": 265
+  },
+  {
+    "id": 101946,
+    "name": "Huyền Huyễn Vạn Giới Chi Vô Hạn Phản Phái",
+    "expected": 386,
+    "actual": 122,
+    "gap": 264
+  },
+  {
+    "id": 149840,
+    "name": "Tung Hoành Vạn Giới: Từ Tây Môn Đại Quan Nhân",
+    "expected": 385,
+    "actual": 121,
+    "gap": 264
+  },
+  {
+    "id": 134265,
+    "name": "Thần Hào Từ Cùng Ham Tiền Bạn Gái Sau Khi Chi",
+    "expected": 382,
+    "actual": 118,
+    "gap": 264
+  },
+  {
+    "id": 112113,
+    "name": "Nông Môn Tỷ Đệ Không Đơn Giản",
+    "expected": 388,
+    "actual": 125,
+    "gap": 263
+  },
+  {
+    "id": 107346,
+    "name": "Bạch Hoàn Đấu La",
+    "expected": 383,
+    "actual": 120,
+    "gap": 263
+  },
+  {
+    "id": 137382,
+    "name": "Bắt Đầu Giáo Hoa Bạn Gái Chia Tay, Ta Thành D",
+    "expected": 388,
+    "actual": 126,
+    "gap": 262
+  },
+  {
+    "id": 111193,
+    "name": "Khởi Đầu Vào Vực Sâu Ở Rể",
+    "expected": 388,
+    "actual": 126,
+    "gap": 262
+  },
+  {
+    "id": 121335,
+    "name": "Ta Thông Qua Đạo Lí Đối Nhân Xử Thế Chứng Đạo",
+    "expected": 386,
+    "actual": 125,
+    "gap": 261
+  },
+  {
+    "id": 108503,
+    "name": "Ta Là Nam/nữ Chính Quý Nhân (xuyên Nhanh)",
+    "expected": 384,
+    "actual": 123,
+    "gap": 261
+  },
+  {
+    "id": 147626,
+    "name": "Người Tại Huyền Huyễn, Miệng Của Ta Khai Quan",
+    "expected": 381,
+    "actual": 120,
+    "gap": 261
+  },
+  {
+    "id": 102983,
+    "name": "Phản Phái Giá Lâm",
+    "expected": 371,
+    "actual": 111,
+    "gap": 260
+  },
+  {
+    "id": 136389,
+    "name": "Thức Tỉnh Nát Nhất Thiên Phú? Phân Thân Của T",
+    "expected": 388,
+    "actual": 130,
+    "gap": 258
+  },
+  {
+    "id": 145950,
+    "name": "Vương Phi, Xin Tự Trọng",
+    "expected": 384,
+    "actual": 126,
+    "gap": 258
+  },
+  {
+    "id": 101249,
+    "name": "Thần Sủng Hàng Lâm",
+    "expected": 384,
+    "actual": 126,
+    "gap": 258
+  },
+  {
+    "id": 141327,
+    "name": "Ta Vô Hạn Phân Thân, Võ Đạo Tu Tiên Còn Gọi C",
+    "expected": 382,
+    "actual": 124,
+    "gap": 258
+  },
+  {
+    "id": 104050,
+    "name": "Bạch Nguyệt Quang Chia Tay Hằng Ngày",
+    "expected": 386,
+    "actual": 129,
+    "gap": 257
+  },
+  {
+    "id": 151936,
+    "name": "Hokage: Ta Lấy Khoa Học Kỹ Thuật Đánh Ngã Giớ",
+    "expected": 381,
+    "actual": 124,
+    "gap": 257
+  },
+  {
+    "id": 151497,
+    "name": "Cần Gì Giang Hồ Bách Mỹ Đồ, Ta Có Binh Khí Ph",
+    "expected": 383,
+    "actual": 127,
+    "gap": 256
+  },
+  {
+    "id": 140488,
+    "name": "Máy Mô Phỏng Bên Trong Ta Muốn Cùng Ta Liên T",
+    "expected": 383,
+    "actual": 129,
+    "gap": 254
+  },
+  {
+    "id": 129549,
+    "name": "Trảm Yêu Trừ Ma: Bần Đạo Cũng Hiểu Sơ Quyền C",
+    "expected": 388,
+    "actual": 135,
+    "gap": 253
+  },
+  {
+    "id": 136505,
+    "name": "Cùng Minh Tinh Cùng Nhau Hoang Dã Cầu Sinh",
+    "expected": 384,
+    "actual": 131,
+    "gap": 253
+  },
+  {
+    "id": 148530,
+    "name": "Bắt Đầu Bị Thông Thiên Nhặt Đi, Trở Thành Tiệ",
+    "expected": 384,
+    "actual": 132,
+    "gap": 252
+  },
+  {
+    "id": 149310,
+    "name": "Bị Thánh Nữ Đạp Đổ Sau, Ta Vô Địch",
+    "expected": 371,
+    "actual": 119,
+    "gap": 252
+  },
+  {
+    "id": 152350,
+    "name": "Thi Đại Học Sau Khi Kết Thúc Ta Thành Tu Tiên",
+    "expected": 388,
+    "actual": 139,
+    "gap": 249
+  },
+  {
+    "id": 136934,
+    "name": "Xuyên Sách Phía Sau Nữ Phối Mới Là Năm Cái Ca",
+    "expected": 386,
+    "actual": 137,
+    "gap": 249
+  },
+  {
+    "id": 128026,
+    "name": "Không Muốn Làm Ruộng Muốn Tu Tiên",
+    "expected": 384,
+    "actual": 135,
+    "gap": 249
+  },
+  {
+    "id": 118548,
+    "name": "Đăng Đường Nhập Thất",
+    "expected": 383,
+    "actual": 134,
+    "gap": 249
+  },
+  {
+    "id": 120268,
+    "name": "Bắt Đầu Đại Đế Tu Vi, Ta Tông Môn Sản Xuất Hà",
+    "expected": 386,
+    "actual": 138,
+    "gap": 248
+  },
+  {
+    "id": 129229,
+    "name": "Sau Khi Chết Thành Quỷ Đế, Ta Bị Nữ Nhi Khế Ư",
+    "expected": 384,
+    "actual": 136,
+    "gap": 248
+  },
+  {
+    "id": 114190,
+    "name": "Long Châu: Ta Trọng Sinh Ở Địa Cầu",
+    "expected": 383,
+    "actual": 136,
+    "gap": 247
+  },
+  {
+    "id": 135159,
+    "name": "Bóng Đá: Giữa Trận Chi Vương, Qua Soái Cặn Bã",
+    "expected": 382,
+    "actual": 135,
+    "gap": 247
+  },
+  {
+    "id": 136213,
+    "name": "Nửa Đêm Cùng Tấm Gương Oẳn Tù Tì, Ta Thắng Mộ",
+    "expected": 382,
+    "actual": 138,
+    "gap": 244
+  },
+  {
+    "id": 114288,
+    "name": "Bắt Đầu Hokage: Thức Tỉnh Trảm Phách Đao",
+    "expected": 385,
+    "actual": 143,
+    "gap": 242
+  },
+  {
+    "id": 150937,
+    "name": "Harry Không Muốn Làm Phù Thủy, Chỉ Muốn Làm S",
+    "expected": 386,
+    "actual": 145,
+    "gap": 241
+  },
+  {
+    "id": 130009,
+    "name": "Haikyuu: Bắt Đầu Từ Số 0 Trở Thành Toàn Năng",
+    "expected": 384,
+    "actual": 143,
+    "gap": 241
+  },
+  {
+    "id": 148587,
+    "name": "Long Thành",
+    "expected": 383,
+    "actual": 142,
+    "gap": 241
+  },
+  {
+    "id": 132091,
+    "name": "Ta, Bác Sĩ Tâm Lý, Nhìn Thấu Vận Mệnh Rất Hợp",
+    "expected": 383,
+    "actual": 142,
+    "gap": 241
+  },
+  {
+    "id": 150525,
+    "name": "Hệ Thống Bỏ Chạy, Ta Dựa Vào Ăn Độc Trở Thành",
+    "expected": 384,
+    "actual": 144,
+    "gap": 240
+  },
+  {
+    "id": 115962,
+    "name": "Trâm Tinh",
+    "expected": 381,
+    "actual": 141,
+    "gap": 240
+  },
+  {
+    "id": 137456,
+    "name": "Hải Tặc Chi Bất Diệt Cuồng Lôi",
+    "expected": 381,
+    "actual": 142,
+    "gap": 239
+  },
+  {
+    "id": 100675,
+    "name": "Võng Du Chi Thần Cấp Virus Sư",
+    "expected": 389,
+    "actual": 153,
+    "gap": 236
+  },
+  {
+    "id": 149099,
+    "name": "Là Hầu Ca Đòi Công Đạo, Bát Giới Nháo Thiên C",
+    "expected": 386,
+    "actual": 150,
+    "gap": 236
+  },
+  {
+    "id": 130812,
+    "name": "Bình Thường Không Có Gì Lạ Tiểu Sư Thúc",
+    "expected": 380,
+    "actual": 144,
+    "gap": 236
+  },
+  {
+    "id": 136984,
+    "name": "Hợp Hoan Bị Ép Vạn Năm, Tông Môn Thành Thánh ",
+    "expected": 385,
+    "actual": 150,
+    "gap": 235
+  },
+  {
+    "id": 128584,
+    "name": "Mỹ: Bắt Đầu Từ Việc Mua Lại Metro-Gold",
+    "expected": 371,
+    "actual": 136,
+    "gap": 235
+  },
+  {
+    "id": 150919,
+    "name": "Toàn Dân Lãnh Chúa: Linh Điền Của Ta Biến Dị!",
+    "expected": 368,
+    "actual": 133,
+    "gap": 235
+  },
+  {
+    "id": 111149,
+    "name": "Phất Nhanh Về Sau, Cá Ướp Muối Nàng Lại Bạo Đ",
+    "expected": 384,
+    "actual": 152,
+    "gap": 232
+  },
+  {
+    "id": 148764,
+    "name": "Đã Nói Chiến Lược Phim Kinh Dị, Thần Bí Khôi ",
+    "expected": 386,
+    "actual": 155,
+    "gap": 231
+  },
+  {
+    "id": 105732,
+    "name": "Ta Là Hàn Vũ Thiên",
+    "expected": 382,
+    "actual": 152,
+    "gap": 230
+  },
+  {
+    "id": 116078,
+    "name": "Nhân Vật Phản Diện? Bắt Đầu Cưỡng Hôn Bị Nữ C",
+    "expected": 388,
+    "actual": 159,
+    "gap": 229
+  },
+  {
+    "id": 120414,
+    "name": "Thất Linh Hải Đảo Hạnh Phúc Cuộc Sống",
+    "expected": 387,
+    "actual": 159,
+    "gap": 228
+  },
+  {
+    "id": 120784,
+    "name": "Tam Quốc: Đại Hán Có Thể Cứu , Mời Trung Sơn ",
+    "expected": 385,
+    "actual": 157,
+    "gap": 228
+  },
+  {
+    "id": 139345,
+    "name": "Tận Thế Nhà Lữ Hành",
+    "expected": 386,
+    "actual": 160,
+    "gap": 226
+  },
+  {
+    "id": 102088,
+    "name": "Mộng Nhập Điện Ảnh Thế Giới",
+    "expected": 386,
+    "actual": 160,
+    "gap": 226
+  },
+  {
+    "id": 138731,
+    "name": "Một Tháng Một Đóa Dị Hỏa, Viêm Đế Tới Đều Dập",
+    "expected": 371,
+    "actual": 145,
+    "gap": 226
+  },
+  {
+    "id": 147250,
+    "name": "Tây Du: Vững Vàng Nhân Sinh, Từ Cao Trúng Tiế",
+    "expected": 386,
+    "actual": 161,
+    "gap": 225
+  },
+  {
+    "id": 142812,
+    "name": "Ta Dựa Vào Thả Câu, Dưỡng Thành Mười Vị Đại Đ",
+    "expected": 386,
+    "actual": 161,
+    "gap": 225
+  },
+  {
+    "id": 126750,
+    "name": "Ta Chỉ Là Không Nói Yêu Đương, Ai Nói Không C",
+    "expected": 386,
+    "actual": 162,
+    "gap": 224
+  },
+  {
+    "id": 133527,
+    "name": "Đều Trọng Sinh, Ai Còn Tiếp Tục Làm Diễn Viên",
+    "expected": 386,
+    "actual": 164,
+    "gap": 222
+  },
+  {
+    "id": 100980,
+    "name": "Tu Tiên Chúa Tể Ở Đô Thị",
+    "expected": 385,
+    "actual": 163,
+    "gap": 222
+  },
+  {
+    "id": 139041,
+    "name": "Bắt Đầu Đỉnh Cấp Kiểm Soát Bóng, Pep Kinh Ngạ",
+    "expected": 387,
+    "actual": 166,
+    "gap": 221
+  },
+  {
+    "id": 138170,
+    "name": "Trường Sinh Tu Tiên: Ta Có Thể Xem Thấu Vạn V",
+    "expected": 373,
+    "actual": 152,
+    "gap": 221
+  },
+  {
+    "id": 142538,
+    "name": "Hải Tặc : Từ Rocks Thời Đại Bắt Đầu Trồng Ruộ",
+    "expected": 386,
+    "actual": 166,
+    "gap": 220
+  },
+  {
+    "id": 127901,
+    "name": "Cái Này Nhị Thế Tổ Ma Đầu Có Ức Điểm Mạnh Mẽ",
+    "expected": 371,
+    "actual": 152,
+    "gap": 219
+  },
+  {
+    "id": 130632,
+    "name": "Vạn Vật Làm Khế",
+    "expected": 371,
+    "actual": 152,
+    "gap": 219
+  },
+  {
+    "id": 132561,
+    "name": "Siêu Ngọt: Tuyệt Mỹ Tổng Giám Đốc Tỷ Tỷ Đối T",
+    "expected": 387,
+    "actual": 169,
+    "gap": 218
+  },
+  {
+    "id": 149508,
+    "name": "Hồng Kông Tình Báo Vương",
+    "expected": 387,
+    "actual": 170,
+    "gap": 217
+  },
+  {
+    "id": 117163,
+    "name": "Toàn Dân Tu Tiên: Lưỡng Giới Nhà Buôn Trở Thà",
+    "expected": 389,
+    "actual": 175,
+    "gap": 214
+  },
+  {
+    "id": 102046,
+    "name": "Siêu Cấp Thần Ma Dược Viên Hệ Thống",
+    "expected": 373,
+    "actual": 159,
+    "gap": 214
+  },
+  {
+    "id": 152590,
+    "name": "Không Phải Đâu? Ngươi Để Cho Ta Tại Dị Giới M",
+    "expected": 373,
+    "actual": 160,
+    "gap": 213
+  },
+  {
+    "id": 127137,
+    "name": "Mô Phỏng Hồng Hoang, Ngươi Cái Này Cũng Quá C",
+    "expected": 386,
+    "actual": 174,
+    "gap": 212
+  },
+  {
+    "id": 102052,
+    "name": "Hokage Chi Vụ Nhẫn Quật Khởi",
+    "expected": 374,
+    "actual": 162,
+    "gap": 212
+  },
+  {
+    "id": 100348,
+    "name": "Trọng Sinh Chi Boxing Sát Thủ",
+    "expected": 388,
+    "actual": 177,
+    "gap": 211
+  },
+  {
+    "id": 152123,
+    "name": "Hỗn Độn Chí Tôn Đỉnh",
+    "expected": 385,
+    "actual": 174,
+    "gap": 211
+  },
+  {
+    "id": 115891,
+    "name": "Ngự Thú Thời Đại: Ta Thành Groudon ",
+    "expected": 388,
+    "actual": 181,
+    "gap": 207
+  },
+  {
+    "id": 140973,
+    "name": "Hồng Hoang: Người Ở Tiệt Giáo, Nhặt Dòng Chứn",
+    "expected": 371,
+    "actual": 166,
+    "gap": 205
+  },
+  {
+    "id": 126345,
+    "name": "Ta Đều Đại Đế, Hệ Thống Cầu Ta Liếm Nữ Chính?",
+    "expected": 374,
+    "actual": 172,
+    "gap": 202
+  },
+  {
+    "id": 150337,
+    "name": "Đấu Phá Song Xuyên Môn, Huynh Đệ Của Ta Là Lâ",
+    "expected": 374,
+    "actual": 173,
+    "gap": 201
+  },
+  {
+    "id": 118873,
+    "name": "Hầu Phủ Đích Nữ Thượng Vị Bản Chép Tay",
+    "expected": 389,
+    "actual": 189,
+    "gap": 200
+  },
+  {
+    "id": 152589,
+    "name": "Người Tại Nghĩa Địa Công Cộng, Nhặt Được Một ",
+    "expected": 371,
+    "actual": 173,
+    "gap": 198
+  },
+  {
+    "id": 141259,
+    "name": "Yêu Nữ Ban Thưởng Ta Thuần Dương Công, Băng S",
+    "expected": 387,
+    "actual": 195,
+    "gap": 192
+  },
+  {
+    "id": 100618,
+    "name": "Thính Linh Sư",
+    "expected": 378,
+    "actual": 188,
+    "gap": 190
+  },
+  {
+    "id": 147094,
+    "name": "Sư Tôn Sau Khi Sống Lại, Gặp Ta Nằm Ngửa Sắp ",
+    "expected": 375,
+    "actual": 188,
+    "gap": 187
+  },
+  {
+    "id": 124785,
+    "name": "Gia Tộc Tu Tiên: Ta Lấy Thiên Thư Mưu Trường ",
+    "expected": 389,
+    "actual": 203,
+    "gap": 186
+  },
+  {
+    "id": 105647,
+    "name": "Nhà Ta Lão Bà Đến Từ Một Ngàn Năm Trước",
+    "expected": 389,
+    "actual": 204,
+    "gap": 185
+  },
+  {
+    "id": 142082,
+    "name": "Cương Thi: Vô Địch Từ Gấp Trăm Lần Tăng Cường",
+    "expected": 388,
+    "actual": 207,
+    "gap": 181
+  },
+  {
+    "id": 138314,
+    "name": "Trọng Sinh Chín Lần, Oan Loại Cả Nhà Tay Xé K",
+    "expected": 379,
+    "actual": 199,
+    "gap": 180
+  },
+  {
+    "id": 102973,
+    "name": "Nhị Thứ Nguyên Thần Tượng Âm Nhạc",
+    "expected": 377,
+    "actual": 198,
+    "gap": 179
+  },
+  {
+    "id": 140959,
+    "name": "Trường Sinh: Cao Thủ Nơi Này Quá Nhiều, Ẩn Mì",
+    "expected": 382,
+    "actual": 204,
+    "gap": 178
+  },
+  {
+    "id": 141678,
+    "name": "Huyền Huyễn: Theo Hành Y Tế Thế Bắt Đầu Trườn",
+    "expected": 377,
+    "actual": 199,
+    "gap": 178
+  },
+  {
+    "id": 136638,
+    "name": "Fairy Tail Công Hội Bên Trong Murciélago",
+    "expected": 388,
+    "actual": 214,
+    "gap": 174
+  },
+  {
+    "id": 112132,
+    "name": "Ngô Gia A Niếp",
+    "expected": 378,
+    "actual": 204,
+    "gap": 174
+  },
+  {
+    "id": 101646,
+    "name": "Trọng Sinh Chi Tán Tài Hệ Thống",
+    "expected": 389,
+    "actual": 217,
+    "gap": 172
+  },
+  {
+    "id": 152208,
+    "name": "Tinh Tẫn Nhân Vong, Ta Chế Tạo Vạn Giới Thế L",
+    "expected": 388,
+    "actual": 217,
+    "gap": 171
+  },
+  {
+    "id": 117426,
+    "name": "Ta Tại Ma Giới Làm Xây Dựng",
+    "expected": 372,
+    "actual": 201,
+    "gap": 171
+  },
+  {
+    "id": 139234,
+    "name": "Người Tại Marvel Đơn Đấu Avengers",
+    "expected": 389,
+    "actual": 224,
+    "gap": 165
+  },
+  {
+    "id": 111706,
+    "name": "Điên Rồi! Ngươi Quản Cái Này Gọi Nghề Nông?",
+    "expected": 389,
+    "actual": 230,
+    "gap": 159
+  },
+  {
+    "id": 150315,
+    "name": "Hệ Thống Làm Hại Ta! Đã Nói Là Võ Hiệp Mà?",
+    "expected": 371,
+    "actual": 215,
+    "gap": 156
+  },
+  {
+    "id": 151094,
+    "name": "Gia Tộc Tu Tiên: Từ Nhị Lang Thần Mệnh Cách B",
+    "expected": 371,
+    "actual": 229,
+    "gap": 142
+  },
+  {
+    "id": 150644,
+    "name": "Hồng Hoang: Tiệt Giáo Thân Truyền, Nhưng Đời ",
+    "expected": 371,
+    "actual": 235,
+    "gap": 136
+  },
+  {
+    "id": 150020,
+    "name": "Trò Chơi Xâm Lấn, Từ Nội Trắc Bắt Đầu Thăng C",
+    "expected": 465,
+    "actual": 335,
+    "gap": 130
+  },
+  {
+    "id": 127545,
+    "name": "Ta Dựa Vào Làm Ruộng Cải Tạo Tu Chân Giới",
+    "expected": 371,
+    "actual": 243,
+    "gap": 128
+  },
+  {
+    "id": 148386,
+    "name": "Ta Tại Loạn Thế Nhặt Công Pháp, Nằm Thành Vạn",
+    "expected": 389,
+    "actual": 272,
+    "gap": 117
+  },
+  {
+    "id": 118358,
+    "name": "Linh Khí Khôi Phục: Sủng Vật Của Ta Đều Là Đạ",
+    "expected": 389,
+    "actual": 277,
+    "gap": 112
+  },
+  {
+    "id": 135302,
+    "name": "Thánh Tộc Quá Yếu? Quan Ta Vạn Cổ Đế Tộc Chuy",
+    "expected": 389,
+    "actual": 279,
+    "gap": 110
+  },
+  {
+    "id": 140420,
+    "name": "Tam Quốc: Ta Thành Trương Giác Người Nối Nghi",
+    "expected": 373,
+    "actual": 263,
+    "gap": 110
+  },
+  {
+    "id": 141311,
+    "name": "Loạn Thế, Bắt Đầu Sống Mái Với Nhau Thiên Hộ ",
+    "expected": 373,
+    "actual": 266,
+    "gap": 107
+  },
+  {
+    "id": 134073,
+    "name": "Ta Nữ Bí Dưỡng Thành Trò Chơi Thành Sự Thật? ",
+    "expected": 372,
+    "actual": 270,
+    "gap": 102
+  },
+  {
+    "id": 150758,
+    "name": "Cấm Cố Chi Nhật",
+    "expected": 389,
+    "actual": 288,
+    "gap": 101
+  },
+  {
+    "id": 151155,
+    "name": "Hồng Hoang: Cẩu Tới Hỗn Nguyên, Làm Loạn Hồng",
+    "expected": 372,
+    "actual": 272,
+    "gap": 100
+  },
+  {
+    "id": 106067,
+    "name": "Ta Mới Không Phải Ăn Mày",
+    "expected": 374,
+    "actual": 275,
+    "gap": 99
+  },
+  {
+    "id": 137712,
+    "name": "Cưới Gấp Ba Năm Ôm Hai, Sĩ Quan Đại Lão Hắn S",
+    "expected": 372,
+    "actual": 276,
+    "gap": 96
+  },
+  {
+    "id": 114330,
+    "name": "Thân Là Cự Long Ta Tham Lam Lại Vô Sỉ",
+    "expected": 389,
+    "actual": 294,
+    "gap": 95
+  },
+  {
+    "id": 128857,
+    "name": "Hậu Đại Khóc Mộ Phần, Đại Thành Thánh Thể Lão",
+    "expected": 373,
+    "actual": 280,
+    "gap": 93
+  },
+  {
+    "id": 134992,
+    "name": "Siêu Phàm Bắc Mĩ: Thần Kỳ Đồng Bạn Ở Nơi Nào",
+    "expected": 498,
+    "actual": 406,
+    "gap": 92
+  },
+  {
+    "id": 126851,
+    "name": "Côn Luân Nhất Thử",
+    "expected": 374,
+    "actual": 282,
+    "gap": 92
+  },
+  {
+    "id": 122818,
+    "name": "Tạo Hóa Trường Sinh: Ta Có Thể Cụ Hiện Vô Tận",
+    "expected": 373,
+    "actual": 283,
+    "gap": 90
+  },
+  {
+    "id": 146818,
+    "name": "Cao Võ: Một Ngày Thăng Một Cấp, Vô Địch Rất B",
+    "expected": 372,
+    "actual": 284,
+    "gap": 88
+  },
+  {
+    "id": 129343,
+    "name": "Tiên Tử, Bức Ta Ăn Bám Đúng Không",
+    "expected": 375,
+    "actual": 289,
+    "gap": 86
+  },
+  {
+    "id": 124274,
+    "name": "Hồng Hoang: Bắt Đầu Cửu Long Kéo Quan",
+    "expected": 372,
+    "actual": 286,
+    "gap": 86
+  },
+  {
+    "id": 116736,
+    "name": "Xuyên Thư Mụ Mụ Mang Ta Gả Vào Hào Môn",
+    "expected": 292,
+    "actual": 206,
+    "gap": 86
+  },
+  {
+    "id": 137791,
+    "name": "Ta Có Thể Nhìn Thấy Tận Thế",
+    "expected": 373,
+    "actual": 290,
+    "gap": 83
+  },
+  {
+    "id": 148084,
+    "name": "Online Giám Sủng, Đại Ca Cái Này Chó Cho Rằng",
+    "expected": 485,
+    "actual": 407,
+    "gap": 78
+  },
+  {
+    "id": 115361,
+    "name": "Phản Phái: Ta Cầu Nguyện Vọng, Cừu Nhân Đến G",
+    "expected": 373,
+    "actual": 297,
+    "gap": 76
+  },
+  {
+    "id": 147539,
+    "name": "Chết Rồi Sống Lại, Trà Trộn Điên Lão Giang Hồ",
+    "expected": 389,
+    "actual": 314,
+    "gap": 75
+  },
+  {
+    "id": 145563,
+    "name": "Phân Tích Vạn Vật, Từ Ngư Dân Đến Thủy Đức Ch",
+    "expected": 374,
+    "actual": 299,
+    "gap": 75
+  },
+  {
+    "id": 147625,
+    "name": "Thần Thoại Sơn Trang: Bắt Đầu Hướng Nữ Ma Đầu",
+    "expected": 389,
+    "actual": 315,
+    "gap": 74
+  },
+  {
+    "id": 121609,
+    "name": "Ta Một Cái Minh Tinh, Mỗi Ngày Vào Cục Cảnh S",
+    "expected": 374,
+    "actual": 300,
+    "gap": 74
+  },
+  {
+    "id": 148035,
+    "name": "Giết Xuyên Thành Dưới Đất Goblin Sát Thủ",
+    "expected": 358,
+    "actual": 286,
+    "gap": 72
+  },
+  {
+    "id": 135471,
+    "name": "Konoha: Đúc Lại Uchiha Vinh Quang",
+    "expected": 374,
+    "actual": 303,
+    "gap": 71
+  },
+  {
+    "id": 150780,
+    "name": "Đường Ca Tu Tiên, Mệnh Cách Thành Thánh",
+    "expected": 389,
+    "actual": 319,
+    "gap": 70
+  },
+  {
+    "id": 120487,
+    "name": "Ta Ở Đấu La Chế Tạo Hắc Ảnh Binh Đoàn ",
+    "expected": 375,
+    "actual": 308,
+    "gap": 67
+  },
+  {
+    "id": 103728,
+    "name": "Tinh Tế Trò Chơi Thương",
+    "expected": 381,
+    "actual": 316,
+    "gap": 65
+  },
+  {
+    "id": 132386,
+    "name": "Bắt Đầu Kim Đan Lão Tổ: Chế Tạo Vạn Cổ Đệ Nhấ",
+    "expected": 552,
+    "actual": 489,
+    "gap": 63
+  },
+  {
+    "id": 148196,
+    "name": "Trọng Sinh Siêu Cường Học Bá Hệ Thống",
+    "expected": 379,
+    "actual": 316,
+    "gap": 63
+  },
+  {
+    "id": 145590,
+    "name": "Địa Sát Thất Thập Nhị Biến Ta Tại Đại Đường G",
+    "expected": 389,
+    "actual": 327,
+    "gap": 62
+  },
+  {
+    "id": 133417,
+    "name": "Xuyên Nhanh: Thái Tử Trở Lại, Tiên Nữ Đừng Lừ",
+    "expected": 379,
+    "actual": 317,
+    "gap": 62
+  },
+  {
+    "id": 149053,
+    "name": "Năm Mất Mùa Thợ Săn, Bắt Đầu Hai Tuyệt Sắc Lã",
+    "expected": 373,
+    "actual": 311,
+    "gap": 62
+  },
+  {
+    "id": 141117,
+    "name": "Đạn Xuyên Giáp Không Tin Tưởng Nguyên Tố Cacb",
+    "expected": 389,
+    "actual": 328,
+    "gap": 61
+  },
+  {
+    "id": 143246,
+    "name": "Nữ Thần Cổn, Ngã Độc Hảo Sủng Nữ Phối",
+    "expected": 390,
+    "actual": 330,
+    "gap": 60
+  },
+  {
+    "id": 125530,
+    "name": "Ta Đem Kỹ Năng Thường Ngày Cày Thành Thần Thô",
+    "expected": 375,
+    "actual": 315,
+    "gap": 60
+  },
+  {
+    "id": 146254,
+    "name": "Hồng Hoang: Gia Sư Thượng Thanh Thông Thiên",
+    "expected": 378,
+    "actual": 319,
+    "gap": 59
+  },
+  {
+    "id": 109892,
+    "name": "Toàn Cầu Mạt Nhật, Ta Tiến Hóa Thành Hành Tin",
+    "expected": 380,
+    "actual": 322,
+    "gap": 58
+  },
+  {
+    "id": 137547,
+    "name": "Toàn Dân Cầu Sinh: Bắt Đầu Từ Số Không Chinh ",
+    "expected": 372,
+    "actual": 315,
+    "gap": 57
+  },
+  {
+    "id": 139112,
+    "name": "Cuối Cùng Lãnh Chúa",
+    "expected": 378,
+    "actual": 323,
+    "gap": 55
+  },
+  {
+    "id": 152324,
+    "name": "Lại Cháy Lên",
+    "expected": 382,
+    "actual": 329,
+    "gap": 53
+  },
+  {
+    "id": 136374,
+    "name": "Tả Đạo Thần Quân",
+    "expected": 382,
+    "actual": 329,
+    "gap": 53
+  },
+  {
+    "id": 141153,
+    "name": "Hogwarts: Kỳ Tích Bên Trên",
+    "expected": 381,
+    "actual": 329,
+    "gap": 52
+  },
+  {
+    "id": 138354,
+    "name": "Hải Tặc: Từ Trở Thành Thất Vũ Hải Bắt Đầu Làm",
+    "expected": 381,
+    "actual": 329,
+    "gap": 52
+  },
+  {
+    "id": 148201,
+    "name": "Nhà Ta Lão Bà Là Người Trọng Sinh",
+    "expected": 390,
+    "actual": 339,
+    "gap": 51
+  },
+  {
+    "id": 100455,
+    "name": "Cựu Nhật Chúa Tể",
+    "expected": 382,
+    "actual": 331,
+    "gap": 51
+  },
+  {
+    "id": 100811,
+    "name": "Hồng Hoang Chi Ta Ở Tây Du Đánh Dấu",
+    "expected": 377,
+    "actual": 326,
+    "gap": 51
+  },
+  {
+    "id": 114693,
+    "name": "Tam Quốc: Bắt Đầu Đại Tuyết Long Kỵ, Xin Mời ",
+    "expected": 390,
+    "actual": 340,
+    "gap": 50
+  },
+  {
+    "id": 136142,
+    "name": "Để Cho Ngươi Có Tài Nhưng Thành Đạt Muộn, Ngư",
+    "expected": 383,
+    "actual": 333,
+    "gap": 50
+  },
+  {
+    "id": 100519,
+    "name": "Giống Như Cao Thủ Ở Dị Giới",
+    "expected": 380,
+    "actual": 330,
+    "gap": 50
+  },
+  {
+    "id": 138982,
+    "name": "Nằm Thi Năm Trăm Năm: Nàng Theo Quan Tài Bên ",
+    "expected": 376,
+    "actual": 326,
+    "gap": 50
+  },
+  {
+    "id": 137841,
+    "name": "Muốn Nàng Nhận Lầm? Kiều Tiểu Thư Ánh Trăng S",
+    "expected": 379,
+    "actual": 330,
+    "gap": 49
+  },
+  {
+    "id": 129875,
+    "name": "Trong Công Ty Tất Cả Đều Là Bạn Gái Trước, Ba",
+    "expected": 379,
+    "actual": 330,
+    "gap": 49
+  },
+  {
+    "id": 147185,
+    "name": "Ta Bách Thế Gian Khổ Học Tập, Không Ngăn Nổi ",
+    "expected": 377,
+    "actual": 328,
+    "gap": 49
+  },
+  {
+    "id": 144162,
+    "name": "Tổng Võ Phản Phái: Ta Cùng Tào Tặc So Ham Muố",
+    "expected": 390,
+    "actual": 342,
+    "gap": 48
+  },
+  {
+    "id": 139110,
+    "name": "Thiên Long: Không Giống Nhau Bang Chủ Cái Ban",
+    "expected": 380,
+    "actual": 332,
+    "gap": 48
+  },
+  {
+    "id": 101189,
+    "name": "Lão Bà Ta Là Nữ Tông Chủ",
+    "expected": 390,
+    "actual": 343,
+    "gap": 47
+  },
+  {
+    "id": 129385,
+    "name": "Đấu La: Ta Là Chùy Vương!",
+    "expected": 379,
+    "actual": 332,
+    "gap": 47
+  },
+  {
+    "id": 127325,
+    "name": "Theo Tiệm Thuốc Mù Lòa Bắt Đầu Con Đường Trườ",
+    "expected": 378,
+    "actual": 331,
+    "gap": 47
+  },
+  {
+    "id": 124468,
+    "name": "Ta Bị Tà Thần Ưa Thích Còn Bị Mưa Đạn Vây Xem",
+    "expected": 375,
+    "actual": 329,
+    "gap": 46
+  },
+  {
+    "id": 131011,
+    "name": "Tam Quốc: Vạn Lần Trả Về, Chúa Công Ta Tuyệt ",
+    "expected": 390,
+    "actual": 346,
+    "gap": 44
+  },
+  {
+    "id": 133897,
+    "name": "Người Tại Hokage, Ta Naruto Chỉ Muốn Thường N",
+    "expected": 381,
+    "actual": 337,
+    "gap": 44
+  },
+  {
+    "id": 112305,
+    "name": "Biếu Tặng Cơ Duyên, Bạo Kích Bồi Thường!",
+    "expected": 380,
+    "actual": 337,
+    "gap": 43
+  },
+  {
+    "id": 149519,
+    "name": "Vong Linh Pháp Sư? Xin Gọi Ta U Hồn Ma Tôn",
+    "expected": 382,
+    "actual": 340,
+    "gap": 42
+  },
+  {
+    "id": 127959,
+    "name": "Chủ Nhà A Di Khen Ta Thật Giỏi Giang",
+    "expected": 382,
+    "actual": 341,
+    "gap": 41
+  },
+  {
+    "id": 142180,
+    "name": "Kiểm Kê Chư Thiên Hai Sáng Tạo Video, Ngoan N",
+    "expected": 535,
+    "actual": 495,
+    "gap": 40
+  },
+  {
+    "id": 137735,
+    "name": "Thủ Trưởng Là Bạch Nguyệt Quang Không Viên Ph",
+    "expected": 390,
+    "actual": 352,
+    "gap": 38
+  },
+  {
+    "id": 144667,
+    "name": "Bình Định Thanh Vân",
+    "expected": 383,
+    "actual": 345,
+    "gap": 38
+  },
+  {
+    "id": 150876,
+    "name": "Lưỡng Giới: Ta Có Một Cái Độ Thuần Thục Mặt B",
+    "expected": 382,
+    "actual": 344,
+    "gap": 38
+  },
+  {
+    "id": 119018,
+    "name": "Quét Ngang Võ Đạo: Từ Xích Luyện Kim Chung Tr",
+    "expected": 392,
+    "actual": 355,
+    "gap": 37
+  },
+  {
+    "id": 140607,
+    "name": "Tổng Võ: Bắt Đầu Đánh Dấu Mười Vạn Đại Quân",
+    "expected": 390,
+    "actual": 353,
+    "gap": 37
+  },
+  {
+    "id": 114593,
+    "name": "Giải Trí: Ta Ở Âm Nhạc Vòng Hỗn Thành Chữa Tr",
+    "expected": 390,
+    "actual": 353,
+    "gap": 37
+  },
+  {
+    "id": 140856,
+    "name": "Hải Tặc: Mera Mera No Mi Tàn Nhật Ngục Y, Mih",
+    "expected": 382,
+    "actual": 345,
+    "gap": 37
+  },
+  {
+    "id": 137837,
+    "name": "Đỉnh Đầu Mini Bọt Khí, Nãi Manh Đoàn Sủng Ngư",
+    "expected": 380,
+    "actual": 344,
+    "gap": 36
+  },
+  {
+    "id": 113339,
+    "name": "Phát Sai Lời Tỏ Tình, Nữ Tổng Giám Đốc Muốn T",
+    "expected": 392,
+    "actual": 357,
+    "gap": 35
+  },
+  {
+    "id": 102934,
+    "name": "Ta Tại Hỏa Ảnh Vẽ Manga",
+    "expected": 378,
+    "actual": 344,
+    "gap": 34
+  },
+  {
+    "id": 140762,
+    "name": "Đấu La: Long Vương Chi Hoắc Vũ Hạo Sống Tại V",
+    "expected": 337,
+    "actual": 303,
+    "gap": 34
+  },
+  {
+    "id": 148200,
+    "name": "Mỹ Thực Bạo Dòng, Ta Cẩu Thả Đến Vô Địch",
+    "expected": 378,
+    "actual": 345,
+    "gap": 33
+  },
+  {
+    "id": 133165,
+    "name": "Ta Có Vô Hạn Phân Thân, Thành Tựu Tiên Đế Khô",
+    "expected": 445,
+    "actual": 413,
+    "gap": 32
+  },
+  {
+    "id": 140065,
+    "name": "Ba Mươi Tuổi Mới Đến Trưởng Thành Hệ Thống",
+    "expected": 390,
+    "actual": 358,
+    "gap": 32
+  },
+  {
+    "id": 143675,
+    "name": "Trường Sinh Ngàn Vạn Năm, Ta Mới Không Muốn C",
+    "expected": 391,
+    "actual": 360,
+    "gap": 31
+  },
+  {
+    "id": 143342,
+    "name": "Fairy Tail: Ngươi Quản Cái Này Gọi Tinh Linh ",
+    "expected": 380,
+    "actual": 349,
+    "gap": 31
+  },
+  {
+    "id": 120148,
+    "name": "Mộ Kim Chi",
+    "expected": 562,
+    "actual": 532,
+    "gap": 30
+  },
+  {
+    "id": 115978,
+    "name": "Tam Quốc: Bệ Hạ, Van Xin Ngươi Thu Chúng Ta Đ",
+    "expected": 414,
+    "actual": 384,
+    "gap": 30
+  },
+  {
+    "id": 151125,
+    "name": "Có Thể Vô Hạn Chuyển Chức Ta, Quét Ngang Cấm ",
+    "expected": 391,
+    "actual": 361,
+    "gap": 30
+  },
+  {
+    "id": 130208,
+    "name": "Ta Có Thể Ở Trong Game Nhập Hàng",
+    "expected": 390,
+    "actual": 360,
+    "gap": 30
+  },
+  {
+    "id": 110642,
+    "name": "Ta Tại Mộ Địa Mặt Nạ Mười Lăm Năm",
+    "expected": 377,
+    "actual": 347,
+    "gap": 30
+  },
+  {
+    "id": 117922,
+    "name": "Tận Thế Nữ Chính Khó Làm ",
+    "expected": 390,
+    "actual": 361,
+    "gap": 29
+  },
+  {
+    "id": 150174,
+    "name": "Xu Cát Tị Hung Tiên",
+    "expected": 375,
+    "actual": 346,
+    "gap": 29
+  },
+  {
+    "id": 130424,
+    "name": "Người Tại Cao Võ, Có Cái Huyền Huyễn Đại Thế ",
+    "expected": 392,
+    "actual": 364,
+    "gap": 28
+  },
+  {
+    "id": 141772,
+    "name": "Ngươi Nói Gì? Hắn Cũng Là Ngươi Triệu Hoán Ra",
+    "expected": 392,
+    "actual": 365,
+    "gap": 27
+  },
+  {
+    "id": 139200,
+    "name": "Trùng Sinh Mạnh Nhất Mỹ Thuật Sinh, Ngộ Tính ",
+    "expected": 380,
+    "actual": 353,
+    "gap": 27
+  },
+  {
+    "id": 139549,
+    "name": "Trực Tiếp Giám Bảo: Dân Mạng Hỏi Ta Cửa Đồng ",
+    "expected": 350,
+    "actual": 324,
+    "gap": 26
+  },
+  {
+    "id": 152010,
+    "name": "Vạn Vật Tiến Hóa: Ta Ngự Thú Có Thể Trảm Thần",
+    "expected": 349,
+    "actual": 323,
+    "gap": 26
+  },
+  {
+    "id": 103537,
+    "name": "Tam Quốc Cố Phán Sinh Huy",
+    "expected": 385,
+    "actual": 360,
+    "gap": 25
+  },
+  {
+    "id": 113836,
+    "name": "Bắt Đầu Long Châu, Vegeta Có Hệ Thống",
+    "expected": 377,
+    "actual": 352,
+    "gap": 25
+  },
+  {
+    "id": 118389,
+    "name": "Hồng Hoang: Ta! Hắc Hóa Thông Thiên! Giận Xé ",
+    "expected": 391,
+    "actual": 368,
+    "gap": 23
+  },
+  {
+    "id": 127359,
+    "name": "Thiên Mệnh Chi Tử: Thủ Hộ Bên Ta Nhân Vật Phả",
+    "expected": 588,
+    "actual": 566,
+    "gap": 22
+  },
+  {
+    "id": 130727,
+    "name": "Xong Đời! Tại Luyến Tổng Bị Yandere Bạn Gái T",
+    "expected": 557,
+    "actual": 536,
+    "gap": 21
+  },
+  {
+    "id": 100231,
+    "name": "Võng Du Chi Luân Hồi Tam Quốc",
+    "expected": 445,
+    "actual": 424,
+    "gap": 21
+  },
+  {
+    "id": 100232,
+    "name": "Võng Du Chi Siêu Thần Áo Giáp Đại Sư",
+    "expected": 420,
+    "actual": 399,
+    "gap": 21
+  },
+  {
+    "id": 101791,
+    "name": "Slytherin Ma Chú Vương Tử",
+    "expected": 403,
+    "actual": 382,
+    "gap": 21
+  },
+  {
+    "id": 134201,
+    "name": "Tại Hoàn Mỹ Thế Giới Bật Hack , Ta Gia Nhập V",
+    "expected": 576,
+    "actual": 556,
+    "gap": 20
+  },
+  {
+    "id": 148232,
+    "name": "Thần Điêu: Trọng Sinh Dương Quá, Thả Câu Liền",
+    "expected": 477,
+    "actual": 457,
+    "gap": 20
+  },
+  {
+    "id": 132321,
+    "name": "Ly Hôn Mang Oa Bày Sạp, Tổng Tài Vợ Trước Tru",
+    "expected": 427,
+    "actual": 407,
+    "gap": 20
+  },
+  {
+    "id": 148752,
+    "name": "Quan Trường: Bi Trắng Rơi Túi, Cáo Biệt Ngoài",
+    "expected": 391,
+    "actual": 371,
+    "gap": 20
+  },
+  {
+    "id": 147399,
+    "name": "Thi Công Chức Lên Bờ Tỉnh Chính Phủ, Bạn Gái ",
+    "expected": 390,
+    "actual": 370,
+    "gap": 20
+  },
+  {
+    "id": 125534,
+    "name": "Các Ngươi Cố Gắng Tu Tiên, Ta Về Nhà Lấy Vợ S",
+    "expected": 379,
+    "actual": 359,
+    "gap": 20
+  },
+  {
+    "id": 117266,
+    "name": "Để Cho Ngươi Mở Sủng Thú Tiệm, Ngươi Nhấc Lên",
+    "expected": 361,
+    "actual": 341,
+    "gap": 20
+  },
+  {
+    "id": 145460,
+    "name": "Giải Trí Trung Quốc Lãng Tử, Làm Sao Bị Thiên",
+    "expected": 319,
+    "actual": 299,
+    "gap": 20
+  },
+  {
+    "id": 115210,
+    "name": "Bắt Đầu Một Bản Phú Bà Sổ Truyền Tin",
+    "expected": 316,
+    "actual": 296,
+    "gap": 20
+  },
+  {
+    "id": 133154,
+    "name": "Bị Hối Hôn Cùng Ngày, Cùng Hào Môn Người Thừa",
+    "expected": 315,
+    "actual": 295,
+    "gap": 20
+  },
+  {
+    "id": 118375,
+    "name": "Phong Thần: Bắt Đầu Nộp Lên Già Thiên Phó Bản",
+    "expected": 296,
+    "actual": 276,
+    "gap": 20
+  },
+  {
+    "id": 136030,
+    "name": "Dragon Ball: Saiya Thiên Sứ",
+    "expected": 565,
+    "actual": 546,
+    "gap": 19
+  },
+  {
+    "id": 136488,
+    "name": "Ta, Núi Hoang Thần, Bắt Đầu Nữ Tín Đồ Hiến Th",
+    "expected": 457,
+    "actual": 438,
+    "gap": 19
+  },
+  {
+    "id": 122771,
+    "name": "Ngự Thú: Thả Xuống 10 Vạn Năm, Tiểu Khô Lâu T",
+    "expected": 500,
+    "actual": 482,
+    "gap": 18
+  },
+  {
+    "id": 115552,
+    "name": "Ta Là Tham Quan, Các Nàng Lại Nói Ta Là Trung",
+    "expected": 485,
+    "actual": 467,
+    "gap": 18
+  },
+  {
+    "id": 140898,
+    "name": "Tổng Võ Cẩm Y Vệ, Tú Xuân Đao Ra Thiên Hạ Kin",
+    "expected": 380,
+    "actual": 362,
+    "gap": 18
+  },
+  {
+    "id": 141951,
+    "name": "Chư Thiên: Từ Tình Cờ Gặp Gỡ Chúc Ngọc Nghiên",
+    "expected": 302,
+    "actual": 286,
+    "gap": 16
+  },
+  {
+    "id": 133077,
+    "name": "Đưa Ra Ly Hôn Ngày Đầu Tiên, Hệ Thống Ban Thư",
+    "expected": 505,
+    "actual": 490,
+    "gap": 15
+  },
+  {
+    "id": 116748,
+    "name": "Ta Có Thể Thấy Được Chính Xác Quái Đàm Quy Tắ",
+    "expected": 452,
+    "actual": 437,
+    "gap": 15
+  },
+  {
+    "id": 142739,
+    "name": "Phó Bản Cầu Sinh: Ta Từ Điều Mặt Trái Tin Tức",
+    "expected": 445,
+    "actual": 430,
+    "gap": 15
+  },
+  {
+    "id": 140177,
+    "name": "Người Tại Huyện Thành, Ngươi Nói Ta Là Đại Lã",
+    "expected": 394,
+    "actual": 379,
+    "gap": 15
+  },
+  {
+    "id": 148932,
+    "name": "Một Đầu Tên Là Vương Mỹ Cúc Chó Vậy Mà Lại Tu",
+    "expected": 389,
+    "actual": 374,
+    "gap": 15
+  },
+  {
+    "id": 145481,
+    "name": "1984: Từ Phá Sản Món Cay Tứ Xuyên Quán Bắt Đầ",
+    "expected": 486,
+    "actual": 472,
+    "gap": 14
+  },
+  {
+    "id": 138305,
+    "name": "Hải Tặc: Hải Quân Bại Hoại Ta Lại Trở Thành Đ",
+    "expected": 398,
+    "actual": 384,
+    "gap": 14
+  },
+  {
+    "id": 134361,
+    "name": "Hoàn Khố Thế Tử Liếm Cẩu Hằng Ngày",
+    "expected": 390,
+    "actual": 376,
+    "gap": 14
+  },
+  {
+    "id": 130968,
+    "name": "Nữ Tôn Thế Giới: Ta Tại Khuynh Đảo Chúng Sinh",
+    "expected": 503,
+    "actual": 490,
+    "gap": 13
+  },
+  {
+    "id": 100197,
+    "name": "Chúa Tể Nhị Thứ Nguyên",
+    "expected": 492,
+    "actual": 479,
+    "gap": 13
+  },
+  {
+    "id": 131229,
+    "name": "Thực Vật Hệ Tu Sĩ Quay Về Địa Cầu Thập Niên S",
+    "expected": 547,
+    "actual": 535,
+    "gap": 12
+  },
+  {
+    "id": 131087,
+    "name": "Trùng Sinh Ở Lại Trường Nằm Ngửa, Ta Thật Khô",
+    "expected": 535,
+    "actual": 523,
+    "gap": 12
+  },
+  {
+    "id": 101766,
+    "name": "Conan Chi Khai Môn Ta Là Cảnh Sát",
+    "expected": 471,
+    "actual": 459,
+    "gap": 12
+  },
+  {
+    "id": 111316,
+    "name": "Toàn Cầu Giác Tỉnh: Bắt Đầu Thu Được Giác Tỉn",
+    "expected": 460,
+    "actual": 448,
+    "gap": 12
+  },
+  {
+    "id": 101248,
+    "name": "Du Nhàn Đại Địa Chủ",
+    "expected": 374,
+    "actual": 362,
+    "gap": 12
+  },
+  {
+    "id": 101263,
+    "name": "Marvel: Vô Hạn Dị Năng",
+    "expected": 331,
+    "actual": 319,
+    "gap": 12
+  },
+  {
+    "id": 121134,
+    "name": "Tay Bóp Ra Phản Ứng Nhiệt Hạch, Ngươi Đem Cái",
+    "expected": 328,
+    "actual": 316,
+    "gap": 12
+  },
+  {
+    "id": 134396,
+    "name": "Bắt Đầu Bị Đày Đi Sung Quân, Ta Từ Max Cấp Ti",
+    "expected": 570,
+    "actual": 559,
+    "gap": 11
+  },
+  {
+    "id": 115248,
+    "name": "Bắt Đầu: Ta Có Trọng Đồng Tiên Cốt Hỗn Độn Đạ",
+    "expected": 560,
+    "actual": 549,
+    "gap": 11
+  },
+  {
+    "id": 100219,
+    "name": "Điên Cuồng Nữ Nhi Quốc",
+    "expected": 460,
+    "actual": 449,
+    "gap": 11
+  },
+  {
+    "id": 101450,
+    "name": "Thằng Hề Trò Chơi",
+    "expected": 430,
+    "actual": 419,
+    "gap": 11
+  },
+  {
+    "id": 149649,
+    "name": "Tổng Võ: Bắt Đầu Hỏi Kiếm Tuyết Nguyệt Thành",
+    "expected": 379,
+    "actual": 368,
+    "gap": 11
+  },
+  {
+    "id": 111139,
+    "name": "Chăn Nuôi Bệnh Kiều Ác Long Chỉ Nam",
+    "expected": 292,
+    "actual": 281,
+    "gap": 11
+  },
+  {
+    "id": 113322,
+    "name": "Toàn Dân Vô Tận Chi Hải: Bắt Đầu Vớt Được Thư",
+    "expected": 581,
+    "actual": 571,
+    "gap": 10
+  },
+  {
+    "id": 106091,
+    "name": "Xuyên Thư Nữ Phụ Rất Cao Điệu",
+    "expected": 551,
+    "actual": 541,
+    "gap": 10
+  },
+  {
+    "id": 100163,
+    "name": "Xuyên Qua Trở Thành Bardock",
+    "expected": 493,
+    "actual": 483,
+    "gap": 10
+  },
+  {
+    "id": 146803,
+    "name": "Đạo Hữu Ủy Thác: Từ Dưỡng Thành Yêu Nữ Bắt Đầ",
+    "expected": 442,
+    "actual": 432,
+    "gap": 10
+  },
+  {
+    "id": 127464,
+    "name": "Mỗi Lần Về Nhà Lão Bà Đều Ở Đây Chế Tạo Rác R",
+    "expected": 426,
+    "actual": 416,
+    "gap": 10
+  },
+  {
+    "id": 105586,
+    "name": "Văn Minh Mở Lại: Ta, Mở Hack Người Chơi",
+    "expected": 383,
+    "actual": 373,
+    "gap": 10
+  },
+  {
+    "id": 126432,
+    "name": "Từ Chia Đều Cơ Duyên Bắt Đầu Siêu Phàm Nhập T",
+    "expected": 571,
+    "actual": 562,
+    "gap": 9
+  },
+  {
+    "id": 138187,
+    "name": "Để Cho Ngươi Luyện Võ, Ngươi Đã Luyện Thành Đ",
+    "expected": 507,
+    "actual": 498,
+    "gap": 9
+  },
+  {
+    "id": 124542,
+    "name": "Phản Phái: Phu Nhân Đêm Nay Nguyện Cùng Ta Cù",
+    "expected": 507,
+    "actual": 498,
+    "gap": 9
+  },
+  {
+    "id": 102038,
+    "name": "Hỏa Ảnh Chi Tối Cường Hokage Đệ Tứ",
+    "expected": 407,
+    "actual": 398,
+    "gap": 9
+  },
+  {
+    "id": 148361,
+    "name": "Đang Phát Tà: Toàn Tông Quỳ Cầu Đại Sư Huynh ",
+    "expected": 394,
+    "actual": 385,
+    "gap": 9
+  },
+  {
+    "id": 136504,
+    "name": "Cao Võ: Gia Phụ Ngũ Hổ Tướng, Cướp Đoạt Hồng ",
+    "expected": 374,
+    "actual": 365,
+    "gap": 9
+  },
+  {
+    "id": 150128,
+    "name": "Tu Tiên Từ Linh Nông Đạt Được Quá Mức Thu Hoạ",
+    "expected": 510,
+    "actual": 502,
+    "gap": 8
+  },
+  {
+    "id": 115130,
+    "name": "Pháo Hôi Nữ Phụ Không Làm Nữa ",
+    "expected": 492,
+    "actual": 484,
+    "gap": 8
+  },
+  {
+    "id": 146801,
+    "name": "Cổ Long Thế Giới Bên Trong Đệ Nhất Thâm Tình",
+    "expected": 484,
+    "actual": 476,
+    "gap": 8
+  },
+  {
+    "id": 118604,
+    "name": "Quỷ Dị Trò Chơi Xâm Lấn, Khắc Kim Một Tỷ Làm ",
+    "expected": 468,
+    "actual": 460,
+    "gap": 8
+  },
+  {
+    "id": 117212,
+    "name": "Võ Động: Ta, Nội Quyển Tu Luyện, Cuốn Khóc Lâ",
+    "expected": 437,
+    "actual": 429,
+    "gap": 8
+  },
+  {
+    "id": 142091,
+    "name": "Thuật Sĩ, Theo Tử Linh Huyết Mạch Bắt Đầu",
+    "expected": 398,
+    "actual": 390,
+    "gap": 8
+  },
+  {
+    "id": 133392,
+    "name": "Vũ Trụ Võng Du: Bắt Đầu Vĩnh Hằng Cấp Thiên P",
+    "expected": 375,
+    "actual": 367,
+    "gap": 8
+  },
+  {
+    "id": 134346,
+    "name": "Bóc Quan Tài Dựng Lên, Đem Củi Mục Các Nàng D",
+    "expected": 326,
+    "actual": 318,
+    "gap": 8
+  },
+  {
+    "id": 101603,
+    "name": "Ta Tại Tận Thế Nhặt Bảo Rương",
+    "expected": 548,
+    "actual": 541,
+    "gap": 7
+  },
+  {
+    "id": 135901,
+    "name": "Võng Du Chi Siêu Thần Thuần Thú Sư",
+    "expected": 483,
+    "actual": 476,
+    "gap": 7
+  },
+  {
+    "id": 136163,
+    "name": "Đấu La: Kỳ Ngộ Từ Vũ Hồn Thành Bắt Đầu",
+    "expected": 390,
+    "actual": 383,
+    "gap": 7
+  },
+  {
+    "id": 127392,
+    "name": "Tinh Võ Kỷ Nguyên",
+    "expected": 296,
+    "actual": 289,
+    "gap": 7
+  },
+  {
+    "id": 133013,
+    "name": "Bắt Đầu Ngộ Tính Nghịch Thiên, Lặng Lẽ Tu Tiê",
+    "expected": 547,
+    "actual": 541,
+    "gap": 6
+  },
+  {
+    "id": 146579,
+    "name": "Xuyên Qua Thành Dã Thần, Ta Thần Lực Có Ức Đi",
+    "expected": 537,
+    "actual": 531,
+    "gap": 6
+  },
+  {
+    "id": 140699,
+    "name": "Toàn Cầu Cao Võ, Bắt Đầu Rút Đến Hoang Cổ Thá",
+    "expected": 525,
+    "actual": 519,
+    "gap": 6
+  },
+  {
+    "id": 110913,
+    "name": "Tương Lai Thiên Vương",
+    "expected": 515,
+    "actual": 509,
+    "gap": 6
+  },
+  {
+    "id": 115448,
+    "name": "Hương Giang Thần Thám",
+    "expected": 505,
+    "actual": 499,
+    "gap": 6
+  },
+  {
+    "id": 112926,
+    "name": "Tôn Ngộ Không Máy Mô Phỏng Nhân Sinh",
+    "expected": 424,
+    "actual": 418,
+    "gap": 6
+  },
+  {
+    "id": 139428,
+    "name": "Cao Võ: Từ Khế Ước Yêu Thú Bắt Đầu Thành Thần",
+    "expected": 412,
+    "actual": 406,
+    "gap": 6
+  },
+  {
+    "id": 141912,
+    "name": "Vừa Thành Thần Vương, Thu Đồ Đệ Liền Mạnh Lên",
+    "expected": 307,
+    "actual": 301,
+    "gap": 6
+  },
+  {
+    "id": 148005,
+    "name": "Khoái Hoạt Thần Hào: Theo Yêu Mến Đầy Đặn Mỹ ",
+    "expected": 294,
+    "actual": 288,
+    "gap": 6
+  },
+  {
+    "id": 143775,
+    "name": "Hùng Tại Hồng Hoang, Nỗ Lực Thành Tường Thụy",
+    "expected": 281,
+    "actual": 275,
+    "gap": 6
+  },
+  {
+    "id": 100014,
+    "name": "Hồng Hoang Chi Ngã Ý Do Tâm",
+    "expected": 555,
+    "actual": 550,
+    "gap": 5
+  },
+  {
+    "id": 130824,
+    "name": "Hokage: Ta Mang Theo Tenseigan Xuyên Qua",
+    "expected": 546,
+    "actual": 541,
+    "gap": 5
+  },
+  {
+    "id": 113258,
+    "name": "Thôn Phệ Tinh Không, Ta Có Thể Mô Phỏng Nhân ",
+    "expected": 546,
+    "actual": 541,
+    "gap": 5
+  },
+  {
+    "id": 133930,
+    "name": "Ta, Vững Vàng Kim Ô, Chỉ Muốn Cưới Vợ Sinh Ho",
+    "expected": 522,
+    "actual": 517,
+    "gap": 5
+  },
+  {
+    "id": 123818,
+    "name": "Trường Sinh Võ Đạo: Từ Cửu Long Đoạt Đích Bắt",
+    "expected": 501,
+    "actual": 496,
+    "gap": 5
+  },
+  {
+    "id": 135102,
+    "name": "Ta, Dã Thần? Ta Dựa Vào Hương Hỏa Bao Trùm Ch",
+    "expected": 495,
+    "actual": 490,
+    "gap": 5
+  },
+  {
+    "id": 102236,
+    "name": "Tây Du Đệ Nhất Tổ Sư",
+    "expected": 494,
+    "actual": 489,
+    "gap": 5
+  },
+  {
+    "id": 118154,
+    "name": "Cái Này Nhạc Tu Có Chút Cuồng, Môn Phái Thứ N",
+    "expected": 489,
+    "actual": 484,
+    "gap": 5
+  },
+  {
+    "id": 120396,
+    "name": "Già Thiên: Theo Ngoan Nhân Đại Đế Bắt Đầu",
+    "expected": 483,
+    "actual": 478,
+    "gap": 5
+  },
+  {
+    "id": 131957,
+    "name": "Thực Vật Đại Chiến Tu Tiên Giới",
+    "expected": 479,
+    "actual": 474,
+    "gap": 5
+  },
+  {
+    "id": 127065,
+    "name": "Nghe Nói Sư Huynh Phải Xuống Núi, Ma Tổ Trong",
+    "expected": 475,
+    "actual": 470,
+    "gap": 5
+  },
+  {
+    "id": 127441,
+    "name": "Đô Thị Đại Y Tiên",
+    "expected": 461,
+    "actual": 456,
+    "gap": 5
+  },
+  {
+    "id": 126647,
+    "name": "Toàn Cầu Mỗi Tháng Một Cái Quy Tắc Mới",
+    "expected": 455,
+    "actual": 450,
+    "gap": 5
+  },
+  {
+    "id": 123292,
+    "name": "Uchiha: Từ Giam Cầm Tobirama Bắt Đầu",
+    "expected": 453,
+    "actual": 448,
+    "gap": 5
+  },
+  {
+    "id": 100930,
+    "name": "Người Nguyên Thủy Ta Đến Từ Trái Đất",
+    "expected": 420,
+    "actual": 415,
+    "gap": 5
+  },
+  {
+    "id": 145111,
+    "name": "Bắt Đầu Một Bài Tiêu Sầu, Chấn Kinh Toàn Trườ",
+    "expected": 417,
+    "actual": 412,
+    "gap": 5
+  },
+  {
+    "id": 145820,
+    "name": "Ta Cùng Hưởng Khủng Bố Thế Giới, Dọa Đi Tiểu ",
+    "expected": 362,
+    "actual": 357,
+    "gap": 5
+  },
+  {
+    "id": 148261,
+    "name": "Bắt Đầu Đa Tử Đa Phúc, Ta Chế Tạo Tuyệt Thế T",
+    "expected": 313,
+    "actual": 308,
+    "gap": 5
+  },
+  {
+    "id": 140792,
+    "name": "Ta Có Một Cái Vận Mệnh Lựa Chọn Bảng!",
+    "expected": 308,
+    "actual": 303,
+    "gap": 5
+  },
+  {
+    "id": 150916,
+    "name": "Hoàng Tiên",
+    "expected": 301,
+    "actual": 296,
+    "gap": 5
+  },
+  {
+    "id": 127992,
+    "name": "Diệt Tộc Chi Dạ: Để Uchiha Một Lần Nữa Vĩ Đại",
+    "expected": 298,
+    "actual": 293,
+    "gap": 5
+  },
+  {
+    "id": 116250,
+    "name": "Ta, Ma Đạo Đế Tử, Trấn Áp Thế Gian Hết Thảy Đ",
+    "expected": 586,
+    "actual": 582,
+    "gap": 4
+  },
+  {
+    "id": 111836,
+    "name": "Xinh Đẹp Mẹ Kế Nhìn Thấy Mưa Đạn Sau [thập Ni",
+    "expected": 572,
+    "actual": 568,
+    "gap": 4
+  },
+  {
+    "id": 142848,
+    "name": "Hogwarts: Ta Dựa Vào Mc Ngụy Trang Luyện Kim ",
+    "expected": 569,
+    "actual": 565,
+    "gap": 4
+  },
+  {
+    "id": 136718,
+    "name": "Gia Phụ Nho Thánh, Hệ Thống Bắt Ta Làm Thô Bỉ",
+    "expected": 568,
+    "actual": 564,
+    "gap": 4
+  },
+  {
+    "id": 123013,
+    "name": "Max Cấp Chuyền Bóng, Xin Mời Gọi Ta Tam Sư Qu",
+    "expected": 565,
+    "actual": 561,
+    "gap": 4
+  },
+  {
+    "id": 100293,
+    "name": "Võng Du Tam Quốc: Phó Chức Nghiệp Tông Sư",
+    "expected": 564,
+    "actual": 560,
+    "gap": 4
+  },
+  {
+    "id": 103803,
+    "name": "Đại Đường Danh Vọng Hệ Thống",
+    "expected": 563,
+    "actual": 559,
+    "gap": 4
+  },
+  {
+    "id": 111762,
+    "name": "Tổng Võ: Thất Hiệp Trấn Thuyết Thư, Bắt Đầu K",
+    "expected": 559,
+    "actual": 555,
+    "gap": 4
+  },
+  {
+    "id": 147405,
+    "name": "Max Cấp Kim Chung Tráo, Bắt Đầu Đại Ca Mang T",
+    "expected": 551,
+    "actual": 547,
+    "gap": 4
+  },
+  {
+    "id": 119539,
+    "name": "Thiên Sư, Ta Có Một Thế Giới Khác",
+    "expected": 542,
+    "actual": 538,
+    "gap": 4
+  },
+  {
+    "id": 101652,
+    "name": "Marvel Chi Hokage Ninjia Phiêu Lưu Ký",
+    "expected": 539,
+    "actual": 535,
+    "gap": 4
+  },
+  {
+    "id": 125999,
+    "name": "Đều Đoạn Tuyệt Quan Hệ, Còn Cầu Ta Về Nhà Làm",
+    "expected": 533,
+    "actual": 529,
+    "gap": 4
+  },
+  {
+    "id": 132731,
+    "name": "Bế Quan Mười Năm, Lý Hàn Y Tới Cửa Từ Hôn",
+    "expected": 529,
+    "actual": 525,
+    "gap": 4
+  },
+  {
+    "id": 123616,
+    "name": "Dựa Vào Song Tu Vô Địch, Biết Ta Có Bao Nhiêu",
+    "expected": 525,
+    "actual": 521,
+    "gap": 4
+  },
+  {
+    "id": 126377,
+    "name": "Biến Thành Mỹ Thiếu Nữ Sau, Bắt Đầu Chế Tạo N",
+    "expected": 521,
+    "actual": 517,
+    "gap": 4
+  },
+  {
+    "id": 118051,
+    "name": "Thế Gian Bạch Xà Tiên",
+    "expected": 517,
+    "actual": 513,
+    "gap": 4
+  },
+  {
+    "id": 111543,
+    "name": "Thành Tựu Hệ Thống Của Ta Rất Có Vấn Đề",
+    "expected": 514,
+    "actual": 510,
+    "gap": 4
+  },
+  {
+    "id": 123915,
+    "name": "Ta Lấy Ma Chủng Đúc Trường Sinh",
+    "expected": 507,
+    "actual": 503,
+    "gap": 4
+  },
+  {
+    "id": 112460,
+    "name": "Chư Thiên Tăng Phúc Group Chat",
+    "expected": 507,
+    "actual": 503,
+    "gap": 4
+  },
+  {
+    "id": 138531,
+    "name": "Giải Trí: Để Cho Ngươi Cứu Tràng, Ngươi Một N",
+    "expected": 506,
+    "actual": 502,
+    "gap": 4
+  },
+  {
+    "id": 122084,
+    "name": "Trường Sinh: Bắt Đầu Cùng Tẩu Tẩu Sống Nương ",
+    "expected": 500,
+    "actual": 496,
+    "gap": 4
+  },
+  {
+    "id": 113541,
+    "name": "Trùng Sinh Chi Ngược Dòng Mười Năm",
+    "expected": 499,
+    "actual": 495,
+    "gap": 4
+  },
+  {
+    "id": 135378,
+    "name": "Bị Phong Sát Về Sau, Xách Thùng Chạy Trốn Đi ",
+    "expected": 492,
+    "actual": 488,
+    "gap": 4
+  },
+  {
+    "id": 145099,
+    "name": "Thần Linh Khắp Nơi Trên Đất, Từ Thổ Địa Thần ",
+    "expected": 488,
+    "actual": 484,
+    "gap": 4
+  },
+  {
+    "id": 102115,
+    "name": "Mỹ Mạn Ảo Tưởng Cụ Hiện",
+    "expected": 487,
+    "actual": 483,
+    "gap": 4
+  },
+  {
+    "id": 137617,
+    "name": "Hắc Tâm Sư Huynh Đừng Giả Bộ A, Đồng Bọn Của ",
+    "expected": 486,
+    "actual": 482,
+    "gap": 4
+  },
+  {
+    "id": 120816,
+    "name": "Nhân Vật Phản Diện Nữ Đế Thiếp Thân Nịnh Thần",
+    "expected": 457,
+    "actual": 453,
+    "gap": 4
+  },
+  {
+    "id": 147441,
+    "name": "Từ Tiên Thiên Luyện Đan Thánh Thể Bắt Đầu Tu ",
+    "expected": 455,
+    "actual": 451,
+    "gap": 4
+  },
+  {
+    "id": 135838,
+    "name": "70 Quan Quân Bị Tuyệt Mỹ Lão Đại Đắn Đo",
+    "expected": 451,
+    "actual": 447,
+    "gap": 4
+  },
+  {
+    "id": 139090,
+    "name": "Tiễn Tu Trong Kiếm Tu Tông Môn",
+    "expected": 440,
+    "actual": 436,
+    "gap": 4
+  },
+  {
+    "id": 131114,
+    "name": "Theo Đến Tuổi Ba Mươi Bắt Đầu Quật Khởi",
+    "expected": 426,
+    "actual": 422,
+    "gap": 4
+  },
+  {
+    "id": 111433,
+    "name": "Một Người Chém Lật Giang Hồ",
+    "expected": 426,
+    "actual": 422,
+    "gap": 4
+  },
+  {
+    "id": 136365,
+    "name": "Mộc Diệp: Đủ, Ta Mới Là Hokage!",
+    "expected": 407,
+    "actual": 403,
+    "gap": 4
+  },
+  {
+    "id": 107666,
+    "name": "Thịnh Phương",
+    "expected": 393,
+    "actual": 389,
+    "gap": 4
+  },
+  {
+    "id": 101144,
+    "name": "Phàm Nhân Tru Tiên Duyên",
+    "expected": 381,
+    "actual": 377,
+    "gap": 4
+  },
+  {
+    "id": 100215,
+    "name": "Võng Du Chi Tiến Hóa",
+    "expected": 366,
+    "actual": 362,
+    "gap": 4
+  },
+  {
+    "id": 129963,
+    "name": "Người Tại Đấu Phá: Bắt Đầu Thức Tỉnh Nho Thán",
+    "expected": 359,
+    "actual": 355,
+    "gap": 4
+  },
+  {
+    "id": 113902,
+    "name": "Một Người Chém Phiên Loạn Thế",
+    "expected": 359,
+    "actual": 355,
+    "gap": 4
+  },
+  {
+    "id": 142837,
+    "name": "Ta, Một Người Chỉ Biết Một Cái Kỹ Năng Vậy Mà",
+    "expected": 353,
+    "actual": 349,
+    "gap": 4
+  },
+  {
+    "id": 101849,
+    "name": "Dưỡng Một Con Mèo",
+    "expected": 350,
+    "actual": 346,
+    "gap": 4
+  },
+  {
+    "id": 137698,
+    "name": "Người Tại Thôn Phệ, Thành La Phong  Kim Thủ C",
+    "expected": 341,
+    "actual": 337,
+    "gap": 4
+  },
+  {
+    "id": 133979,
+    "name": "Trùng Sinh 2010, Quốc Sĩ Vô Song",
+    "expected": 336,
+    "actual": 332,
+    "gap": 4
+  },
+  {
+    "id": 147164,
+    "name": "Võ Hiệp Bắt Đầu Cướp Đoạt Phong Trung Chi Thầ",
+    "expected": 330,
+    "actual": 326,
+    "gap": 4
+  },
+  {
+    "id": 121741,
+    "name": "Xuyên Thành Phản Phái Nịnh Thần, Ta Nhạc Điên",
+    "expected": 320,
+    "actual": 316,
+    "gap": 4
+  },
+  {
+    "id": 136211,
+    "name": "Dựa Dựa Dựa Dựa! Là Ai Cho Tôn Ngộ Không Hệ T",
+    "expected": 586,
+    "actual": 583,
+    "gap": 3
+  },
+  {
+    "id": 100206,
+    "name": "Võng Du Tam Quốc Chi Thiên Hạ Anh Hào",
+    "expected": 586,
+    "actual": 583,
+    "gap": 3
+  },
+  {
+    "id": 122073,
+    "name": "Ngẫu Nhiên Bày Quầy Bán Hàng, Khách Hàng Truy",
+    "expected": 550,
+    "actual": 547,
+    "gap": 3
+  },
+  {
+    "id": 125704,
+    "name": "Ta Từ Đỉnh Lưu Sập Phòng, Hệ Thống Mới Đến?",
+    "expected": 549,
+    "actual": 546,
+    "gap": 3
+  },
+  {
+    "id": 133950,
+    "name": "Mới Ba Tuổi, Tẩy Trắng Hệ Thống Cái Quỷ Gì?",
+    "expected": 545,
+    "actual": 542,
+    "gap": 3
+  },
+  {
+    "id": 137543,
+    "name": "Tiên Thiên Đốn Ngộ Thánh Thể: Ta Tại Vạn Giới",
+    "expected": 541,
+    "actual": 538,
+    "gap": 3
+  },
+  {
+    "id": 135893,
+    "name": "Thời Đại: Truyền Kỳ Con Đường",
+    "expected": 532,
+    "actual": 529,
+    "gap": 3
+  },
+  {
+    "id": 105493,
+    "name": "Ta Ở Đại Đường Mở Siêu Thị",
+    "expected": 532,
+    "actual": 529,
+    "gap": 3
+  },
+  {
+    "id": 112021,
+    "name": "Giết Địch Được Vạn Lần Tỉ Lệ Rơi Đồ, Ta Nghiề",
+    "expected": 521,
+    "actual": 518,
+    "gap": 3
+  },
+  {
+    "id": 134836,
+    "name": "Ta Dùng Huyễn Thuật Khống Chế Toàn Thế Giới",
+    "expected": 519,
+    "actual": 516,
+    "gap": 3
+  },
+  {
+    "id": 100224,
+    "name": "Hokage Chi Thần Chi Uchiha",
+    "expected": 513,
+    "actual": 510,
+    "gap": 3
+  },
+  {
+    "id": 126447,
+    "name": "Lưỡng Giới Tiên Tộc Từ Làm Ruộng Luyện Đan Bắ",
+    "expected": 506,
+    "actual": 503,
+    "gap": 3
+  },
+  {
+    "id": 130829,
+    "name": "Ngươi Một Cái Pháp Sư, Công Vật Lý Nổ Tung Là",
+    "expected": 505,
+    "actual": 502,
+    "gap": 3
+  },
+  {
+    "id": 101563,
+    "name": "Hỗn Độn Thần Linh Quyết",
+    "expected": 502,
+    "actual": 499,
+    "gap": 3
+  },
+  {
+    "id": 100155,
+    "name": "Siêu Cấp Võ Hiệp Phó Bản Hệ Thống",
+    "expected": 501,
+    "actual": 498,
+    "gap": 3
+  },
+  {
+    "id": 147876,
+    "name": "Dragon Ball: Bắt Đầu Triệu Hoán Whis",
+    "expected": 498,
+    "actual": 495,
+    "gap": 3
+  },
+  {
+    "id": 144963,
+    "name": "Tục Tiên",
+    "expected": 473,
+    "actual": 470,
+    "gap": 3
+  },
+  {
+    "id": 114845,
+    "name": "Ta Trực Tiếp Vấn Đáp Xã Chết Chư Thiên Quần H",
+    "expected": 471,
+    "actual": 468,
+    "gap": 3
+  },
+  {
+    "id": 109690,
+    "name": "Ta Rõ Ràng Chỉ Muốn Làm Diễn Viên Quần Chúng",
+    "expected": 464,
+    "actual": 461,
+    "gap": 3
+  },
+  {
+    "id": 101110,
+    "name": "Thiên Địa Long Hồn",
+    "expected": 463,
+    "actual": 460,
+    "gap": 3
+  },
+  {
+    "id": 102040,
+    "name": "Tối Cường Vạn Giới Hàng Lâm Hệ Thống",
+    "expected": 463,
+    "actual": 460,
+    "gap": 3
+  },
+  {
+    "id": 102048,
+    "name": "Võ Hiệp Chi Khí Vận Chí Tôn",
+    "expected": 454,
+    "actual": 451,
+    "gap": 3
+  },
+  {
+    "id": 144564,
+    "name": "Võ Hồn La Tam Pháo? Ta Chính Là Long Đế Lâm T",
+    "expected": 452,
+    "actual": 449,
+    "gap": 3
+  },
+  {
+    "id": 101685,
+    "name": "Dị Giới Văn Hoá Đại Xâm Lấn",
+    "expected": 450,
+    "actual": 447,
+    "gap": 3
+  },
+  {
+    "id": 110960,
+    "name": "Để Ngươi Làm Người Gác Đêm, Ngươi Đem Chư Thầ",
+    "expected": 443,
+    "actual": 440,
+    "gap": 3
+  },
+  {
+    "id": 105595,
+    "name": "Ta Có Một Mặt Chiêu Hồn Phiên",
+    "expected": 443,
+    "actual": 440,
+    "gap": 3
+  },
+  {
+    "id": 132341,
+    "name": "Cái Này Vu Sư Chỉ Muốn Dạy Dỗ Học Sinh",
+    "expected": 439,
+    "actual": 436,
+    "gap": 3
+  },
+  {
+    "id": 116175,
+    "name": "Ta Có Một Bản Vạn Thế Thư",
+    "expected": 422,
+    "actual": 419,
+    "gap": 3
+  },
+  {
+    "id": 122378,
+    "name": "Hogwarts Nào Đó Hoàng Tử Lai",
+    "expected": 414,
+    "actual": 411,
+    "gap": 3
+  },
+  {
+    "id": 138361,
+    "name": "Tổng Võ: Người Tại Tương Dương, Hóa Thân Tào ",
+    "expected": 393,
+    "actual": 390,
+    "gap": 3
+  },
+  {
+    "id": 132297,
+    "name": "Xen Lẫn Trong Hoàng Cung Thái Giám Dởm",
+    "expected": 393,
+    "actual": 390,
+    "gap": 3
+  },
+  {
+    "id": 101729,
+    "name": "Đô Thị Tối Cường Tiện Nhân Chủ Bá",
+    "expected": 393,
+    "actual": 390,
+    "gap": 3
+  },
+  {
+    "id": 130047,
+    "name": "Khắc Kim Ngược Nữ Đế, Các Ngươi Làm Sao Đều T",
+    "expected": 392,
+    "actual": 389,
+    "gap": 3
+  },
+  {
+    "id": 121035,
+    "name": "Thất Linh Đoàn Sủng: Thôn Trưởng Gia Xuống Nô",
+    "expected": 381,
+    "actual": 378,
+    "gap": 3
+  },
+  {
+    "id": 100218,
+    "name": "Hokage Chi Gensokyo Đại Đệ Tử",
+    "expected": 367,
+    "actual": 364,
+    "gap": 3
+  },
+  {
+    "id": 101344,
+    "name": "Bán Ra Tương Lai",
+    "expected": 358,
+    "actual": 355,
+    "gap": 3
+  },
+  {
+    "id": 143678,
+    "name": "Phàm Chuột Tu Tiên: Từ Nhân Quả Tình Báo Bắt ",
+    "expected": 350,
+    "actual": 347,
+    "gap": 3
+  },
+  {
+    "id": 132805,
+    "name": "Tận Thế Thiên Tai: Từ Chế Tạo Chỗ Tránh Nạn B",
+    "expected": 345,
+    "actual": 342,
+    "gap": 3
+  },
+  {
+    "id": 118406,
+    "name": "Bị Giáng Chức Trấn Ma Tháp, Nhặt Tu Vi Thành ",
+    "expected": 345,
+    "actual": 342,
+    "gap": 3
+  },
+  {
+    "id": 122521,
+    "name": "Ta Trường Sinh Bất Lão, Gia Nhập Tu Tiên Chat",
+    "expected": 310,
+    "actual": 307,
+    "gap": 3
+  },
+  {
+    "id": 136410,
+    "name": "Ngươi Nói Ta Đường Đường Tiên Tôn Là Pháo Hôi",
+    "expected": 308,
+    "actual": 305,
+    "gap": 3
+  },
+  {
+    "id": 146829,
+    "name": "Mười Tám Tuổi Đế Tộc Lão Tổ, Hậu Đại Đều Là Đ",
+    "expected": 306,
+    "actual": 303,
+    "gap": 3
+  },
+  {
+    "id": 139470,
+    "name": "Quỷ Dị Cầu Sinh: Ta Có Thể Thôn Phệ Ngàn Vạn ",
+    "expected": 298,
+    "actual": 295,
+    "gap": 3
+  },
+  {
+    "id": 143592,
+    "name": "Toàn Dân Lãnh Chúa: Bắt Đầu Một Cái Lục Dực S",
+    "expected": 283,
+    "actual": 280,
+    "gap": 3
+  },
+  {
+    "id": 125861,
+    "name": "Luôn Có Tiên Tử Đối Ta Mưu Đồ Làm Loạn",
+    "expected": 588,
+    "actual": 586,
+    "gap": 2
+  },
+  {
+    "id": 110455,
+    "name": "Bắt Đầu Dung Hợp Bá Vương, Giết Địch Liền Mạn",
+    "expected": 587,
+    "actual": 585,
+    "gap": 2
+  },
+  {
+    "id": 123532,
+    "name": "Vu Sư, Ta Có Một Cái Thế Giới Khác",
+    "expected": 583,
+    "actual": 581,
+    "gap": 2
+  },
+  {
+    "id": 139066,
+    "name": "Ta Điện Ảnh Dọa Khóc Toàn Cầu Người Xem",
+    "expected": 582,
+    "actual": 580,
+    "gap": 2
+  },
+  {
+    "id": 129920,
+    "name": "Linh Khí Khôi Phục, Ta Biên Công Pháp Đều Bị ",
+    "expected": 582,
+    "actual": 580,
+    "gap": 2
+  },
+  {
+    "id": 100948,
+    "name": "Trọng Sinh Chi Cửu Vĩ Hung Miêu",
+    "expected": 582,
+    "actual": 580,
+    "gap": 2
+  },
+  {
+    "id": 125485,
+    "name": "Lãnh Chúa: Bắt Đầu Bị Đoạt Quyền Kế Thừa",
+    "expected": 579,
+    "actual": 577,
+    "gap": 2
+  },
+  {
+    "id": 135498,
+    "name": "Hogwarts: Ta Chính Là Bạch Ma Vương",
+    "expected": 578,
+    "actual": 576,
+    "gap": 2
+  },
+  {
+    "id": 105108,
+    "name": "Ta Là Kaka Kakaka",
+    "expected": 578,
+    "actual": 576,
+    "gap": 2
+  },
+  {
+    "id": 131639,
+    "name": "Hogwarts: Cái Này Vu Sư Quá Muốn Tiến Bộ",
+    "expected": 575,
+    "actual": 573,
+    "gap": 2
+  },
+  {
+    "id": 121706,
+    "name": "Rõ Ràng Là Sinh Hoạt Kỹ Năng, Ngươi Lại Luyện",
+    "expected": 574,
+    "actual": 572,
+    "gap": 2
+  },
+  {
+    "id": 130950,
+    "name": "Hợp Thành Hệ Vu Sư",
+    "expected": 573,
+    "actual": 571,
+    "gap": 2
+  },
+  {
+    "id": 133322,
+    "name": "Người Tại Cây Nấm Phòng, Làm Sao Khách Quý Tấ",
+    "expected": 569,
+    "actual": 567,
+    "gap": 2
+  },
+  {
+    "id": 123099,
+    "name": "Ngươi Là Ngôi Sao A, Tất Cả Thế Nào Đều Là Âm",
+    "expected": 569,
+    "actual": 567,
+    "gap": 2
+  },
+  {
+    "id": 101732,
+    "name": "Đại Đường Hảo Đại Ca",
+    "expected": 564,
+    "actual": 562,
+    "gap": 2
+  },
+  {
+    "id": 102290,
+    "name": "Ta Có Thể Khiến Người Ta Sụp Đổ",
+    "expected": 563,
+    "actual": 561,
+    "gap": 2
+  },
+  {
+    "id": 145127,
+    "name": "Trọng Sinh Đại Bạch Hổ Xông Sư Nữ Đế Cầu Cho ",
+    "expected": 560,
+    "actual": 558,
+    "gap": 2
+  },
+  {
+    "id": 101236,
+    "name": "Cửu Ấn Thần Hoàng",
+    "expected": 559,
+    "actual": 557,
+    "gap": 2
+  },
+  {
+    "id": 127132,
+    "name": "Toàn Dân: Giao Dịch Sư Yếu? Bắt Đầu Giao Dịch",
+    "expected": 557,
+    "actual": 555,
+    "gap": 2
+  },
+  {
+    "id": 128479,
+    "name": "Nhân Vật Phản Diện: Bị Cặn Bã Nữ Chính Nhóm T",
+    "expected": 557,
+    "actual": 555,
+    "gap": 2
+  },
+  {
+    "id": 129747,
+    "name": "Đỉnh Cấp Tra Tấn! Bị Ngạo Kiều Yandere Tiểu T",
+    "expected": 555,
+    "actual": 553,
+    "gap": 2
+  },
+  {
+    "id": 118067,
+    "name": "Ta Xã Giao Sợ Hãi Chứng, Bị Ép Đính Hôn Cái Q",
+    "expected": 555,
+    "actual": 553,
+    "gap": 2
+  },
+  {
+    "id": 144645,
+    "name": "Nhân Loại Thiên Tài? Xin Lỗi, Ta Là Nhiễu Són",
+    "expected": 553,
+    "actual": 551,
+    "gap": 2
+  },
+  {
+    "id": 106862,
+    "name": "Pháo Hôi Số 1 [tổng]",
+    "expected": 551,
+    "actual": 549,
+    "gap": 2
+  },
+  {
+    "id": 125554,
+    "name": "Say Rượu Mất Khống Chế, Bị Ép Cưới Gấp Kinh V",
+    "expected": 546,
+    "actual": 544,
+    "gap": 2
+  },
+  {
+    "id": 109905,
+    "name": "Cầu Sinh Chủng",
+    "expected": 544,
+    "actual": 542,
+    "gap": 2
+  },
+  {
+    "id": 142875,
+    "name": "Trở Lại Năm 1980 Đi Hưởng Phúc",
+    "expected": 543,
+    "actual": 541,
+    "gap": 2
+  },
+  {
+    "id": 106685,
+    "name": "Võng Du: Từ Giết Chết Chung Cực Boss Bắt Đầu",
+    "expected": 538,
+    "actual": 536,
+    "gap": 2
+  },
+  {
+    "id": 124323,
+    "name": "Người Tại Đấu La, Bắt Đầu Bị Đường Tam Trộm N",
+    "expected": 534,
+    "actual": 532,
+    "gap": 2
+  },
+  {
+    "id": 128597,
+    "name": "Sau Khi Nhân Sinh Thiết Lập Lại, Ta Đứng Trên",
+    "expected": 533,
+    "actual": 531,
+    "gap": 2
+  },
+  {
+    "id": 146789,
+    "name": "Sôi Trào Thời Đại",
+    "expected": 530,
+    "actual": 528,
+    "gap": 2
+  },
+  {
+    "id": 114049,
+    "name": "Dị Tiên Liệt Truyện",
+    "expected": 529,
+    "actual": 527,
+    "gap": 2
+  },
+  {
+    "id": 102407,
+    "name": "Ta Chỉ Muốn Yên Tâm Tu Tiên",
+    "expected": 528,
+    "actual": 526,
+    "gap": 2
+  },
+  {
+    "id": 116012,
+    "name": "Ta Thanh Mai Đúng Là Nữ Tần Nhân Vật Chính",
+    "expected": 527,
+    "actual": 525,
+    "gap": 2
+  },
+  {
+    "id": 139524,
+    "name": "Tam Quốc Tranh Bá, Từ Khống Chế Dòng Bắt Đầu",
+    "expected": 523,
+    "actual": 521,
+    "gap": 2
+  },
+  {
+    "id": 117204,
+    "name": "Cùng Năm Cái Bạn Gái Trước Lên Tiết Mục, Ta P",
+    "expected": 518,
+    "actual": 516,
+    "gap": 2
+  },
+  {
+    "id": 128259,
+    "name": "Ngự Thú, Ta Tình Báo Mỗi Ngày Đổi Mới",
+    "expected": 513,
+    "actual": 511,
+    "gap": 2
+  },
+  {
+    "id": 137411,
+    "name": "Trường Sinh Gia Tộc, Từ Mười Bảy Tuổi Trở Thà",
+    "expected": 512,
+    "actual": 510,
+    "gap": 2
+  },
+  {
+    "id": 117853,
+    "name": "Tam Quốc: Vô Song Lữ Bố, Nhận Cha Càng Nhiều ",
+    "expected": 512,
+    "actual": 510,
+    "gap": 2
+  },
+  {
+    "id": 143295,
+    "name": "Hồng Hoang: Bắt Đầu Cho Tổ Vu Tuyệt Dục, Hồng",
+    "expected": 511,
+    "actual": 509,
+    "gap": 2
+  },
+  {
+    "id": 146771,
+    "name": "Người Tại Tokyo Làm Ma Thần",
+    "expected": 509,
+    "actual": 507,
+    "gap": 2
+  },
+  {
+    "id": 128875,
+    "name": "Trọng Sinh Ai Còn Làm Minh Tinh",
+    "expected": 507,
+    "actual": 505,
+    "gap": 2
+  },
+  {
+    "id": 137448,
+    "name": "Bắt Đầu Bị Đâm! Triệu Hoán La Võng, Trấn Áp T",
+    "expected": 506,
+    "actual": 504,
+    "gap": 2
+  },
+  {
+    "id": 100943,
+    "name": "Tiên Đoán",
+    "expected": 505,
+    "actual": 503,
+    "gap": 2
+  },
+  {
+    "id": 126689,
+    "name": "Thật Thiếu Gia Trùng Sinh Nổi Điên, Cả Nhà Đề",
+    "expected": 504,
+    "actual": 502,
+    "gap": 2
+  },
+  {
+    "id": 107487,
+    "name": "Võ Công Của Ta Quá Thần Kỳ, Có Thể Tự Động Tu",
+    "expected": 502,
+    "actual": 500,
+    "gap": 2
+  },
+  {
+    "id": 147146,
+    "name": "Đều Sủng Nữ Chủ? Cái Kia Phản Phái Nữ Ma Đầu ",
+    "expected": 500,
+    "actual": 498,
+    "gap": 2
+  },
+  {
+    "id": 140218,
+    "name": "Sớm Thông Quan, Sau Đó Tiến Vào Kinh Dị Trò C",
+    "expected": 500,
+    "actual": 498,
+    "gap": 2
+  },
+  {
+    "id": 102410,
+    "name": "Toàn Năng Hiệu Trưởng Hệ Thống",
+    "expected": 500,
+    "actual": 498,
+    "gap": 2
+  },
+  {
+    "id": 129160,
+    "name": "Cửu Thế Luân Hồi Giải Phong, Yandere Hắc Hóa ",
+    "expected": 499,
+    "actual": 497,
+    "gap": 2
+  },
+  {
+    "id": 109535,
+    "name": "Đấu La: Từ Nện Đường Tam Trở Nên Mạnh Mẽ",
+    "expected": 499,
+    "actual": 497,
+    "gap": 2
+  },
+  {
+    "id": 101425,
+    "name": "Vạn Thiên Chi Tâm",
+    "expected": 499,
+    "actual": 497,
+    "gap": 2
+  },
+  {
+    "id": 102416,
+    "name": "Cơ Giáp Buôn Bán Thương",
+    "expected": 496,
+    "actual": 494,
+    "gap": 2
+  },
+  {
+    "id": 129934,
+    "name": "1987 Ta Niên Đại",
+    "expected": 494,
+    "actual": 492,
+    "gap": 2
+  },
+  {
+    "id": 134803,
+    "name": "Hokage: Từ Kumogakure Mở Ra Nhẫn Đao Thời Đại",
+    "expected": 490,
+    "actual": 488,
+    "gap": 2
+  },
+  {
+    "id": 101077,
+    "name": "Cực Đạo Cổ Ma",
+    "expected": 490,
+    "actual": 488,
+    "gap": 2
+  },
+  {
+    "id": 134344,
+    "name": "Thiên Đạo Thù Cần: Từ Hổ Hình Quyền Bắt Đầu L",
+    "expected": 488,
+    "actual": 486,
+    "gap": 2
+  },
+  {
+    "id": 140666,
+    "name": "Thiên Tai Group Chat Ta Thật Không Phải Đệ Tứ",
+    "expected": 487,
+    "actual": 485,
+    "gap": 2
+  },
+  {
+    "id": 136487,
+    "name": "Vô Địch! Bắt Đầu Đại Đế Tu Vi, Phó Ước Hẹn Ba",
+    "expected": 487,
+    "actual": 485,
+    "gap": 2
+  },
+  {
+    "id": 100946,
+    "name": "Vị Diện Đảo Đản Vương",
+    "expected": 487,
+    "actual": 485,
+    "gap": 2
+  },
+  {
+    "id": 126780,
+    "name": "Ta Tại Thần Bí Khôi Phục Thế Giới Mở Mạo Hiểm",
+    "expected": 484,
+    "actual": 482,
+    "gap": 2
+  },
+  {
+    "id": 114523,
+    "name": "Ta Là Lão Âm Bức, Tất Cả Mọi Người Đều Nghĩ C",
+    "expected": 484,
+    "actual": 482,
+    "gap": 2
+  },
+  {
+    "id": 135017,
+    "name": "Trời Sập Bắt Đầu, Ta Khóa Lại Hệ Triệu Hoán T",
+    "expected": 483,
+    "actual": 481,
+    "gap": 2
+  },
+  {
+    "id": 115269,
+    "name": "Sống Lại Làm Tiếp Thị Vương",
+    "expected": 481,
+    "actual": 479,
+    "gap": 2
+  },
+  {
+    "id": 119435,
+    "name": "Trường Sinh Từ Tông Môn Tạp Dịch Bắt Đầu",
+    "expected": 480,
+    "actual": 478,
+    "gap": 2
+  },
+  {
+    "id": 134449,
+    "name": "Ta Ở Giới Ninja Mở Cửa Hàng, Ngươi Muốn Ta Đề",
+    "expected": 477,
+    "actual": 475,
+    "gap": 2
+  },
+  {
+    "id": 108259,
+    "name": "Từ Chín Trăm Tầng Trở Về",
+    "expected": 475,
+    "actual": 473,
+    "gap": 2
+  },
+  {
+    "id": 107413,
+    "name": "Đấu La Chi Ta Võ Hồn Cùng Hồn Hoàn Có Thể Tự ",
+    "expected": 475,
+    "actual": 473,
+    "gap": 2
+  },
+  {
+    "id": 100182,
+    "name": "Võ Hiệp Thế Giới Bên Trong Vương Gia",
+    "expected": 473,
+    "actual": 471,
+    "gap": 2
+  },
+  {
+    "id": 140854,
+    "name": "Ta Công Đức Vô Lượng, Nương Tử Là Yêu Lại Có ",
+    "expected": 470,
+    "actual": 468,
+    "gap": 2
+  },
+  {
+    "id": 144704,
+    "name": "Kiếm Ẩn Hồng Hoang",
+    "expected": 469,
+    "actual": 467,
+    "gap": 2
+  },
+  {
+    "id": 123792,
+    "name": "Bắt Đầu Thánh Địa Sư Thúc Tổ, Nữ Đế Làm Đồ Đệ",
+    "expected": 469,
+    "actual": 467,
+    "gap": 2
+  },
+  {
+    "id": 131984,
+    "name": "Sống Một Năm Trướng Một Đạo Quả, Lấy Đạo Quả ",
+    "expected": 468,
+    "actual": 466,
+    "gap": 2
+  },
+  {
+    "id": 116828,
+    "name": "Bắt Đầu Vô Địch, Chế Tạo Vạn Cổ Cự Thành",
+    "expected": 467,
+    "actual": 465,
+    "gap": 2
+  },
+  {
+    "id": 112241,
+    "name": "Đã Từng, Ta Muốn Làm Người Tốt",
+    "expected": 466,
+    "actual": 464,
+    "gap": 2
+  },
+  {
+    "id": 103900,
+    "name": "Thần Cấp Tinh Tạp Sư Của Nữ Đế",
+    "expected": 461,
+    "actual": 459,
+    "gap": 2
+  },
+  {
+    "id": 100097,
+    "name": "Vua Bóng Đá",
+    "expected": 451,
+    "actual": 449,
+    "gap": 2
+  },
+  {
+    "id": 135911,
+    "name": "Konoha: Trọng Sinh Uchiha Ta Đây, Song Xuyên ",
+    "expected": 449,
+    "actual": 447,
+    "gap": 2
+  },
+  {
+    "id": 103968,
+    "name": "Đồ Đệ Của Ta Đều Là Nhân Vật Chính",
+    "expected": 449,
+    "actual": 447,
+    "gap": 2
+  },
+  {
+    "id": 100106,
+    "name": "Tất Sát Túc Cầu",
+    "expected": 446,
+    "actual": 444,
+    "gap": 2
+  },
+  {
+    "id": 130286,
+    "name": "Kinh Hồng Lâu",
+    "expected": 442,
+    "actual": 440,
+    "gap": 2
+  },
+  {
+    "id": 101763,
+    "name": "Prince Of Tennis Break Serve Ngủ Thần",
+    "expected": 441,
+    "actual": 439,
+    "gap": 2
+  },
+  {
+    "id": 110994,
+    "name": "Ta Thật Không Có Nghĩ Hỗn Ngành Giải Trí A",
+    "expected": 425,
+    "actual": 423,
+    "gap": 2
+  },
+  {
+    "id": 152526,
+    "name": "Showbiz: Một Ca Khúc Để Cho Thiên Hậu Lại Hỏa",
+    "expected": 422,
+    "actual": 420,
+    "gap": 2
+  },
+  {
+    "id": 145698,
+    "name": "Conan: Cái Gì? Tâm Trí Lệch Lạc Tên Tội Phạm ",
+    "expected": 422,
+    "actual": 420,
+    "gap": 2
+  },
+  {
+    "id": 137702,
+    "name": "Ta Đều Làm Hoàng Đế , Ngươi Cùng Trẫm Nói Tu ",
+    "expected": 421,
+    "actual": 419,
+    "gap": 2
+  },
+  {
+    "id": 146091,
+    "name": "Trường Sinh Tiên Tộc: Từ Thả Câu Hồng Hoang B",
+    "expected": 420,
+    "actual": 418,
+    "gap": 2
+  },
+  {
+    "id": 111096,
+    "name": "Nữ Đồ Đệ Nhóm Từng Cái Đều Muốn Giết Ta",
+    "expected": 409,
+    "actual": 407,
+    "gap": 2
+  },
+  {
+    "id": 142391,
+    "name": "Đêm Khuya Ác Mộng",
+    "expected": 408,
+    "actual": 406,
+    "gap": 2
+  },
+  {
+    "id": 140234,
+    "name": "Đều Nhanh Thành Tiên Mới Kéo Ta Vào Xuyên Qua",
+    "expected": 406,
+    "actual": 404,
+    "gap": 2
+  },
+  {
+    "id": 139593,
+    "name": "Rút Kiếm Trăm Năm, Xuống Núi Chính Là Vô Địch",
+    "expected": 402,
+    "actual": 400,
+    "gap": 2
+  },
+  {
+    "id": 125413,
+    "name": "Toàn Dân Thần Chỉ: Lãnh Chúa Chinh Chiến",
+    "expected": 398,
+    "actual": 396,
+    "gap": 2
+  },
+  {
+    "id": 107077,
+    "name": "Toàn Dân Hải Đảo: Ta Ở Cự Quy Trên Lưng Xây G",
+    "expected": 396,
+    "actual": 394,
+    "gap": 2
+  },
+  {
+    "id": 107799,
+    "name": "Giang Hồ Đệ Nhất Cao Thủ",
+    "expected": 392,
+    "actual": 390,
+    "gap": 2
+  },
+  {
+    "id": 138706,
+    "name": "Hóa Thân Khô Lâu Cướp Đoạt Dòng, Bị Giáo Hoa ",
+    "expected": 390,
+    "actual": 388,
+    "gap": 2
+  },
+  {
+    "id": 120748,
+    "name": "Ai Để Ngươi Thật Tu Tiên?",
+    "expected": 383,
+    "actual": 381,
+    "gap": 2
+  },
+  {
+    "id": 137575,
+    "name": "Đấu La Tuyệt Thế: Thánh Tà Đế Quân",
+    "expected": 374,
+    "actual": 372,
+    "gap": 2
+  },
+  {
+    "id": 142599,
+    "name": "Quét Ngang Yêu Võ Loạn Thế, Theo Trông Thấy T",
+    "expected": 372,
+    "actual": 370,
+    "gap": 2
+  },
+  {
+    "id": 109194,
+    "name": "Ngự Thú Thế Gia Quật Khởi",
+    "expected": 371,
+    "actual": 369,
+    "gap": 2
+  },
+  {
+    "id": 150400,
+    "name": "Thanh Mai Ngạo Kiều Không Tỏ Tình? Trêu Chọc ",
+    "expected": 361,
+    "actual": 359,
+    "gap": 2
+  },
+  {
+    "id": 122765,
+    "name": "Toàn Cầu: Tiên Vực Chi Chủ",
+    "expected": 359,
+    "actual": 357,
+    "gap": 2
+  },
+  {
+    "id": 100764,
+    "name": "Thiên Đạo Tàng Kinh Các",
+    "expected": 357,
+    "actual": 355,
+    "gap": 2
+  },
+  {
+    "id": 136388,
+    "name": "Toàn Dân Chuyển Chức: Bọn Hắn Gọi Ta Trí Giới",
+    "expected": 353,
+    "actual": 351,
+    "gap": 2
+  },
+  {
+    "id": 137991,
+    "name": "Toàn Dân Thần Linh: Thần Vực Của Ta Là Warp S",
+    "expected": 349,
+    "actual": 347,
+    "gap": 2
+  },
+  {
+    "id": 151062,
+    "name": "Y Học Sinh Treo Lên Đánh Viện Trưởng, Cầm Nob",
+    "expected": 348,
+    "actual": 346,
+    "gap": 2
+  },
+  {
+    "id": 126472,
+    "name": "Đấu La: Mị Ma Hoắc Vũ Hạo",
+    "expected": 340,
+    "actual": 338,
+    "gap": 2
+  },
+  {
+    "id": 140247,
+    "name": "Bái Sư Thái Thanh Bị Cự Tuyệt, Ta Liền Mở Ra ",
+    "expected": 339,
+    "actual": 337,
+    "gap": 2
+  },
+  {
+    "id": 140086,
+    "name": "Chân Chính Đại Phản Phái, Chính Là Muốn Muốn ",
+    "expected": 338,
+    "actual": 336,
+    "gap": 2
+  },
+  {
+    "id": 146086,
+    "name": "Cao Võ: Biến Thân Tan Nát Nàng, Dựa Vào Thêm ",
+    "expected": 337,
+    "actual": 335,
+    "gap": 2
+  },
+  {
+    "id": 109906,
+    "name": "Trò Chơi Xâm Lấn: Ta Tuyển Yếu Nhất Chức Nghi",
+    "expected": 337,
+    "actual": 335,
+    "gap": 2
+  },
+  {
+    "id": 138275,
+    "name": "Cướp Đoạt Chính Quyền Cự Khấu: Từ Buôn Bán Mu",
+    "expected": 330,
+    "actual": 328,
+    "gap": 2
+  },
+  {
+    "id": 135817,
+    "name": "Ta Tại Tử Vong Sâm Lâm Cày Ruộng Xây Thôn",
+    "expected": 327,
+    "actual": 325,
+    "gap": 2
+  },
+  {
+    "id": 107410,
+    "name": "Diamond No Ace Chi Seidou Vương Giả",
+    "expected": 325,
+    "actual": 323,
+    "gap": 2
+  },
+  {
+    "id": 126050,
+    "name": "Cái Này Đại Đường Không Được Bình Thường A!",
+    "expected": 324,
+    "actual": 322,
+    "gap": 2
+  },
+  {
+    "id": 141933,
+    "name": "Ta: Bắt Đầu Trở Thành Đại Tần Tiên Đình Chi C",
+    "expected": 321,
+    "actual": 319,
+    "gap": 2
+  },
+  {
+    "id": 146929,
+    "name": "Be Về Sau, Nam Chính Bọn Họ Tất Cả Đều Trọng ",
+    "expected": 321,
+    "actual": 319,
+    "gap": 2
+  },
+  {
+    "id": 120942,
+    "name": "Ma Thẻ: Mao Nhung Đồ Chơi ? Trở Tay Vẽ Ra Tiể",
+    "expected": 321,
+    "actual": 319,
+    "gap": 2
+  },
+  {
+    "id": 103285,
+    "name": "Nhân Gian Phú Quý Hoa Thường Ngày",
+    "expected": 320,
+    "actual": 318,
+    "gap": 2
+  },
+  {
+    "id": 148994,
+    "name": "Đại Hán: Lũng Tây Lý Thị, Chế Tạo Siêu Cấp Gi",
+    "expected": 313,
+    "actual": 311,
+    "gap": 2
+  },
+  {
+    "id": 110583,
+    "name": "Mộng Cảnh Này Rất Thú Vị",
+    "expected": 303,
+    "actual": 301,
+    "gap": 2
+  },
+  {
+    "id": 112139,
+    "name": "Mỗi Lần Tỉnh Lại Đều Thành Người Hiềm Nghi [ ",
+    "expected": 298,
+    "actual": 296,
+    "gap": 2
+  },
+  {
+    "id": 100115,
+    "name": "Trọng Sinh Chi Mộng Huyễn Xạ Thủ",
+    "expected": 296,
+    "actual": 294,
+    "gap": 2
+  },
+  {
+    "id": 130917,
+    "name": "Không Hợp Thói Thường! Bắt Đầu Thành Tinh Lin",
+    "expected": 295,
+    "actual": 293,
+    "gap": 2
+  },
+  {
+    "id": 146377,
+    "name": "Sư Phụ Hắn Đến Cùng Sống Bao Lâu?",
+    "expected": 293,
+    "actual": 291,
+    "gap": 2
+  },
+  {
+    "id": 141923,
+    "name": "Monkey D Toukan, Đánh Cho Hải Tặc Hô Hoán Lên",
+    "expected": 285,
+    "actual": 283,
+    "gap": 2
+  },
+  {
+    "id": 131076,
+    "name": "Trọng Sinh 90: Dẫn Đầu Gia Tộc Trở Thành Tập ",
+    "expected": 284,
+    "actual": 282,
+    "gap": 2
+  },
+  {
+    "id": 140462,
+    "name": "Giới Bóng Rổ Huấn Luyện Sư, Ta Một Tay Sáng L",
+    "expected": 284,
+    "actual": 282,
+    "gap": 2
+  },
+  {
+    "id": 122985,
+    "name": "Ta Có Một Bản Tiến Hóa Đồ Giám [ngự Thú]",
+    "expected": 281,
+    "actual": 279,
+    "gap": 2
+  },
+  {
+    "id": 102105,
+    "name": "Giang Hồ Chi Đỉnh Phong Thần Thoại",
+    "expected": 281,
+    "actual": 279,
+    "gap": 2
+  },
+  {
+    "id": 127551,
+    "name": "Làm Ruộng Tiểu Thụ Tinh",
+    "expected": 280,
+    "actual": 278,
+    "gap": 2
+  },
+  {
+    "id": 129578,
+    "name": "Lol: Ta Có Thể Nghe Được Địch Quân Trò Chuyện",
+    "expected": 588,
+    "actual": 587,
+    "gap": 1
+  },
+  {
+    "id": 146495,
+    "name": "Trăm Tuổi Nằm Vào Quan Tài Bên Trong, Để Cho ",
+    "expected": 587,
+    "actual": 586,
+    "gap": 1
+  },
+  {
+    "id": 126668,
+    "name": "Hồng Hoang: Thần Cấp Lựa Chọn , Mở Đầu Đoạt X",
+    "expected": 587,
+    "actual": 586,
+    "gap": 1
+  },
+  {
+    "id": 139828,
+    "name": "Ta Chỉ Muốn Làm Công! Làm Sao Chung Quanh Tất",
+    "expected": 586,
+    "actual": 585,
+    "gap": 1
+  },
+  {
+    "id": 109483,
+    "name": "Sư Phụ Ta Là Cái Bug",
+    "expected": 586,
+    "actual": 585,
+    "gap": 1
+  },
+  {
+    "id": 146350,
+    "name": "Quỷ Bí: Theo Hắc Dạ Giáo Tông Bắt Đầu",
+    "expected": 585,
+    "actual": 584,
+    "gap": 1
+  },
+  {
+    "id": 101127,
+    "name": "Tặc Cảnh",
+    "expected": 585,
+    "actual": 584,
+    "gap": 1
+  },
+  {
+    "id": 145912,
+    "name": "Tận Thế: Ta Có Một Cái Thanh Trang Bị?",
+    "expected": 584,
+    "actual": 583,
+    "gap": 1
+  },
+  {
+    "id": 144863,
+    "name": "Xuyên Qua Tông Môn Lão Tổ, Thu Đồ Lý Liên Hoa",
+    "expected": 584,
+    "actual": 583,
+    "gap": 1
+  },
+  {
+    "id": 144093,
+    "name": "Ăn Hải! Tầm Bảo Ngư Dân Thoải Mái Nhân Sinh!",
+    "expected": 584,
+    "actual": 583,
+    "gap": 1
+  },
+  {
+    "id": 102420,
+    "name": "Đô Thị Vô Địch Thần Thám",
+    "expected": 584,
+    "actual": 583,
+    "gap": 1
+  },
+  {
+    "id": 114348,
+    "name": "Đại Đường: Đánh Dấu Bảy Năm, Bị Trưởng Tôn Ho",
+    "expected": 583,
+    "actual": 582,
+    "gap": 1
+  },
+  {
+    "id": 149782,
+    "name": "Trùng Sinh: Giáo Hoa Thật Sự Là Bạn Gái Của T",
+    "expected": 581,
+    "actual": 580,
+    "gap": 1
+  },
+  {
+    "id": 130093,
+    "name": "Cái Này Quốc Vận Có Chút Quỷ",
+    "expected": 580,
+    "actual": 579,
+    "gap": 1
+  },
+  {
+    "id": 100226,
+    "name": "Mạt Thế Sân Đấu",
+    "expected": 579,
+    "actual": 578,
+    "gap": 1
+  },
+  {
+    "id": 121740,
+    "name": "Bắt Đầu Cùng Nữ Thần Lĩnh Chứng: Kích Hoạt Bả",
+    "expected": 578,
+    "actual": 577,
+    "gap": 1
+  },
+  {
+    "id": 144644,
+    "name": "Để Ngươi Giáo Đồ, Ngươi Thành Tu Tiên Giới Ma",
+    "expected": 575,
+    "actual": 574,
+    "gap": 1
+  },
+  {
+    "id": 127925,
+    "name": "Khởi Động Lại! Người Nhện!",
+    "expected": 575,
+    "actual": 574,
+    "gap": 1
+  },
+  {
+    "id": 112029,
+    "name": "Đấu La: Tiểu Vũ Ngươi Cũng Không Muốn Đường T",
+    "expected": 572,
+    "actual": 571,
+    "gap": 1
+  },
+  {
+    "id": 132663,
+    "name": "Ta Có Thể Phân Biệt Vạn Vật, Nhưng Tin Tức Là",
+    "expected": 571,
+    "actual": 570,
+    "gap": 1
+  },
+  {
+    "id": 143525,
+    "name": "Thành Uy Ký - Khởi Tự Bộ Doanh",
+    "expected": 570,
+    "actual": 569,
+    "gap": 1
+  },
+  {
+    "id": 137942,
+    "name": "Ngự Thú: Ta Không Muốn Làm Chăn Nuôi Sư A!",
+    "expected": 568,
+    "actual": 567,
+    "gap": 1
+  },
+  {
+    "id": 129690,
+    "name": "Quỷ Dị Khôi Phục: Ta Đầy Người Cấm Kỵ Giết Xu",
+    "expected": 568,
+    "actual": 567,
+    "gap": 1
+  },
+  {
+    "id": 126643,
+    "name": "Đạo Dữ Thiên Tề",
+    "expected": 567,
+    "actual": 566,
+    "gap": 1
+  },
+  {
+    "id": 149124,
+    "name": "Thức Tỉnh Thần Cấp Thiên Phú, Lại Không Giết ",
+    "expected": 566,
+    "actual": 565,
+    "gap": 1
+  },
+  {
+    "id": 147068,
+    "name": "Đấu La: Long Vương Chi Tự Nhiên Thần Vương",
+    "expected": 566,
+    "actual": 565,
+    "gap": 1
+  },
+  {
+    "id": 143274,
+    "name": "Vô Hạn Ngự Thú: Bắt Đầu Sủng Vật Là Tảng Đá",
+    "expected": 565,
+    "actual": 564,
+    "gap": 1
+  },
+  {
+    "id": 142504,
+    "name": "Trùng Sinh: Từ Đại Thực Đường Bắt Đầu",
+    "expected": 565,
+    "actual": 564,
+    "gap": 1
+  },
+  {
+    "id": 125603,
+    "name": "Của Ta Vứt Bỏ Dầu Hỏa Trấn Nhỏ Trở Thành Mới ",
+    "expected": 564,
+    "actual": 563,
+    "gap": 1
+  },
+  {
+    "id": 137044,
+    "name": "Võng Du Chi U Minh Xạ Thủ",
+    "expected": 563,
+    "actual": 562,
+    "gap": 1
+  },
+  {
+    "id": 112461,
+    "name": "Linh Hiển Chân Quân",
+    "expected": 563,
+    "actual": 562,
+    "gap": 1
+  },
+  {
+    "id": 104719,
+    "name": "Trong Đội Mạnh Nhất Đều Sẽ Chết",
+    "expected": 563,
+    "actual": 562,
+    "gap": 1
+  },
+  {
+    "id": 120088,
+    "name": "Running Man: Ai Mời Hắn Đến? Hắn Thế Nhưng Là",
+    "expected": 561,
+    "actual": 560,
+    "gap": 1
+  },
+  {
+    "id": 116810,
+    "name": "Vu Sư Thế Giới Vĩnh Sinh Giả",
+    "expected": 561,
+    "actual": 560,
+    "gap": 1
+  },
+  {
+    "id": 140864,
+    "name": "Ngự Thú, Danh Sách Tiến Hóa",
+    "expected": 560,
+    "actual": 559,
+    "gap": 1
+  },
+  {
+    "id": 145995,
+    "name": "Cùng Nữ Đế Song Tu Về Sau, Ta Thành Tựu Vô Th",
+    "expected": 560,
+    "actual": 559,
+    "gap": 1
+  },
+  {
+    "id": 140805,
+    "name": "70 Đại Xưởng Mỹ Nhân, Cải Tạo Vai Ác Nhãi Con",
+    "expected": 560,
+    "actual": 559,
+    "gap": 1
+  },
+  {
+    "id": 144281,
+    "name": "Câu Cá Đi Biển Bắt Hải Sản: Ta Là Thiên Hạ Đệ",
+    "expected": 560,
+    "actual": 559,
+    "gap": 1
+  },
+  {
+    "id": 114791,
+    "name": "Ta Tu Tiên Trò Chơi Nhân Sinh",
+    "expected": 560,
+    "actual": 559,
+    "gap": 1
+  },
+  {
+    "id": 100756,
+    "name": "Vui Chơi Giải Trí Cao Thủ",
+    "expected": 560,
+    "actual": 559,
+    "gap": 1
+  },
+  {
+    "id": 144151,
+    "name": "Để Ngươi Câu Cá, Ngươi Câu Ra Đạn Hạt Nhân?",
+    "expected": 559,
+    "actual": 558,
+    "gap": 1
+  },
+  {
+    "id": 143469,
+    "name": "Bạn Gái Mang Thai Ta Dựa Vào Bắt Cá Xong Bợ Đ",
+    "expected": 558,
+    "actual": 557,
+    "gap": 1
+  },
+  {
+    "id": 105041,
+    "name": "Bản Cung Chuyên Trị Các Loại Không Phục",
+    "expected": 558,
+    "actual": 557,
+    "gap": 1
+  },
+  {
+    "id": 144877,
+    "name": "Tiếu Ngạo Chư Thiên: Bắt Đầu Trời Sinh Thần L",
+    "expected": 557,
+    "actual": 556,
+    "gap": 1
+  },
+  {
+    "id": 109680,
+    "name": "Cái Thế Nhân Vương",
+    "expected": 556,
+    "actual": 555,
+    "gap": 1
+  },
+  {
+    "id": 145065,
+    "name": "Ta Tại Tám Mươi Đầu Cơ Trục Lợi",
+    "expected": 555,
+    "actual": 554,
+    "gap": 1
+  },
+  {
+    "id": 143576,
+    "name": "Thân Làm Lãnh Chúa Ta, Mỗi Ngày Bị Muội Tử Lậ",
+    "expected": 555,
+    "actual": 554,
+    "gap": 1
+  },
+  {
+    "id": 139754,
+    "name": "Đều Trọng Sinh Cũng Đừng Kết Hôn Rồi Chứ",
+    "expected": 554,
+    "actual": 553,
+    "gap": 1
+  },
+  {
+    "id": 108069,
+    "name": "Đường Tăng, Ngươi Buông Xuống Thịt Kho Tàu Củ",
+    "expected": 554,
+    "actual": 553,
+    "gap": 1
+  },
+  {
+    "id": 148045,
+    "name": "Niên Đại Xuống Nông Thôn: Ta Có Thiên Đạo Thù",
+    "expected": 553,
+    "actual": 552,
+    "gap": 1
+  },
+  {
+    "id": 137561,
+    "name": "Trường Sinh Từ Đọc Sách Bắt Đầu",
+    "expected": 553,
+    "actual": 552,
+    "gap": 1
+  },
+  {
+    "id": 137716,
+    "name": "Zombie Vương: Bắt Đầu Nhặt Cái Hài Nhi Là Nữ ",
+    "expected": 553,
+    "actual": 552,
+    "gap": 1
+  },
+  {
+    "id": 103229,
+    "name": "Đường Môn Độc Tông",
+    "expected": 553,
+    "actual": 552,
+    "gap": 1
+  },
+  {
+    "id": 132433,
+    "name": "Chư Thiên Hồng Bao Group Chat",
+    "expected": 552,
+    "actual": 551,
+    "gap": 1
+  },
+  {
+    "id": 118868,
+    "name": "Trực Tiếp Phổ Cập Khoa Học, Bắt Đầu Âm Binh M",
+    "expected": 552,
+    "actual": 551,
+    "gap": 1
+  },
+  {
+    "id": 115196,
+    "name": "Hắn Một Quyền Oanh Sát Ma Thần, Ngươi Nói Hắn",
+    "expected": 552,
+    "actual": 551,
+    "gap": 1
+  },
+  {
+    "id": 137727,
+    "name": "Lựa Chọn C Cấp Anh Hùng, Ta Bị Khắp Internet ",
+    "expected": 551,
+    "actual": 550,
+    "gap": 1
+  },
+  {
+    "id": 102121,
+    "name": "Phú Quý Không Thể Ngâm",
+    "expected": 551,
+    "actual": 550,
+    "gap": 1
+  },
+  {
+    "id": 127591,
+    "name": "Người Tại Từ Trong Bụng Mẹ: Ta Đem Nữ Đế Muội",
+    "expected": 550,
+    "actual": 549,
+    "gap": 1
+  },
+  {
+    "id": 124430,
+    "name": "Trở Thành Nhà Giàu Nhất Từ 1991 Bắt Đầu",
+    "expected": 548,
+    "actual": 547,
+    "gap": 1
+  },
+  {
+    "id": 101647,
+    "name": "Mua Căn Biệt Thự Thu Phế Liệu",
+    "expected": 548,
+    "actual": 547,
+    "gap": 1
+  },
+  {
+    "id": 145822,
+    "name": "Đặc Hiệu: Theo Giả Mạo Kim Đan Bắt Đầu Tu Tiê",
+    "expected": 547,
+    "actual": 546,
+    "gap": 1
+  },
+  {
+    "id": 142488,
+    "name": "Ký Sinh Tu Tiên: Chủng Tộc Kiểm Tra Hệ Thống",
+    "expected": 546,
+    "actual": 545,
+    "gap": 1
+  },
+  {
+    "id": 101583,
+    "name": "Vô Địch Tiên Vương",
+    "expected": 546,
+    "actual": 545,
+    "gap": 1
+  },
+  {
+    "id": 146814,
+    "name": "Xuyên Thẳng Qua Chư Thiên Theo Mãng Hoang Bắt",
+    "expected": 545,
+    "actual": 544,
+    "gap": 1
+  },
+  {
+    "id": 107497,
+    "name": "Đại Đường: Hiền Đệ Không Nghĩ Tới Đi, Ta Là H",
+    "expected": 545,
+    "actual": 544,
+    "gap": 1
+  },
+  {
+    "id": 105517,
+    "name": "Hải Tặc Râu Trắng Trên Thuyền Mèo",
+    "expected": 545,
+    "actual": 544,
+    "gap": 1
+  },
+  {
+    "id": 144949,
+    "name": "Cha Ma Tôn, Nương Thánh Chủ, Ta Không Ăn Bám ",
+    "expected": 544,
+    "actual": 543,
+    "gap": 1
+  },
+  {
+    "id": 142935,
+    "name": "Ta Một Mở Tiệm Mì, Thật Không Phải Bố Già",
+    "expected": 543,
+    "actual": 542,
+    "gap": 1
+  },
+  {
+    "id": 126577,
+    "name": "Đại Ác Ma Holmes",
+    "expected": 543,
+    "actual": 542,
+    "gap": 1
+  },
+  {
+    "id": 123096,
+    "name": "Ta Phân Thân Tại Tinh Không Bỉ Ngạn",
+    "expected": 543,
+    "actual": 542,
+    "gap": 1
+  },
+  {
+    "id": 144565,
+    "name": "Không Cần Tu Luyện! Ta Trực Tiếp Mua Qua Inte",
+    "expected": 541,
+    "actual": 540,
+    "gap": 1
+  },
+  {
+    "id": 145064,
+    "name": "Theo Tứ Hợp Viện Đến Hồng Kông Ông Trùm",
+    "expected": 541,
+    "actual": 540,
+    "gap": 1
+  },
+  {
+    "id": 144681,
+    "name": "Thiên Đạo Trò Chơi Ta Lại Thành Người Cá Chi ",
+    "expected": 541,
+    "actual": 540,
+    "gap": 1
+  },
+  {
+    "id": 113740,
+    "name": "Đánh Dấu 1000 Tỷ: Từ Chối Hoa Khôi Biểu Lộ",
+    "expected": 541,
+    "actual": 540,
+    "gap": 1
+  },
+  {
+    "id": 144452,
+    "name": "Đại Tần: Ta Có Não Tật, Mời Phụ Hoàng Thoái V",
+    "expected": 540,
+    "actual": 539,
+    "gap": 1
+  },
+  {
+    "id": 137183,
+    "name": "Đại Tống Trên Sa Bàn",
+    "expected": 540,
+    "actual": 539,
+    "gap": 1
+  },
+  {
+    "id": 109818,
+    "name": "Ta Chuyển Chức Thành Hắc Ám Đạo Sĩ",
+    "expected": 540,
+    "actual": 539,
+    "gap": 1
+  },
+  {
+    "id": 100121,
+    "name": "Bóng Rổ Giải Trí Thiên Vương",
+    "expected": 539,
+    "actual": 538,
+    "gap": 1
+  },
+  {
+    "id": 143916,
+    "name": "Trong Biển Vương Giả, Ta Là Ngư Dân",
+    "expected": 538,
+    "actual": 537,
+    "gap": 1
+  },
+  {
+    "id": 100339,
+    "name": "Đông Phương Thần Thoại Hệ Thống",
+    "expected": 538,
+    "actual": 537,
+    "gap": 1
+  },
+  {
+    "id": 100709,
+    "name": "Hồng Mông Đại Đế Hệ Thống",
+    "expected": 537,
+    "actual": 536,
+    "gap": 1
+  },
+  {
+    "id": 144782,
+    "name": "Ta, Thần Cấp Phụ Trợ, Kỹ Năng Thăng Cấp Không",
+    "expected": 536,
+    "actual": 535,
+    "gap": 1
+  },
+  {
+    "id": 126458,
+    "name": "Từ Nhặt Tu Vi Bắt Đầu, Chế Tạo Cực Đạo Thế Gi",
+    "expected": 536,
+    "actual": 535,
+    "gap": 1
+  },
+  {
+    "id": 128039,
+    "name": "Cẩu Tại Vu Sư Thế Giới Tu Địa Tiên",
+    "expected": 536,
+    "actual": 535,
+    "gap": 1
+  },
+  {
+    "id": 134821,
+    "name": "Ta Tại Nhẫn Giới Làm Chú Thuật Sư",
+    "expected": 536,
+    "actual": 535,
+    "gap": 1
+  },
+  {
+    "id": 138827,
+    "name": "Dương Gian Bị Phun, Âm Phủ Fan Hâm Mộ Giúp Ta",
+    "expected": 535,
+    "actual": 534,
+    "gap": 1
+  },
+  {
+    "id": 122907,
+    "name": "Ác Long: Ta Nhặt Được Ấu Long Muốn Làm Nữ Đế",
+    "expected": 535,
+    "actual": 534,
+    "gap": 1
+  },
+  {
+    "id": 104610,
+    "name": "Ta Thành Huyết Tộc Thủy Tổ",
+    "expected": 535,
+    "actual": 534,
+    "gap": 1
+  },
+  {
+    "id": 138498,
+    "name": "Giải Trí Thần Hào, Bắt Đầu Một Cái Vô Ưu Truy",
+    "expected": 534,
+    "actual": 533,
+    "gap": 1
+  },
+  {
+    "id": 143682,
+    "name": "Vân Lăng Truyền",
+    "expected": 534,
+    "actual": 533,
+    "gap": 1
+  },
+  {
+    "id": 142356,
+    "name": "Thánh Mẫu Sư Tôn Sau Khi Sống Lại, Ta Động Lò",
+    "expected": 534,
+    "actual": 533,
+    "gap": 1
+  },
+  {
+    "id": 125556,
+    "name": "Hải Tặc: Mũ Rơm Đoàn Bên Trên Max Cấp Kiếm Hà",
+    "expected": 534,
+    "actual": 533,
+    "gap": 1
+  },
+  {
+    "id": 126823,
+    "name": "Làm Bốn Ngày Nghỉ Ba Ngày! Nhân Viên So Ta Cò",
+    "expected": 533,
+    "actual": 532,
+    "gap": 1
+  },
+  {
+    "id": 119466,
+    "name": "Giải Trí: Để Ngươi Tìm Linh Cảm, Ngươi Lấy Ti",
+    "expected": 533,
+    "actual": 532,
+    "gap": 1
+  },
+  {
+    "id": 138724,
+    "name": "Cao Võ: Hệ Thống Lật Tẩy, Kiên Trì Liền Có Th",
+    "expected": 532,
+    "actual": 531,
+    "gap": 1
+  },
+  {
+    "id": 144152,
+    "name": "Mạnh Nhất Ngư Dân",
+    "expected": 531,
+    "actual": 530,
+    "gap": 1
+  },
+  {
+    "id": 125684,
+    "name": "Nguyên Tôn: Luân Hồi Thần Đế, Từ Đánh Dấu Bắt",
+    "expected": 530,
+    "actual": 529,
+    "gap": 1
+  },
+  {
+    "id": 100682,
+    "name": "Vạn Cổ Thánh Vương",
+    "expected": 529,
+    "actual": 528,
+    "gap": 1
+  },
+  {
+    "id": 123036,
+    "name": "Thành Tiên, Từ Thu Phế Phẩm Bắt Đầu",
+    "expected": 528,
+    "actual": 527,
+    "gap": 1
+  },
+  {
+    "id": 132423,
+    "name": "Ta Mới Hai Tuổi, Nghịch Tập Hệ Thống Là Cái Q",
+    "expected": 526,
+    "actual": 525,
+    "gap": 1
+  },
+  {
+    "id": 103802,
+    "name": "Đại Đường Tai Họa",
+    "expected": 526,
+    "actual": 525,
+    "gap": 1
+  },
+  {
+    "id": 143034,
+    "name": "Trêu Chọc Cẩu! Lưu Miêu! Thưởng Thức Trà!",
+    "expected": 523,
+    "actual": 522,
+    "gap": 1
+  },
+  {
+    "id": 145515,
+    "name": "Điên Loạn 1960: Kẻ Lêu Lổng Làm Loạn Tứ Hợp V",
+    "expected": 522,
+    "actual": 521,
+    "gap": 1
+  },
+  {
+    "id": 136786,
+    "name": "Trăm Năm Lão Tạp Dịch, Một Sớm Về Hưu Thành Đ",
+    "expected": 522,
+    "actual": 521,
+    "gap": 1
+  },
+  {
+    "id": 142433,
+    "name": "Thôn Phệ: Mỗi Ngày Thăng Một Cấp, Vô Địch Đếm",
+    "expected": 522,
+    "actual": 521,
+    "gap": 1
+  },
+  {
+    "id": 119192,
+    "name": "Ẩn Tàng Chức Nghiệp Tạo Vật Sư? Cả Nước Giúp ",
+    "expected": 522,
+    "actual": 521,
+    "gap": 1
+  },
+  {
+    "id": 139562,
+    "name": "Vừa Vô Địch, Luân Hồi Giả Lão Bà Cầu Ta Ban T",
+    "expected": 521,
+    "actual": 520,
+    "gap": 1
+  },
+  {
+    "id": 101325,
+    "name": "Đại Hiệp Tiêu Kim Diễn",
+    "expected": 521,
+    "actual": 520,
+    "gap": 1
+  },
+  {
+    "id": 100952,
+    "name": "Hải Tặc Vương Chi Chung Cực Phân Thân",
+    "expected": 521,
+    "actual": 520,
+    "gap": 1
+  },
+  {
+    "id": 103254,
+    "name": "Xuyên Thư Nữ Phụ Ở Thất Linh",
+    "expected": 520,
+    "actual": 519,
+    "gap": 1
+  },
+  {
+    "id": 132959,
+    "name": "Bắc Địa Lĩnh Chúa: Ta Có Cưỡi Chém Hệ Thống",
+    "expected": 519,
+    "actual": 518,
+    "gap": 1
+  },
+  {
+    "id": 145778,
+    "name": "Hóa Thân Yêu Đạo, Tai Họa Thiên Hạ",
+    "expected": 518,
+    "actual": 517,
+    "gap": 1
+  },
+  {
+    "id": 146855,
+    "name": "Bế Quan Bảy Trăm Năm Biến Thành Gia Tộc Lão T",
+    "expected": 517,
+    "actual": 516,
+    "gap": 1
+  },
+  {
+    "id": 125115,
+    "name": "Từ Lúc Phá Nhân Thể Cực Hạn Bắt Đầu",
+    "expected": 516,
+    "actual": 515,
+    "gap": 1
+  },
+  {
+    "id": 140976,
+    "name": "Phu Nhân Xin Dừng Tay",
+    "expected": 515,
+    "actual": 514,
+    "gap": 1
+  },
+  {
+    "id": 145747,
+    "name": "Bức Ta Nhập Ma? Ta Làm Nhân Vật Phản Diện Sau",
+    "expected": 515,
+    "actual": 514,
+    "gap": 1
+  },
+  {
+    "id": 133161,
+    "name": "Đích Nữ Kiều Lại Táp: Vương Gia Bị Vẩy Đến Mặ",
+    "expected": 512,
+    "actual": 511,
+    "gap": 1
+  },
+  {
+    "id": 147215,
+    "name": "Theo Thông Gia Bắt Đầu Thành Tiên",
+    "expected": 512,
+    "actual": 511,
+    "gap": 1
+  },
+  {
+    "id": 143574,
+    "name": "Ta Đã Vứt Bỏ Tông Làm Tán Tu, Một Kiếm Sương ",
+    "expected": 512,
+    "actual": 511,
+    "gap": 1
+  },
+  {
+    "id": 124257,
+    "name": "Tổ Tông Tế Thiên, Toàn Tộc Thăng Tiên",
+    "expected": 512,
+    "actual": 511,
+    "gap": 1
+  },
+  {
+    "id": 140565,
+    "name": "Đạo Cơ",
+    "expected": 511,
+    "actual": 510,
+    "gap": 1
+  },
+  {
+    "id": 148497,
+    "name": "Niên Đại: Ta Dựa Vào Mỗi Ngày Tình Báo Cướp M",
+    "expected": 510,
+    "actual": 509,
+    "gap": 1
+  },
+  {
+    "id": 142529,
+    "name": "Hắn Không Nói Một Lời, Chỉ Là Một Vị Địa Sát!",
+    "expected": 510,
+    "actual": 509,
+    "gap": 1
+  },
+  {
+    "id": 101808,
+    "name": "Vô Hạn Thôn Phệ Chi Trọng Sinh Lão Hổ",
+    "expected": 510,
+    "actual": 509,
+    "gap": 1
+  },
+  {
+    "id": 142726,
+    "name": "Tú Kiếm",
+    "expected": 509,
+    "actual": 508,
+    "gap": 1
+  },
+  {
+    "id": 102372,
+    "name": "Này Hào Có Độc",
+    "expected": 509,
+    "actual": 508,
+    "gap": 1
+  },
+  {
+    "id": 146813,
+    "name": "Lưỡng Giới Trường Sinh: Trọng Đồng Vốn Là Vô ",
+    "expected": 508,
+    "actual": 507,
+    "gap": 1
+  },
+  {
+    "id": 115749,
+    "name": "Võ Tôn Đừng Quay Đầu Chạy Mau",
+    "expected": 508,
+    "actual": 507,
+    "gap": 1
+  },
+  {
+    "id": 139763,
+    "name": "Từ Ligue 1 Bắt Đầu Con Đường Thành Thần",
+    "expected": 507,
+    "actual": 506,
+    "gap": 1
+  },
+  {
+    "id": 143440,
+    "name": "Tam Quốc: Tổ Long Hậu Duệ, Bắt Đầu Cùng Lã Bố",
+    "expected": 507,
+    "actual": 506,
+    "gap": 1
+  },
+  {
+    "id": 117618,
+    "name": "Nói Xong Thổi Ngưu Bức, Ngươi Thế Nào Thật Có",
+    "expected": 507,
+    "actual": 506,
+    "gap": 1
+  },
+  {
+    "id": 145434,
+    "name": "Sss Dị Năng Rất Ngưu? Ta Thức Tỉnh Tu Tiên Ph",
+    "expected": 506,
+    "actual": 505,
+    "gap": 1
+  },
+  {
+    "id": 141120,
+    "name": "Mở Đầu Xuyên Không Thành Cây, Cướp Đoạt Khí V",
+    "expected": 505,
+    "actual": 504,
+    "gap": 1
+  },
+  {
+    "id": 144779,
+    "name": "Làm Bẩn Công Chúa Cả Triều Người Giết Ta? Ta ",
+    "expected": 504,
+    "actual": 503,
+    "gap": 1
+  },
+  {
+    "id": 142218,
+    "name": "Thiên Mệnh Nhân Vật Phản Diện, Theo Nghịch Đồ",
+    "expected": 504,
+    "actual": 503,
+    "gap": 1
+  },
+  {
+    "id": 105714,
+    "name": "Ngự Thú Của Ta Đều Là Cấp Độ Thần Thoại",
+    "expected": 504,
+    "actual": 503,
+    "gap": 1
+  },
+  {
+    "id": 132655,
+    "name": "Từ Goblin Đến Goblin Thần",
+    "expected": 503,
+    "actual": 502,
+    "gap": 1
+  },
+  {
+    "id": 101602,
+    "name": "Pokemon Siêu Cấp Hệ Thống",
+    "expected": 503,
+    "actual": 502,
+    "gap": 1
+  },
+  {
+    "id": 147456,
+    "name": "Thần Thoại Hồng Lâu: Theo Tiễn Thuật Bắt Đầu ",
+    "expected": 502,
+    "actual": 501,
+    "gap": 1
+  },
+  {
+    "id": 116204,
+    "name": "Ta Tại Đất Phong Làm Xằng Làm Bậy, Lại Bị Xưn",
+    "expected": 502,
+    "actual": 501,
+    "gap": 1
+  },
+  {
+    "id": 116729,
+    "name": "Cầm Kiếm, Chở Rượu, Kinh Hồng Khách",
+    "expected": 501,
+    "actual": 500,
+    "gap": 1
+  },
+  {
+    "id": 111276,
+    "name": "Hồng Hoang: Ta, Thư Viện Viện Trưởng Thường T",
+    "expected": 501,
+    "actual": 500,
+    "gap": 1
+  },
+  {
+    "id": 101469,
+    "name": "Luân Hồi Đại Kiếp Chủ",
+    "expected": 501,
+    "actual": 500,
+    "gap": 1
+  },
+  {
+    "id": 142342,
+    "name": "Ngự Thú: Ta Đem Tàn Dực Thiên Sứ Dưỡng Thành ",
+    "expected": 500,
+    "actual": 499,
+    "gap": 1
+  },
+  {
+    "id": 143651,
+    "name": "Hệ Thống Chạy Trốn Sau, Ngươi Dùng Bảy Ngày T",
+    "expected": 500,
+    "actual": 499,
+    "gap": 1
+  },
+  {
+    "id": 144276,
+    "name": "Bắt Đầu Max Cấp Trù Nghệ, Kiếm Tiền Dậy Thì L",
+    "expected": 500,
+    "actual": 499,
+    "gap": 1
+  },
+  {
+    "id": 123984,
+    "name": "Tokyo: Cái Này Lời Bộc Bạch Không Đúng Lắm!",
+    "expected": 500,
+    "actual": 499,
+    "gap": 1
+  },
+  {
+    "id": 127837,
+    "name": "Cực Nhiệt Mạt Thế: Ta Dọn Sạch Lưỡng Cực Băng",
+    "expected": 499,
+    "actual": 498,
+    "gap": 1
+  },
+  {
+    "id": 105018,
+    "name": "Nhất Quyền Vạn Giới",
+    "expected": 499,
+    "actual": 498,
+    "gap": 1
+  },
+  {
+    "id": 123765,
+    "name": "Bật Hack Về Sau, Ta Thành Mạnh Nhất Ngự Thú S",
+    "expected": 498,
+    "actual": 497,
+    "gap": 1
+  },
+  {
+    "id": 128983,
+    "name": "Thành Tiên Từ Cưới Vợ Bắt Đầu",
+    "expected": 498,
+    "actual": 497,
+    "gap": 1
+  },
+  {
+    "id": 100093,
+    "name": "Game Online Chi Cường Hóa Đại Sư",
+    "expected": 498,
+    "actual": 497,
+    "gap": 1
+  },
+  {
+    "id": 128374,
+    "name": "Nạp Tiền Liền Trở Nên Mạnh: Tu Vi Của Ta Vô Đ",
+    "expected": 497,
+    "actual": 496,
+    "gap": 1
+  },
+  {
+    "id": 131800,
+    "name": "Theo Hải Tặc Bắt Đầu Toàn Trí Toàn Năng",
+    "expected": 497,
+    "actual": 496,
+    "gap": 1
+  },
+  {
+    "id": 113466,
+    "name": "Cao Võ: Bắt Đầu Hỗn Độn Thần Thể, Thành Ngục ",
+    "expected": 497,
+    "actual": 496,
+    "gap": 1
+  },
+  {
+    "id": 145268,
+    "name": "Hokage: Akatsuki Ẩn Thôn, Bắt Đầu Bắt Cóc Uzu",
+    "expected": 496,
+    "actual": 495,
+    "gap": 1
+  },
+  {
+    "id": 101702,
+    "name": "Hải Tặc Vương Chi Đấm Phát Chết Luôn",
+    "expected": 496,
+    "actual": 495,
+    "gap": 1
+  },
+  {
+    "id": 132082,
+    "name": "Ta Bất Tử Hack",
+    "expected": 495,
+    "actual": 494,
+    "gap": 1
+  },
+  {
+    "id": 127943,
+    "name": "Ta Ở Kiếp Trước Mệnh Cách Thành Thánh",
+    "expected": 495,
+    "actual": 494,
+    "gap": 1
+  },
+  {
+    "id": 135318,
+    "name": "Điệu Thấp Tranh Bá 【 Bắt Đầu Ban Thưởng Bất L",
+    "expected": 494,
+    "actual": 493,
+    "gap": 1
+  },
+  {
+    "id": 123738,
+    "name": "Bị Trục Xuất Sư Môn Ta, Chỉ Muốn Tiêu Dao Thi",
+    "expected": 494,
+    "actual": 493,
+    "gap": 1
+  },
+  {
+    "id": 140783,
+    "name": "Già Thiên Chi Sở Thiên Đế",
+    "expected": 493,
+    "actual": 492,
+    "gap": 1
+  },
+  {
+    "id": 119813,
+    "name": "Không Đứng Đắn Ngự Thú",
+    "expected": 493,
+    "actual": 492,
+    "gap": 1
+  },
+  {
+    "id": 143042,
+    "name": "Nói Bao Nhiêu Lần, Đá Bóng Thời Điểm Muốn Xưn",
+    "expected": 492,
+    "actual": 491,
+    "gap": 1
+  },
+  {
+    "id": 101806,
+    "name": "Hải Tặc Chi Quỵt Cơm Quỷ Đói",
+    "expected": 492,
+    "actual": 491,
+    "gap": 1
+  },
+  {
+    "id": 141099,
+    "name": "Ta Đi Tu Tiên Rồi",
+    "expected": 490,
+    "actual": 489,
+    "gap": 1
+  },
+  {
+    "id": 139518,
+    "name": "Tiên Tử Ngươi Nghe Ta Giảng Giải",
+    "expected": 488,
+    "actual": 487,
+    "gap": 1
+  },
+  {
+    "id": 121859,
+    "name": "Ta! Tăng Thêm Hảo Hữu Liền Có Thể Mạnh Lên",
+    "expected": 487,
+    "actual": 486,
+    "gap": 1
+  },
+  {
+    "id": 119861,
+    "name": "Địa Ngục Trù Thần: Ta Nguyên Liệu Nấu Ăn Là Q",
+    "expected": 487,
+    "actual": 486,
+    "gap": 1
+  },
+  {
+    "id": 118685,
+    "name": "Trò Chơi Ngừng Phục, Chỉ Có Ta Biết Xâm Lấn T",
+    "expected": 486,
+    "actual": 485,
+    "gap": 1
+  },
+  {
+    "id": 142632,
+    "name": "Tai Biến: Ta Có Thể Vô Hạn Thêm Điểm",
+    "expected": 485,
+    "actual": 484,
+    "gap": 1
+  },
+  {
+    "id": 100825,
+    "name": "Tối Cường Cướp Đoạt Tu Tiên",
+    "expected": 485,
+    "actual": 484,
+    "gap": 1
+  },
+  {
+    "id": 147357,
+    "name": "Cảng Tống: Trọng Sinh Lửa Giận, Theo Nhà Tù B",
+    "expected": 484,
+    "actual": 483,
+    "gap": 1
+  },
+  {
+    "id": 132612,
+    "name": "Năng Lực Ao Của Ta Hơn Người Một Bậc",
+    "expected": 483,
+    "actual": 482,
+    "gap": 1
+  },
+  {
+    "id": 134548,
+    "name": "Đi Biển Bắt Cá Ta Toàn Bộ Dựa Bản Đồ",
+    "expected": 483,
+    "actual": 482,
+    "gap": 1
+  },
+  {
+    "id": 106861,
+    "name": "Hồng Long Hoàng Đế",
+    "expected": 483,
+    "actual": 482,
+    "gap": 1
+  },
+  {
+    "id": 150988,
+    "name": "Trùng Sinh 06: Cùng Giáo Hoa Chia Tay Làm Sao",
+    "expected": 482,
+    "actual": 481,
+    "gap": 1
+  },
+  {
+    "id": 143858,
+    "name": "Chó Giữ Nhà Đều Là Đế Cảnh, Ngươi Quản Cái Nà",
+    "expected": 482,
+    "actual": 481,
+    "gap": 1
+  },
+  {
+    "id": 146836,
+    "name": "Bắt Đầu Trồng Ra Tuyệt Mỹ Tiên Thê",
+    "expected": 482,
+    "actual": 481,
+    "gap": 1
+  },
+  {
+    "id": 105779,
+    "name": "Xuyên Thư Tám Số Không Thành Năm Cái Đại Lão ",
+    "expected": 482,
+    "actual": 481,
+    "gap": 1
+  },
+  {
+    "id": 146454,
+    "name": "Gia Tộc Tu Tiên: Từ Khổng Tước Huyết Mạch Bắt",
+    "expected": 481,
+    "actual": 480,
+    "gap": 1
+  },
+  {
+    "id": 143487,
+    "name": "Ta Đều Vô Địch Thiên Hạ, Mới Bắt Đầu Đoạt Đíc",
+    "expected": 481,
+    "actual": 480,
+    "gap": 1
+  },
+  {
+    "id": 142863,
+    "name": "Kỹ Năng Đổi Một Chữ, Bọn Hắn Bị Ta Chơi Hỏng",
+    "expected": 481,
+    "actual": 480,
+    "gap": 1
+  },
+  {
+    "id": 140526,
+    "name": "Đại Đạo Biên Tập, Bắt Đầu Ta Thành Hôi Vụ Chi",
+    "expected": 481,
+    "actual": 480,
+    "gap": 1
+  },
+  {
+    "id": 106898,
+    "name": "Huy Hoàng Thiên Đạo Vô Thượng Kiếm Tông",
+    "expected": 481,
+    "actual": 480,
+    "gap": 1
+  },
+  {
+    "id": 100109,
+    "name": "Trọng Pháo Chi Vương",
+    "expected": 480,
+    "actual": 479,
+    "gap": 1
+  },
+  {
+    "id": 135805,
+    "name": "Mang Bệnh Sắp Chết Kinh Ngồi Dậy, Cường Giả Đ",
+    "expected": 479,
+    "actual": 478,
+    "gap": 1
+  },
+  {
+    "id": 113201,
+    "name": "Từ Haikyuu Bắt Đầu Hành Trình",
+    "expected": 479,
+    "actual": 478,
+    "gap": 1
+  },
+  {
+    "id": 114824,
+    "name": "Mông Còn Chưa Nóng Lại Phi Thăng, Hệ Thống Cầ",
+    "expected": 478,
+    "actual": 477,
+    "gap": 1
+  },
+  {
+    "id": 131876,
+    "name": "Comic Xenomorph",
+    "expected": 477,
+    "actual": 476,
+    "gap": 1
+  },
+  {
+    "id": 119301,
+    "name": "Giả Vờ Phá Sản, Giáo Hoa Mang Theo Song Bào T",
+    "expected": 477,
+    "actual": 476,
+    "gap": 1
+  },
+  {
+    "id": 144838,
+    "name": "Cảng Tổng Chư Thiên: Trước Tiên Ở Cửu Thúc Th",
+    "expected": 476,
+    "actual": 475,
+    "gap": 1
+  },
+  {
+    "id": 130283,
+    "name": "Chư Thiên Thế Giới Thiên Đạo",
+    "expected": 476,
+    "actual": 475,
+    "gap": 1
+  },
+  {
+    "id": 109383,
+    "name": "Ta Sẽ Mai Táng Chúng Thần",
+    "expected": 476,
+    "actual": 475,
+    "gap": 1
+  },
+  {
+    "id": 130282,
+    "name": "Cực Đạo: Ta Có Mười Thanh Trang Bị",
+    "expected": 475,
+    "actual": 474,
+    "gap": 1
+  },
+  {
+    "id": 139473,
+    "name": "Hóa Thân Của Ta Đang Trở Thành Boss Cuối",
+    "expected": 471,
+    "actual": 470,
+    "gap": 1
+  },
+  {
+    "id": 116424,
+    "name": "Chư Thiên Tổ Sư Máy Mô Phỏng",
+    "expected": 471,
+    "actual": 470,
+    "gap": 1
+  },
+  {
+    "id": 143066,
+    "name": "Ngươi Quản Này Gọi Lừa Gạt Tin Nhắn?",
+    "expected": 470,
+    "actual": 469,
+    "gap": 1
+  },
+  {
+    "id": 148757,
+    "name": "Từ Tiếu Ngạo Bắt Đầu Đem Võ Hiệp Thôi Diễn Đế",
+    "expected": 468,
+    "actual": 467,
+    "gap": 1
+  },
+  {
+    "id": 142673,
+    "name": "Ta Tại Dị Giới Xây Âm Ti",
+    "expected": 468,
+    "actual": 467,
+    "gap": 1
+  },
+  {
+    "id": 108648,
+    "name": "Bắt Đầu Đánh Dấu Lữ Phụng Tiên",
+    "expected": 468,
+    "actual": 467,
+    "gap": 1
+  },
+  {
+    "id": 118203,
+    "name": "Xuyên Thành Tĩnh Khang Sỉ Nhục Sau Đế Cơ",
+    "expected": 468,
+    "actual": 467,
+    "gap": 1
+  },
+  {
+    "id": 118439,
+    "name": "Bắt Đầu Vô Địch Tu Vi, Triệu Hoán Bốn Tên Đại",
+    "expected": 467,
+    "actual": 466,
+    "gap": 1
+  },
+  {
+    "id": 102986,
+    "name": "Thánh Đạo Phần Mềm Hack",
+    "expected": 467,
+    "actual": 466,
+    "gap": 1
+  },
+  {
+    "id": 143879,
+    "name": "Ta Có Hải Xà Phân Thân, Lại Thành Bắt Cá Đạt ",
+    "expected": 466,
+    "actual": 465,
+    "gap": 1
+  },
+  {
+    "id": 101092,
+    "name": "Đại Sư Chế Tạo Kỹ Năng",
+    "expected": 466,
+    "actual": 465,
+    "gap": 1
+  },
+  {
+    "id": 110093,
+    "name": "Ta Là Tiệt Giáo Tiên",
+    "expected": 465,
+    "actual": 464,
+    "gap": 1
+  },
+  {
+    "id": 101150,
+    "name": "Địa Cầu Kỷ Nguyên",
+    "expected": 465,
+    "actual": 464,
+    "gap": 1
+  },
+  {
+    "id": 124367,
+    "name": "Năng Lực Của Ta Là Sửa Chữa Văn Tự Miêu Tả",
+    "expected": 464,
+    "actual": 463,
+    "gap": 1
+  },
+  {
+    "id": 150956,
+    "name": "Mọi Người Đều Là Lãnh Chúa, Bằng Cái Gì Ngươi",
+    "expected": 463,
+    "actual": 462,
+    "gap": 1
+  },
+  {
+    "id": 126343,
+    "name": "Xuyên Thành Hài Nhi Làm Sao Phá? Cả Nhà Đánh ",
+    "expected": 463,
+    "actual": 462,
+    "gap": 1
+  },
+  {
+    "id": 107447,
+    "name": "Bắt Đầu Viết Ra Thần Công Dịch Cân Kinh",
+    "expected": 463,
+    "actual": 462,
+    "gap": 1
+  },
+  {
+    "id": 131637,
+    "name": "Tu Tiên: Ta Dùng Trận Đạo Chứng Trường Sinh",
+    "expected": 462,
+    "actual": 461,
+    "gap": 1
+  },
+  {
+    "id": 100269,
+    "name": "Hokage Chi Tối Cường Phú Nhị Đại",
+    "expected": 462,
+    "actual": 461,
+    "gap": 1
+  },
+  {
+    "id": 100356,
+    "name": "Từ Tay Bút Đến Siêu Sao",
+    "expected": 462,
+    "actual": 461,
+    "gap": 1
+  },
+  {
+    "id": 140588,
+    "name": "Trường Sinh Đỉnh",
+    "expected": 460,
+    "actual": 459,
+    "gap": 1
+  },
+  {
+    "id": 150777,
+    "name": "Thần Hào: Van Cầu Ngươi Đừng Chỉnh Việc Mà",
+    "expected": 459,
+    "actual": 458,
+    "gap": 1
+  },
+  {
+    "id": 146753,
+    "name": "Vô Hạn Siêu Thoát Từ Già Thiên Mà Khởi Đầu",
+    "expected": 459,
+    "actual": 458,
+    "gap": 1
+  },
+  {
+    "id": 151922,
+    "name": "Tứ Hợp Viện Từ Học Ngoại Ngữ Bắt Đầu",
+    "expected": 458,
+    "actual": 457,
+    "gap": 1
+  },
+  {
+    "id": 100338,
+    "name": "Trọng Sinh Tuyệt Thế Thiên Kiêu",
+    "expected": 458,
+    "actual": 457,
+    "gap": 1
+  },
+  {
+    "id": 130297,
+    "name": "Cho Các Ngươi Microphone Cứ Việc Hát, Hát Đượ",
+    "expected": 457,
+    "actual": 456,
+    "gap": 1
+  },
+  {
+    "id": 124206,
+    "name": "Hủ Thực Quốc Độ",
+    "expected": 456,
+    "actual": 455,
+    "gap": 1
+  },
+  {
+    "id": 111857,
+    "name": "Trọng Sinh Ta Thật Sẽ Không Cự Tuyệt",
+    "expected": 454,
+    "actual": 453,
+    "gap": 1
+  },
+  {
+    "id": 135178,
+    "name": "Cái Này Tiên Hiệp Trò Chơi Làm Sao Tất Cả Đều",
+    "expected": 452,
+    "actual": 451,
+    "gap": 1
+  },
+  {
+    "id": 141210,
+    "name": "Tam Thanh Chia Nhà, Dân Mạng Online Cho Thông",
+    "expected": 452,
+    "actual": 451,
+    "gap": 1
+  },
+  {
+    "id": 139401,
+    "name": "Trị Liệu Thuật Phục Chế Hết Thảy, Ta Xoát Bạo",
+    "expected": 452,
+    "actual": 451,
+    "gap": 1
+  },
+  {
+    "id": 112969,
+    "name": "Ta, Godzilla, Great Old One",
+    "expected": 452,
+    "actual": 451,
+    "gap": 1
+  },
+  {
+    "id": 131805,
+    "name": "Thủy Mặc Bảng: Từ Cung Thuật Bắt Đầu Liệp Nhậ",
+    "expected": 451,
+    "actual": 450,
+    "gap": 1
+  },
+  {
+    "id": 101216,
+    "name": "Nữ Trang Hằng Ngày",
+    "expected": 451,
+    "actual": 450,
+    "gap": 1
+  },
+  {
+    "id": 101156,
+    "name": "Tây Du: Thần Cấp Sơn Trại Đại Sư",
+    "expected": 450,
+    "actual": 449,
+    "gap": 1
+  },
+  {
+    "id": 100820,
+    "name": "Cửu Tử Tiên Tôn",
+    "expected": 450,
+    "actual": 449,
+    "gap": 1
+  },
+  {
+    "id": 128762,
+    "name": "Ta Tiến Hóa Ức Vạn Nguyền Rủa",
+    "expected": 449,
+    "actual": 448,
+    "gap": 1
+  },
+  {
+    "id": 101738,
+    "name": "Trò Chơi Trao Đổi Nhân Sinh",
+    "expected": 447,
+    "actual": 446,
+    "gap": 1
+  },
+  {
+    "id": 133498,
+    "name": "Chư Thiên Group Chat: Ta Thành Viên Tương Lai",
+    "expected": 446,
+    "actual": 445,
+    "gap": 1
+  },
+  {
+    "id": 125493,
+    "name": "Ta, Uchiha, Tràn Đầy Chính Năng Lượng",
+    "expected": 446,
+    "actual": 445,
+    "gap": 1
+  },
+  {
+    "id": 103259,
+    "name": "Ảnh Thị Tiên Phong",
+    "expected": 445,
+    "actual": 444,
+    "gap": 1
+  },
+  {
+    "id": 127537,
+    "name": "Từ Ngôi Sao Nhỏ Tuổi Bắt Đầu Tokyo Sinh Hoạt",
+    "expected": 444,
+    "actual": 443,
+    "gap": 1
+  },
+  {
+    "id": 130168,
+    "name": "Đã Nói Cùng Nhau Đá Bóng, Ngươi Làm Huấn Luyệ",
+    "expected": 443,
+    "actual": 442,
+    "gap": 1
+  },
+  {
+    "id": 117101,
+    "name": "Trường Sinh Gia Tộc: Từ Lão Tổ Cưới Vợ Bắt Đầ",
+    "expected": 443,
+    "actual": 442,
+    "gap": 1
+  },
+  {
+    "id": 115671,
+    "name": "Ta Tại Tiệt Giáo Nhìn Đại Môn",
+    "expected": 443,
+    "actual": 442,
+    "gap": 1
+  },
+  {
+    "id": 140417,
+    "name": "Vô Hạn Thần Chức",
+    "expected": 441,
+    "actual": 440,
+    "gap": 1
+  },
+  {
+    "id": 124246,
+    "name": "Từ Chôn Xuống Cơ Duyên Bắt Đầu Tu Tiên Trường",
+    "expected": 441,
+    "actual": 440,
+    "gap": 1
+  },
+  {
+    "id": 128549,
+    "name": "Chân Thực Truyền Hình Điện Ảnh: Lựa Chọn Phản",
+    "expected": 439,
+    "actual": 438,
+    "gap": 1
+  },
+  {
+    "id": 125754,
+    "name": "Bắt Đầu Thiên Sư Kiếm Bị Trộm, Bần Đạo Trở Ta",
+    "expected": 438,
+    "actual": 437,
+    "gap": 1
+  },
+  {
+    "id": 115126,
+    "name": "Người Ở Đấu La, Lừa Tiểu Vũ Hồn Hoàn",
+    "expected": 438,
+    "actual": 437,
+    "gap": 1
+  },
+  {
+    "id": 106994,
+    "name": "Võ Học Của Ta Sẽ Tự Mình Tu Luyện",
+    "expected": 438,
+    "actual": 437,
+    "gap": 1
+  },
+  {
+    "id": 100463,
+    "name": "Tuyệt Thế Tiêu Viêm",
+    "expected": 438,
+    "actual": 437,
+    "gap": 1
+  },
+  {
+    "id": 108412,
+    "name": "Trùng Sinh Tận Thế Chi Song Sủng",
+    "expected": 434,
+    "actual": 433,
+    "gap": 1
+  },
+  {
+    "id": 100956,
+    "name": "Vạn Giới Qidian",
+    "expected": 434,
+    "actual": 433,
+    "gap": 1
+  },
+  {
+    "id": 105658,
+    "name": "Ta Thực Sự Chỉ Có Một Lão Bà",
+    "expected": 433,
+    "actual": 432,
+    "gap": 1
+  },
+  {
+    "id": 129966,
+    "name": "Đấu La Cây Mơ Thiên Nhận Tuyết, Bắt Đầu Hồn H",
+    "expected": 432,
+    "actual": 431,
+    "gap": 1
+  },
+  {
+    "id": 134307,
+    "name": "Nào Đó Khoa Học Hokage Ninja",
+    "expected": 430,
+    "actual": 429,
+    "gap": 1
+  },
+  {
+    "id": 110534,
+    "name": "Hoả Ảnh, Nhân Sinh Đạo Sư",
+    "expected": 429,
+    "actual": 428,
+    "gap": 1
+  },
+  {
+    "id": 102027,
+    "name": "Anh Hùng Liên Minh Thần Cấp Triệu Hoán Sư",
+    "expected": 428,
+    "actual": 427,
+    "gap": 1
+  },
+  {
+    "id": 143655,
+    "name": "Bắt Đầu Chiến Giáo Hoa, Ta Saiyan Huyết Mạch ",
+    "expected": 423,
+    "actual": 422,
+    "gap": 1
+  },
+  {
+    "id": 110757,
+    "name": "Đây Là Ta Nguyên Thủy Bộ Lạc",
+    "expected": 423,
+    "actual": 422,
+    "gap": 1
+  },
+  {
+    "id": 102103,
+    "name": "Thấp Duy Trò Chơi",
+    "expected": 422,
+    "actual": 421,
+    "gap": 1
+  },
+  {
+    "id": 138169,
+    "name": "Vợ Ta Là Boss Trùng Sinh",
+    "expected": 418,
+    "actual": 417,
+    "gap": 1
+  },
+  {
+    "id": 104031,
+    "name": "Tam Quốc Chi Tào Gia Nghịch Tử",
+    "expected": 411,
+    "actual": 410,
+    "gap": 1
+  },
+  {
+    "id": 128166,
+    "name": "Phản Phái: Kí Ức Sư Tôn Bị Phơi Bày, Đồ Đệ Nữ",
+    "expected": 411,
+    "actual": 410,
+    "gap": 1
+  },
+  {
+    "id": 101751,
+    "name": "Kuroko No Basket Một Cái Khác Kỳ Tích",
+    "expected": 411,
+    "actual": 410,
+    "gap": 1
+  },
+  {
+    "id": 136110,
+    "name": "Bắt Đầu Sharingan, Từ Quỷ Diệt Bắt Đầu Vô Hạn",
+    "expected": 410,
+    "actual": 409,
+    "gap": 1
+  },
+  {
+    "id": 102820,
+    "name": "Siêu Thần Linh Sủng Đại Sư",
+    "expected": 409,
+    "actual": 408,
+    "gap": 1
+  },
+  {
+    "id": 129824,
+    "name": "Ta Mục Sư, Viêm Dạ Dày Cấp Tính Bộc Phát Thuậ",
+    "expected": 408,
+    "actual": 407,
+    "gap": 1
+  },
+  {
+    "id": 121981,
+    "name": "Dẫn Bóng Đi! Huấn Luyện Viên",
+    "expected": 407,
+    "actual": 406,
+    "gap": 1
+  },
+  {
+    "id": 142986,
+    "name": "Từ Thiên Hậu Buổi Hòa Nhạc Xuất Đạo",
+    "expected": 406,
+    "actual": 405,
+    "gap": 1
+  },
+  {
+    "id": 109601,
+    "name": "Tam Quốc Từ Cứu Tào Tháo Con Trai Trưởng Bắt ",
+    "expected": 406,
+    "actual": 405,
+    "gap": 1
+  },
+  {
+    "id": 151303,
+    "name": "Hollywood Cái Cuối Cùng Cự Tinh",
+    "expected": 405,
+    "actual": 404,
+    "gap": 1
+  },
+  {
+    "id": 136362,
+    "name": "Cướp Ta S Thiên Phú? Ta Giết Thành Quân Thần ",
+    "expected": 404,
+    "actual": 403,
+    "gap": 1
+  },
+  {
+    "id": 139650,
+    "name": "Tiên Tử Xin Tha Tha Thứ, Ta Thật Không Muốn G",
+    "expected": 402,
+    "actual": 401,
+    "gap": 1
+  },
+  {
+    "id": 143577,
+    "name": "Thiên Đạo Lão Cha, Ta Mới Không Được Manh Muộ",
+    "expected": 402,
+    "actual": 401,
+    "gap": 1
+  },
+  {
+    "id": 129202,
+    "name": "Tu Hành, Bắt Đầu Từ Tiên Tử Lạc Phàm Trần",
+    "expected": 401,
+    "actual": 400,
+    "gap": 1
+  },
+  {
+    "id": 125574,
+    "name": "Đấu La: Chuyển Sinh Thủy Long Vương, Lão Bà F",
+    "expected": 401,
+    "actual": 400,
+    "gap": 1
+  },
+  {
+    "id": 110630,
+    "name": "Đại Huyền Đề Hình Quan",
+    "expected": 401,
+    "actual": 400,
+    "gap": 1
+  },
+  {
+    "id": 151479,
+    "name": "Phế Thổ Bạo Binh: Từ Tiểu Trấn Bắt Đầu Thiết ",
+    "expected": 400,
+    "actual": 399,
+    "gap": 1
+  },
+  {
+    "id": 140523,
+    "name": "Hàng Xóm Cách Vách Là Nữ Đoàn? Sợ Giao Tiếp T",
+    "expected": 400,
+    "actual": 399,
+    "gap": 1
+  },
+  {
+    "id": 100268,
+    "name": "Hồng Hoang Chi Hồ Lô Đằng Hệ Thống",
+    "expected": 400,
+    "actual": 399,
+    "gap": 1
+  },
+  {
+    "id": 141671,
+    "name": "Cổ Giới Tu Tiên Chi Ngoại Đạo Ma Tôn",
+    "expected": 399,
+    "actual": 398,
+    "gap": 1
+  },
+  {
+    "id": 136249,
+    "name": "Cấp Bách! Yandere Sư Muội Nàng 【 Thèm 】 Người",
+    "expected": 398,
+    "actual": 397,
+    "gap": 1
+  },
+  {
+    "id": 151762,
+    "name": "Trọng Sinh Lớp Mười Hai: Ta Có Một Cái Phòng ",
+    "expected": 397,
+    "actual": 396,
+    "gap": 1
+  },
+  {
+    "id": 142395,
+    "name": "Ba Giờ Sáng, Trước Nhà Ga Địa Lôi Hệ",
+    "expected": 397,
+    "actual": 396,
+    "gap": 1
+  },
+  {
+    "id": 129402,
+    "name": "Ta Lựa Chọn Ngã Ngửa Về Sau, Nhân Vật Phản Di",
+    "expected": 394,
+    "actual": 393,
+    "gap": 1
+  },
+  {
+    "id": 145420,
+    "name": "Đại Ca Nói Ta Vô Địch Thiên Hạ",
+    "expected": 392,
+    "actual": 391,
+    "gap": 1
+  },
+  {
+    "id": 148242,
+    "name": "Đại Sư Bổ Tập Ban",
+    "expected": 390,
+    "actual": 389,
+    "gap": 1
+  },
+  {
+    "id": 134758,
+    "name": "Game Of Thrones: Thanh Đồng Cùng Hỏa Chi Vươn",
+    "expected": 390,
+    "actual": 389,
+    "gap": 1
+  },
+  {
+    "id": 134512,
+    "name": "Từ Arsenal Bắt Đầu Liều Thành Cầu Thần",
+    "expected": 379,
+    "actual": 378,
+    "gap": 1
+  },
+  {
+    "id": 116010,
+    "name": "Bắt Đầu Bái Sư Nữ Đế, Đánh Dấu Hỗn Độn Thể",
+    "expected": 377,
+    "actual": 376,
+    "gap": 1
+  },
+  {
+    "id": 139972,
+    "name": "A? Đây Không Phải Yêu Đương Trò Chơi?",
+    "expected": 375,
+    "actual": 374,
+    "gap": 1
+  },
+  {
+    "id": 109381,
+    "name": "Kính Diện Cục Quản Lý",
+    "expected": 375,
+    "actual": 374,
+    "gap": 1
+  },
+  {
+    "id": 116222,
+    "name": "Gả Cho Quái Vật Tân Nương",
+    "expected": 372,
+    "actual": 371,
+    "gap": 1
+  },
+  {
+    "id": 101296,
+    "name": "Mạnh Nhất Siêu Cấp Anh Hùng",
+    "expected": 370,
+    "actual": 369,
+    "gap": 1
+  },
+  {
+    "id": 134482,
+    "name": "Quốc Vận: Bắt Đầu 14 Ức Người Giúp Ta Trúc Cơ",
+    "expected": 368,
+    "actual": 367,
+    "gap": 1
+  },
+  {
+    "id": 120196,
+    "name": "Trộm Mộ Hợp Pháp? Ta Đỉnh Lưu Ca Sĩ Live Stre",
+    "expected": 367,
+    "actual": 366,
+    "gap": 1
+  },
+  {
+    "id": 152753,
+    "name": "Điên Rồi Sao! Ngươi Quản Đây Chỉ Là Một Thực ",
+    "expected": 365,
+    "actual": 364,
+    "gap": 1
+  },
+  {
+    "id": 149502,
+    "name": "Tận Thế, Bắt Đầu Tiến Hóa Từ Nuốt Thi Thể",
+    "expected": 364,
+    "actual": 363,
+    "gap": 1
+  },
+  {
+    "id": 121756,
+    "name": "Quỷ Dị Thế Giới, Ta Lấy Nhục Thân Trấn Vạn Vậ",
+    "expected": 363,
+    "actual": 362,
+    "gap": 1
+  },
+  {
+    "id": 151355,
+    "name": "Trò Chơi Giáng Lâm: Ta Thức Tỉnh Sss Cấp Thiê",
+    "expected": 359,
+    "actual": 358,
+    "gap": 1
+  },
+  {
+    "id": 145782,
+    "name": "Lãnh Chúa Cầu Sinh: Từ Biển Sâu Căn Cứ Bắt Đầ",
+    "expected": 359,
+    "actual": 358,
+    "gap": 1
+  },
+  {
+    "id": 126149,
+    "name": "Bắt Đầu Say Rượu Mười Năm, Một Khi Xuất Thế T",
+    "expected": 359,
+    "actual": 358,
+    "gap": 1
+  },
+  {
+    "id": 111399,
+    "name": "Học Bá Tiến Sĩ Lão Bà",
+    "expected": 359,
+    "actual": 358,
+    "gap": 1
+  },
+  {
+    "id": 142957,
+    "name": "Toàn Dân Tu Tiên: Từ Sơ Cấp Chế Phù Sư Bắt Đầ",
+    "expected": 358,
+    "actual": 357,
+    "gap": 1
+  },
+  {
+    "id": 128868,
+    "name": "Xoát Đại Ái Tiên Tôn Video Ngắn, Vạn Giới Nhâ",
+    "expected": 358,
+    "actual": 357,
+    "gap": 1
+  },
+  {
+    "id": 152198,
+    "name": "Lol: Dương Danh Lập Vạn Không Bằng Trực Tiếp ",
+    "expected": 351,
+    "actual": 350,
+    "gap": 1
+  },
+  {
+    "id": 135707,
+    "name": "Hokage: Cái Này Uchiha Chỉ Có Thể Hỏa Độn Thu",
+    "expected": 351,
+    "actual": 350,
+    "gap": 1
+  },
+  {
+    "id": 107151,
+    "name": "Thần Hào Từ Khóa Lại Lão Bà Bắt Đầu",
+    "expected": 351,
+    "actual": 350,
+    "gap": 1
+  },
+  {
+    "id": 101103,
+    "name": "Xuyên Qua Đại Tần Làm Bạo Quân",
+    "expected": 351,
+    "actual": 350,
+    "gap": 1
+  },
+  {
+    "id": 139764,
+    "name": "Võ Đạo Thành Thánh: Ta Có Một Gốc Võ Đạo Cây",
+    "expected": 350,
+    "actual": 349,
+    "gap": 1
+  },
+  {
+    "id": 115319,
+    "name": "Konoha: Bắt Đầu Dung Hợp Tomie Khuôn",
+    "expected": 350,
+    "actual": 349,
+    "gap": 1
+  },
+  {
+    "id": 106126,
+    "name": "Cảnh Sát Đẹp Trai Nhất Hồng Kông",
+    "expected": 349,
+    "actual": 348,
+    "gap": 1
+  },
+  {
+    "id": 138078,
+    "name": "Hồng Hoang: Ta Đã Đoạt Xá Côn Bằng Lão Tổ",
+    "expected": 348,
+    "actual": 347,
+    "gap": 1
+  },
+  {
+    "id": 126844,
+    "name": "Anh Linh: Kiếp Trước Của Ta Đều Bị Nữ Nhi Tri",
+    "expected": 347,
+    "actual": 346,
+    "gap": 1
+  },
+  {
+    "id": 116557,
+    "name": "Đạo Quân: Theo Thượng Phẩm Kim Đan Bắt Đầu",
+    "expected": 345,
+    "actual": 344,
+    "gap": 1
+  },
+  {
+    "id": 100184,
+    "name": "Hokage Chi Ma Vương Tiến Hóa Luận",
+    "expected": 342,
+    "actual": 341,
+    "gap": 1
+  },
+  {
+    "id": 147553,
+    "name": "Hồng Hoang: Người Tại Quán Giang Khẩu, Cưới T",
+    "expected": 339,
+    "actual": 338,
+    "gap": 1
+  },
+  {
+    "id": 147594,
+    "name": "Pháp Sư Lãnh Chúa: Từ Phá Toái Thần Cách Đến ",
+    "expected": 337,
+    "actual": 336,
+    "gap": 1
+  },
+  {
+    "id": 111951,
+    "name": "Thần Cấp Phòng Đấu Giá: Bắt Đầu Đấu Giá Ngàn ",
+    "expected": 337,
+    "actual": 336,
+    "gap": 1
+  },
+  {
+    "id": 145289,
+    "name": "Quỷ Dị Nhắc Nhở: Ta Điên Rồi, Quỷ Dị Càng Điê",
+    "expected": 336,
+    "actual": 335,
+    "gap": 1
+  },
+  {
+    "id": 127071,
+    "name": "Đệ Tứ Thiên Tai: Ta Xuyên Qua Máy Mô Phỏng",
+    "expected": 335,
+    "actual": 334,
+    "gap": 1
+  },
+  {
+    "id": 146738,
+    "name": "Tuổi Già Trường Sinh, Từ Điểm Hóa Bạch Giao B",
+    "expected": 334,
+    "actual": 333,
+    "gap": 1
+  },
+  {
+    "id": 130622,
+    "name": "Mở Rộng Lãnh Chúa: Làm Ruộng Cùng Chém Giết",
+    "expected": 334,
+    "actual": 333,
+    "gap": 1
+  },
+  {
+    "id": 123672,
+    "name": "Nhập Học Về Sau, Phát Hiện Cưới Gấp Đối Tượng",
+    "expected": 334,
+    "actual": 333,
+    "gap": 1
+  },
+  {
+    "id": 101843,
+    "name": "Trọng Sinh Chi Hương Thôn Dưỡng Trư",
+    "expected": 334,
+    "actual": 333,
+    "gap": 1
+  },
+  {
+    "id": 113220,
+    "name": "Cao Võ Đại Minh: Xuyên Thành Triều Đình Chó S",
+    "expected": 333,
+    "actual": 332,
+    "gap": 1
+  },
+  {
+    "id": 106892,
+    "name": "Tại Hạ Hồ Trung Tiên",
+    "expected": 333,
+    "actual": 332,
+    "gap": 1
+  },
+  {
+    "id": 133936,
+    "name": "Toàn Dân Thăng Cấp: Ta Đăng Lâm Thành Thần",
+    "expected": 331,
+    "actual": 330,
+    "gap": 1
+  },
+  {
+    "id": 132900,
+    "name": "Tiêu Phí Phản Hoàn: Tự Do Tài Chính Hậu Đích ",
+    "expected": 330,
+    "actual": 329,
+    "gap": 1
+  },
+  {
+    "id": 136071,
+    "name": "Bắt Đầu Đoạt Xá Ma Hoàng, Đánh Nát Chư Thiên ",
+    "expected": 329,
+    "actual": 328,
+    "gap": 1
+  },
+  {
+    "id": 128059,
+    "name": "Nhà Ta Nương Tử Đến Từ Trăm Triệu Năm Trước",
+    "expected": 329,
+    "actual": 328,
+    "gap": 1
+  },
+  {
+    "id": 144992,
+    "name": "Conan Tử Thần Để Mắt Tới Ta",
+    "expected": 328,
+    "actual": 327,
+    "gap": 1
+  },
+  {
+    "id": 119703,
+    "name": "Hồng Hoang: Ta Trấn Nguyên Tử Mới Là Địa Đạo ",
+    "expected": 328,
+    "actual": 327,
+    "gap": 1
+  },
+  {
+    "id": 114245,
+    "name": "Lưu Đày Sau Ta Địa Vị Cực Cao",
+    "expected": 327,
+    "actual": 326,
+    "gap": 1
+  },
+  {
+    "id": 112146,
+    "name": "Ngược Văn Làm Ta Siêu Cường",
+    "expected": 326,
+    "actual": 325,
+    "gap": 1
+  },
+  {
+    "id": 142478,
+    "name": "Dân Tục Chế Thẻ Sư: Từ Họa Bì Bắt Đầu",
+    "expected": 325,
+    "actual": 324,
+    "gap": 1
+  },
+  {
+    "id": 149110,
+    "name": "Ngự Thú: Từ Bồi Dưỡng Sương Lang Bắt Đầu",
+    "expected": 324,
+    "actual": 323,
+    "gap": 1
+  },
+  {
+    "id": 147607,
+    "name": "Luôn Có Tiên Tử Đối Với Ta Dụng Ý Khó Dò",
+    "expected": 323,
+    "actual": 322,
+    "gap": 1
+  },
+  {
+    "id": 101693,
+    "name": "Ta Wechat Group Nối Liền Tam Giới",
+    "expected": 322,
+    "actual": 321,
+    "gap": 1
+  },
+  {
+    "id": 131467,
+    "name": "Đấu La Chi Long Văn Thần Côn",
+    "expected": 321,
+    "actual": 320,
+    "gap": 1
+  },
+  {
+    "id": 115974,
+    "name": "Tiên Gia Có Điền",
+    "expected": 320,
+    "actual": 319,
+    "gap": 1
+  },
+  {
+    "id": 148501,
+    "name": "Tranh Bá: Từ 6 Lần Rút Liên Tiếp Bắt Đầu Thàn",
+    "expected": 319,
+    "actual": 318,
+    "gap": 1
+  },
+  {
+    "id": 126440,
+    "name": "Trùng Sinh Đấu Phá Chi Ta Là Nạp Lan Yên Nhiê",
+    "expected": 319,
+    "actual": 318,
+    "gap": 1
+  },
+  {
+    "id": 108746,
+    "name": "Nhà Ta Đại Sư Huynh Diễn Kỹ Quá Xốc Nổi!",
+    "expected": 319,
+    "actual": 318,
+    "gap": 1
+  },
+  {
+    "id": 128551,
+    "name": "Hokage: Kiểm Kê Nhẫn Giới Kinh Điển Chiến Dịc",
+    "expected": 318,
+    "actual": 317,
+    "gap": 1
+  },
+  {
+    "id": 144655,
+    "name": "Vây Ở Nữ Đại Ký Túc Xá, Không Gian Của Ta Có ",
+    "expected": 317,
+    "actual": 316,
+    "gap": 1
+  },
+  {
+    "id": 100216,
+    "name": "One Piece Chi La Lỵ Dưỡng Thành Hệ Thống",
+    "expected": 317,
+    "actual": 316,
+    "gap": 1
+  },
+  {
+    "id": 133678,
+    "name": "Tận Thế Nhân Vật Phản Diện: Sau Khi Sống Lại,",
+    "expected": 313,
+    "actual": 312,
+    "gap": 1
+  },
+  {
+    "id": 140902,
+    "name": "Mới Không Phải Thần Minh",
+    "expected": 313,
+    "actual": 312,
+    "gap": 1
+  },
+  {
+    "id": 112521,
+    "name": "Tinh Hồng Hàng Lâm",
+    "expected": 312,
+    "actual": 311,
+    "gap": 1
+  },
+  {
+    "id": 135768,
+    "name": "Trọng Sinh Chi Văn Hào Quật Khởi",
+    "expected": 311,
+    "actual": 310,
+    "gap": 1
+  },
+  {
+    "id": 126043,
+    "name": "Bày Nát Quá Ác, Ta Bị Sư Môn Bán Cho Nữ Đế Th",
+    "expected": 308,
+    "actual": 307,
+    "gap": 1
+  },
+  {
+    "id": 129949,
+    "name": "Ta Có Thể Đi Đến Võ Đạo Đỉnh Phong, Toàn Bộ N",
+    "expected": 306,
+    "actual": 305,
+    "gap": 1
+  },
+  {
+    "id": 133604,
+    "name": "Những Năm Sáu Mươi: Một Nguyên Miểu Sát Vạn L",
+    "expected": 306,
+    "actual": 305,
+    "gap": 1
+  },
+  {
+    "id": 138270,
+    "name": "Người Tại Tây Du Mở Quán Net, Hắc Thần Thoại ",
+    "expected": 305,
+    "actual": 304,
+    "gap": 1
+  },
+  {
+    "id": 101699,
+    "name": "Ngẫu Nhiên Từ Hải Tặc Bắt Đầu",
+    "expected": 305,
+    "actual": 304,
+    "gap": 1
+  },
+  {
+    "id": 100346,
+    "name": "Vạn Giới Trực Bá Chi Quân Lâm Thiên Hạ",
+    "expected": 303,
+    "actual": 302,
+    "gap": 1
+  },
+  {
+    "id": 102237,
+    "name": "Kiếm Minh Cửu Thiên",
+    "expected": 302,
+    "actual": 301,
+    "gap": 1
+  },
+  {
+    "id": 100957,
+    "name": "Somalia Đại Lãnh Chúa",
+    "expected": 302,
+    "actual": 301,
+    "gap": 1
+  },
+  {
+    "id": 119157,
+    "name": "Ta Một Cái Phòng Đấu Giá Có Vô Số Hộ Vệ Rất H",
+    "expected": 300,
+    "actual": 299,
+    "gap": 1
+  },
+  {
+    "id": 144159,
+    "name": "Muốn Chơi Thật Giả Thiếu Gia, Hỏi Qua Đao Của",
+    "expected": 298,
+    "actual": 297,
+    "gap": 1
+  },
+  {
+    "id": 128533,
+    "name": "Tà Thần Hệ Chế Thẻ: Bắt Đầu Chế Tạo Medusa",
+    "expected": 296,
+    "actual": 295,
+    "gap": 1
+  },
+  {
+    "id": 137137,
+    "name": "Tàn Ác Phù Thủy Boss Chỉ Muốn Điệu Thấp Phát ",
+    "expected": 295,
+    "actual": 294,
+    "gap": 1
+  },
+  {
+    "id": 148924,
+    "name": "Ta Đọc Sách Thành Thánh, Nữ Quỷ Nửa Đêm Gõ Cử",
+    "expected": 291,
+    "actual": 290,
+    "gap": 1
+  },
+  {
+    "id": 143573,
+    "name": "Xuyên Qua Truyền Hình Điện Ảnh Cường Đại Cưới",
+    "expected": 291,
+    "actual": 290,
+    "gap": 1
+  },
+  {
+    "id": 110002,
+    "name": "Dạy Học Trò Vạn Lần Phản Hồi: Vi Sư Chưa Bao ",
+    "expected": 291,
+    "actual": 290,
+    "gap": 1
+  },
+  {
+    "id": 149678,
+    "name": "Chiến Hào Chốt Lớn Cùng Ma Pháp",
+    "expected": 290,
+    "actual": 289,
+    "gap": 1
+  },
+  {
+    "id": 146823,
+    "name": "Nhất Niệm Thơ Thành, Một Kiếm Khai Thiên",
+    "expected": 290,
+    "actual": 289,
+    "gap": 1
+  },
+  {
+    "id": 123785,
+    "name": "Ta Mỗi Ngày Đều Có Thể Thêm Điểm Một Lần",
+    "expected": 290,
+    "actual": 289,
+    "gap": 1
+  },
+  {
+    "id": 149373,
+    "name": "Đấu La: Võ Hồn Gia Cát Liên Nỗ, Bắn Thủng Hết",
+    "expected": 288,
+    "actual": 287,
+    "gap": 1
+  },
+  {
+    "id": 142661,
+    "name": "Xuyên Nhanh Chi Hỗn Đi, Cùng Nhau Hỗn Nhật Tử",
+    "expected": 288,
+    "actual": 287,
+    "gap": 1
+  },
+  {
+    "id": 130061,
+    "name": "Họa Tuyệt Chư Thiên Từ Đông Phương Bất Bại Bắ",
+    "expected": 288,
+    "actual": 287,
+    "gap": 1
+  },
+  {
+    "id": 101777,
+    "name": "Bám Thân Mạnh Nhất Songoku",
+    "expected": 288,
+    "actual": 287,
+    "gap": 1
+  },
+  {
+    "id": 145425,
+    "name": "Trường Sinh Từ Thế Giới Phôi Thai Bắt Đầu",
+    "expected": 287,
+    "actual": 286,
+    "gap": 1
+  },
+  {
+    "id": 127675,
+    "name": "Khiếp Sợ! Xuyên Thành Niên Đại Trong Sách Phá",
+    "expected": 287,
+    "actual": 286,
+    "gap": 1
+  },
+  {
+    "id": 128006,
+    "name": "Ta Coi Ngươi Làm Tỷ Tỷ, Ngươi Thế Mà Nghĩ Cua",
+    "expected": 286,
+    "actual": 285,
+    "gap": 1
+  },
+  {
+    "id": 142535,
+    "name": "Mắt Mù Nhạc Công, Bắt Đầu Nhặt Cái Nữ Ma Tôn",
+    "expected": 285,
+    "actual": 284,
+    "gap": 1
+  },
+  {
+    "id": 101749,
+    "name": "Kuroko No Basket Tống Mạn Hệ Thống",
+    "expected": 285,
+    "actual": 284,
+    "gap": 1
+  },
+  {
+    "id": 127852,
+    "name": "Cái Này Phần Thi Tượng Đầu Óc Có Chút Tật Xấu",
+    "expected": 284,
+    "actual": 283,
+    "gap": 1
+  },
+  {
+    "id": 117263,
+    "name": "Vừa Biến Hấp Huyết Quỷ, Liền Bị Giáo Hoa Học ",
+    "expected": 282,
+    "actual": 281,
+    "gap": 1
+  },
+  {
+    "id": 113853,
+    "name": "Chương Trình Yêu Đương Nữ Vương",
+    "expected": 280,
+    "actual": 279,
+    "gap": 1
+  }
+]

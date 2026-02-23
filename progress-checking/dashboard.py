@@ -67,8 +67,8 @@ class BookInDB:
 class BookOnDisk:
     book_id: int
     name: str
-    chapters_saved: int  # from book.json
-    total_in_db: int  # from book.json
+    chapters_saved: int  # from metadata.json (chapter_count)
+    total_in_db: int  # from metadata.json
     txt_files: int  # actual .txt chapter files on disk
     has_combined: bool  # combined book .txt exists
     disk_bytes: int  # total size of all files in the dir
@@ -269,17 +269,16 @@ def scan_output_dir(output_dir: str) -> list[BookOnDisk]:
         except ValueError:
             continue
 
-        # Read book.json if present
         name = f"Book {book_id}"
         chapters_saved = 0
         total_in_db = 0
-        json_path = entry / "book.json"
-        if json_path.exists():
+        meta_path = entry / "metadata.json"
+        if meta_path.exists():
             try:
-                with open(json_path) as f:
+                with open(meta_path) as f:
                     meta = json.load(f)
-                name = meta.get("book_name", name)
-                chapters_saved = meta.get("chapters_saved", 0)
+                name = meta.get("name", name)
+                chapters_saved = meta.get("chapter_count", 0)
                 total_in_db = meta.get("total_in_db", 0)
             except (json.JSONDecodeError, OSError):
                 pass
@@ -298,7 +297,7 @@ def scan_output_dir(output_dir: str) -> list[BookOnDisk]:
                 if f.suffix == ".txt":
                     if f.name[0].isdigit() and "_" in f.name:
                         txt_files += 1
-                    elif f.name != "book.json":
+                    elif f.name != "metadata.json":
                         has_combined = True
 
         books.append(BookOnDisk(

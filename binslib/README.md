@@ -26,7 +26,6 @@ flowchart LR
   subgraph Crawler["Crawler Output"]
     TXT["0001_slug.txt\n0002_slug.txt\n..."]
     META["metadata.json"]
-    BOOK["book.json"]
     COVER["cover.jpg"]
   end
 
@@ -140,7 +139,7 @@ npx tsx scripts/pre-compress.ts --dry-run
 **How it works:**
 
 1. Scans both `crawler/output/` and `crawler-tangthuvien/output/` for book directories
-2. Estimates chapter counts from `book.json` (avoids expensive directory enumeration)
+2. Estimates chapter counts from `metadata.json` (avoids expensive directory enumeration)
 3. Splits work across N worker threads (round-robin by book)
 4. Each worker, for each book:
    - Reads all chapter `.txt` files, extracts body (strips title line)
@@ -159,8 +158,7 @@ Scans crawler output directories and loads book data into SQLite. Each book fold
 
 ```
 crawler/output/{book_id}/
-  metadata.json           # book metadata (name, author, genres, stats, etc.)
-  book.json               # crawler state (chapters_saved count)
+  metadata.json           # book metadata (name, author, genres, chapter_count, etc.)
   cover.jpg               # cover image
   0001_chapter-slug.txt   # chapter files: {4-digit index}_{slug}.txt
   0002_chapter-slug.txt
@@ -189,10 +187,10 @@ flowchart TD
 
 For each book directory (scanned from both `crawler/output/` and `crawler-tangthuvien/output/`):
 
-1. **Estimates chapter counts** from `book.json` (no directory enumeration needed)
+1. **Estimates chapter counts** from `metadata.json` (no directory enumeration needed)
 2. **Reads `metadata.json`** — if missing, tries to fetch it by running `meta-puller/pull_metadata.py`
 3. **Computes a metadata hash** (MD5) for change detection in incremental mode
-4. **Incremental skip logic** — in default mode, skips books where both the metadata hash and `updated_at` timestamp are unchanged, and the DB already has all chapters from `book.json`
+4. **Incremental skip logic** — in default mode, skips books where both the metadata hash and `updated_at` timestamp are unchanged, and the DB already has all chapters from `metadata.json`
 5. **Copies `cover.jpg`** to `public/covers/{book_id}.jpg` for serving by Next.js
 6. **Creates a `BundleWriter`** that loads any existing bundle data for the book, so new chapters are merged with existing ones
 7. **Imports in a single SQLite transaction** per book:

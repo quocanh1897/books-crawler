@@ -46,3 +46,15 @@
 [2026-02-23 12:30:48] mode=incremental duration=22s
   scanned=100 imported=100 skipped=0 failed=0 meta_resynced=0
   chapters=6961 covers=0 meta_pulls=100
+[2026-02-23 12:57:47] mode=incremental duration=9s
+  scanned=10 imported=10 skipped=0 failed=0 meta_resynced=0
+  chapters=16615 covers=1 meta_pulls=9
+[2026-02-23 12:58:19] mode=incremental duration=17s
+  scanned=10 imported=10 skipped=0 failed=0 meta_resynced=0
+  chapters=20401 covers=0 meta_pulls=10
+[2026-02-23 13:05:32] mode=incremental duration=0s
+  scanned=0 imported=0 skipped=0 failed=0 meta_resynced=0
+  chapters=0 covers=0 meta_pulls=0
+[2026-02-23 13:06:18] mode=incremental duration=0s
+  scanned=663 imported=663 skipped=0 failed=0 meta_resynced=0
+  chapters=0 covers=663 meta_pulls=0
