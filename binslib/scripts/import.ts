@@ -367,13 +367,25 @@ function runImport(fullMode: boolean): ImportReport {
     "INSERT OR REPLACE INTO tags (id, name, type_id) VALUES (?, ?, ?)",
   );
   const insertBook = sqlite.prepare(`
-    INSERT OR REPLACE INTO books (
+    INSERT INTO books (
       id, name, slug, synopsis, status, status_name,
       view_count, comment_count, bookmark_count, vote_count,
       review_score, review_count, chapter_count, word_count,
       cover_url, author_id, created_at, updated_at,
       published_at, new_chap_at, chapters_saved, meta_hash, source
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      name=excluded.name, slug=excluded.slug, synopsis=excluded.synopsis,
+      status=excluded.status, status_name=excluded.status_name,
+      view_count=excluded.view_count, comment_count=excluded.comment_count,
+      bookmark_count=excluded.bookmark_count, vote_count=excluded.vote_count,
+      review_score=excluded.review_score, review_count=excluded.review_count,
+      chapter_count=excluded.chapter_count, word_count=excluded.word_count,
+      cover_url=excluded.cover_url, author_id=excluded.author_id,
+      created_at=excluded.created_at, updated_at=excluded.updated_at,
+      published_at=excluded.published_at, new_chap_at=excluded.new_chap_at,
+      chapters_saved=excluded.chapters_saved, meta_hash=excluded.meta_hash,
+      source=excluded.source
   `);
   const insertBookGenre = sqlite.prepare(
     "INSERT OR IGNORE INTO book_genres (book_id, genre_id) VALUES (?, ?)",
@@ -600,15 +612,16 @@ function runImport(fullMode: boolean): ImportReport {
             .prepare("SELECT COUNT(*) as cnt FROM chapters WHERE book_id = ?")
             .get(bookId) as { cnt: number };
 
-          // Count actual .txt chapter files on disk (cheap readdir, no file reads).
-          // We compare against this instead of meta.chapter_count because the API
-          // count often exceeds what's on disk (some chapters empty/missing).
+          // Count chapters available on disk: .txt files in crawler output
+          // plus chapters already stored in the bundle (from book-ingest).
           const txtOnDisk = fs
             .readdirSync(bookDir)
             .filter((f) => f.endsWith(".txt") && /^\d{4}_/.test(f)).length;
+          const bundleChapterCount = listCompressedChapters(bookId).length;
+          const totalOnDisk = Math.max(txtOnDisk, bundleChapterCount);
 
-          // Skip if DB already has all chapters that exist on disk
-          if (txtOnDisk > 0 && savedInDb.cnt >= txtOnDisk) {
+          // Skip if DB already has all chapters that exist on disk/bundle
+          if (totalOnDisk > 0 && savedInDb.cnt >= totalOnDisk) {
             // Sync cover if missing
             const coverSrc = path.join(bookDir, "cover.jpg");
             const coverDest = path.join(COVERS_DIR, `${bookId}.jpg`);
@@ -743,7 +756,7 @@ function runImport(fullMode: boolean): ImportReport {
           }
         }
 
-        // Delete conflicting slug book before INSERT OR REPLACE to avoid cascade issues
+        // Delete conflicting slug book (different ID, same slug) to avoid unique constraint violation
         const existingBySlug = sqlite
           .prepare("SELECT id FROM books WHERE slug = ? AND id != ?")
           .get(meta.slug, meta.id) as { id: number } | undefined;

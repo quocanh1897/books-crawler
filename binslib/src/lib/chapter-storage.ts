@@ -461,8 +461,7 @@ export function writeBookBundleRaw(
   const bp = bundlePath(bookId);
   const tmpPath = bp + `.tmp.${process.pid}`;
   try {
-    fs.writeFileSync(tmpPath, buf);
-    // On Windows, rename over an existing file works in Node.js
+    fs.writeFileSync(tmpPath, buf, { mode: 0o644 });
     fs.renameSync(tmpPath, bp);
   } catch (err) {
     // Clean up temp on failure
