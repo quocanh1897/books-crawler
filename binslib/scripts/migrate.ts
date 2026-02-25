@@ -4,7 +4,8 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import path from "path";
 import fs from "fs";
 
-const DB_PATH = process.env.DATABASE_URL?.replace("file:", "") || "./data/binslib.db";
+const DB_PATH =
+  process.env.DATABASE_URL?.replace("file:", "") || "./data/binslib.db";
 const resolvedPath = path.resolve(DB_PATH);
 
 // Ensure data directory exists
@@ -20,23 +21,43 @@ console.log("Running migrations...");
 migrate(db, { migrationsFolder: "./src/db/migrations" });
 
 // Create FTS5 virtual tables (not handled by Drizzle)
+//
+// The tokenizer MUST use  remove_diacritics 0  so that Vietnamese tonal
+// marks are preserved.  The default (remove_diacritics 1) strips diacritics,
+// collapsing e.g. "Quỷ"→"quy", "Bí"→"bi" — extremely common syllables —
+// which buries the correct result under thousands of irrelevant matches.
+//
+// Because changing the tokenizer requires rebuilding the entire FTS index,
+// we unconditionally drop + recreate the table and repopulate from `books`.
+
 sqlite.exec(`
-  CREATE VIRTUAL TABLE IF NOT EXISTS books_fts USING fts5(
+  -- Drop old FTS infrastructure (may use the wrong tokenizer)
+  DROP TRIGGER IF EXISTS books_ai;
+  DROP TRIGGER IF EXISTS books_ad;
+  DROP TRIGGER IF EXISTS books_au;
+  DROP TABLE IF EXISTS books_fts;
+
+  -- Recreate with diacritics preserved (critical for Vietnamese search)
+  CREATE VIRTUAL TABLE books_fts USING fts5(
     name,
     synopsis,
     content='books',
     content_rowid='id',
-    tokenize='unicode61'
+    tokenize='unicode61 remove_diacritics 0'
   );
 
+  -- Repopulate from existing book rows
+  INSERT INTO books_fts(rowid, name, synopsis)
+    SELECT id, name, synopsis FROM books;
+
   -- Triggers to keep books FTS in sync
-  CREATE TRIGGER IF NOT EXISTS books_ai AFTER INSERT ON books BEGIN
+  CREATE TRIGGER books_ai AFTER INSERT ON books BEGIN
     INSERT INTO books_fts(rowid, name, synopsis) VALUES (new.id, new.name, new.synopsis);
   END;
-  CREATE TRIGGER IF NOT EXISTS books_ad AFTER DELETE ON books BEGIN
+  CREATE TRIGGER books_ad AFTER DELETE ON books BEGIN
     INSERT INTO books_fts(books_fts, rowid, name, synopsis) VALUES('delete', old.id, old.name, old.synopsis);
   END;
-  CREATE TRIGGER IF NOT EXISTS books_au AFTER UPDATE ON books BEGIN
+  CREATE TRIGGER books_au AFTER UPDATE ON books BEGIN
     INSERT INTO books_fts(books_fts, rowid, name, synopsis) VALUES('delete', old.id, old.name, old.synopsis);
     INSERT INTO books_fts(rowid, name, synopsis) VALUES (new.id, new.name, new.synopsis);
   END;

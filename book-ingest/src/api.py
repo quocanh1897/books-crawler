@@ -3,17 +3,18 @@
 Adapted from crawler-descryptor/src/downloader.py with the same
 semaphore-based rate limiting and retry logic.
 """
+
 from __future__ import annotations
 
 import asyncio
+
+# API configuration (same as crawler-descryptor/config.py)
+import os
 from typing import Optional
 
 import httpx
 
 from .decrypt import DecryptionError, decrypt_content
-
-# API configuration (same as crawler-descryptor/config.py)
-import os
 
 BASE_URL = "https://android.lonoapp.net"
 BEARER_TOKEN = os.environ.get(
@@ -127,6 +128,12 @@ class AsyncBookClient:
 def decrypt_chapter(chapter: dict) -> tuple[str, str, str, int]:
     """Decrypt a chapter and extract title, slug, body, and word count.
 
+    The chapter title comes from the API's ``name`` field (e.g. "ửng đỏ"),
+    **not** from the first line of the decrypted body text.  The old code
+    mistakenly used the first body line as the title, which produced wrong
+    titles (e.g. "đau" instead of "ửng đỏ") and duplicated that word in
+    both the title and the body.
+
     Returns (title, slug, body, word_count).
     """
     encrypted = chapter.get("content", "")
@@ -137,16 +144,22 @@ def decrypt_chapter(chapter: dict) -> tuple[str, str, str, int]:
 
     index = chapter.get("index", 0)
     slug = chapter.get("slug", f"chapter-{index}")
-    ch_name = chapter.get("name", f"Chương {index}")
+    ch_name = chapter.get("name", "")
 
-    # Parse: first line is title, rest is body
+    # Title comes from the API metadata, not from the body text.
+    title = ch_name.strip() if ch_name.strip() else f"Chương {index}"
+
+    # The decrypted plaintext is the chapter body.  Some API responses
+    # embed the chapter name as the very first line — strip it to avoid
+    # duplication in the reader UI.
     lines = plaintext.split("\n")
-    title = lines[0].strip() if lines else ch_name
+    body_start = 0
 
-    # Skip empty lines and duplicate title line after the first line
-    body_start = 1
+    # Skip leading empty lines
     while body_start < len(lines) and lines[body_start].strip() == "":
         body_start += 1
+
+    # If the first non-empty line matches the chapter name, skip it
     if body_start < len(lines) and lines[body_start].strip() == title:
         body_start += 1
 

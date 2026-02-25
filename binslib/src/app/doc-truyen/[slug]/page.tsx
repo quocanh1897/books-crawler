@@ -1,6 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getBookBySlug, getChaptersByBookId, getBooksByAuthorId, getBooks } from "@/lib/queries";
+import {
+  getBookBySlug,
+  getChaptersByBookId,
+  getBooksByAuthorId,
+  getBooks,
+} from "@/lib/queries";
 import { BookCover } from "@/components/books/BookCover";
 import { DownloadButton } from "@/components/books/DownloadButton";
 import { Pagination } from "@/components/ui/Pagination";
@@ -30,14 +35,33 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
     getChaptersByBookId(book.id, activeTab === "chapters" ? page : 1, 50),
     book.author
       ? getBooksByAuthorId(book.author.id, 1, 15)
-      : Promise.resolve({ data: [], total: 0, page: 1, limit: 15, totalPages: 0 }),
+      : Promise.resolve({
+          data: [],
+          total: 0,
+          page: 1,
+          limit: 15,
+          totalPages: 0,
+        }),
     primaryGenre
-      ? getBooks({ genre: primaryGenre.slug, sort: "bookmark_count", order: "desc", limit: 12 })
-      : Promise.resolve({ data: [], total: 0, page: 1, limit: 12, totalPages: 0 }),
+      ? getBooks({
+          genre: primaryGenre.slug,
+          sort: "bookmark_count",
+          order: "desc",
+          limit: 12,
+        })
+      : Promise.resolve({
+          data: [],
+          total: 0,
+          page: 1,
+          limit: 12,
+          totalPages: 0,
+        }),
   ]);
 
   const sameAuthorBooks = authorBooks.data.filter((b) => b.id !== book.id);
-  const sameGenreBooks = genreBooks.data.filter((b) => b.id !== book.id).slice(0, 6);
+  const sameGenreBooks = genreBooks.data
+    .filter((b) => b.id !== book.id)
+    .slice(0, 6);
   const reviewScore = book.reviewScore ?? 0;
   const fullStars = Math.floor(reviewScore);
   const hasHalf = reviewScore - fullStars >= 0.3;
@@ -46,11 +70,16 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
     <div className="max-w-7xl mx-auto px-4 py-6">
       {/* Breadcrumb */}
       <nav className="text-xs text-[var(--color-text-secondary)] mb-4">
-        <Link href="/" className="hover:text-[var(--color-primary)]">Trang chủ</Link>
+        <Link href="/" className="hover:text-[var(--color-primary)]">
+          Trang chủ
+        </Link>
         {book.genres[0] && (
           <>
             <span className="mx-1">&rsaquo;</span>
-            <Link href={`/the-loai/${book.genres[0].slug}`} className="hover:text-[var(--color-primary)]">
+            <Link
+              href={`/the-loai/${book.genres[0].slug}`}
+              className="hover:text-[var(--color-primary)]"
+            >
               {book.genres[0].name}
             </Link>
           </>
@@ -106,15 +135,21 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
               {/* Stats */}
               <div className="flex flex-wrap gap-6 mb-4 text-sm">
                 <div>
-                  <span className="font-bold text-white">{formatNumber(book.bookmarkCount)}</span>
+                  <span className="font-bold text-white">
+                    {formatNumber(book.bookmarkCount)}
+                  </span>
                   <span className="text-white/60 ml-1">Lượt đánh dấu</span>
                 </div>
                 <div className="border-l border-white/20 pl-6">
-                  <span className="font-bold text-white">{formatNumber(book.commentCount)}</span>
+                  <span className="font-bold text-white">
+                    {formatNumber(book.commentCount)}
+                  </span>
                   <span className="text-white/60 ml-1">Bình luận</span>
                 </div>
                 <div className="border-l border-white/20 pl-6">
-                  <span className="font-bold text-white">{formatNumber(book.voteCount)}</span>
+                  <span className="font-bold text-white">
+                    {formatNumber(book.voteCount)}
+                  </span>
                   <span className="text-white/60 ml-1">Đề cử</span>
                 </div>
               </div>
@@ -135,7 +170,9 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
 
             {/* Rating (right side) */}
             <div className="hidden md:flex flex-col items-center justify-start shrink-0 pt-1">
-              <div className="text-3xl font-bold text-white">{reviewScore > 0 ? reviewScore.toFixed(1) : "N/A"}</div>
+              <div className="text-3xl font-bold text-white">
+                {reviewScore > 0 ? reviewScore.toFixed(1) : "N/A"}
+              </div>
               <div className="flex gap-0.5 my-1.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <svg
@@ -144,8 +181,8 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
                       star <= fullStars
                         ? "text-yellow-400"
                         : star === fullStars + 1 && hasHalf
-                        ? "text-yellow-400"
-                        : "text-white/30"
+                          ? "text-yellow-400"
+                          : "text-white/30"
                     }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
@@ -157,10 +194,16 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
                         <defs>
                           <linearGradient id={`half-${star}`}>
                             <stop offset="50%" stopColor="currentColor" />
-                            <stop offset="50%" stopColor="rgba(255,255,255,0.3)" />
+                            <stop
+                              offset="50%"
+                              stopColor="rgba(255,255,255,0.3)"
+                            />
                           </linearGradient>
                         </defs>
-                        <path fill={`url(#half-${star})`} d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        <path
+                          fill={`url(#half-${star})`}
+                          d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"
+                        />
                       </>
                     ) : (
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -169,7 +212,9 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
                 ))}
               </div>
               <div className="text-xs text-white/50">
-                {book.reviewCount > 0 ? `${book.reviewCount} đánh giá` : "Chưa có đánh giá"}
+                {book.reviewCount > 0
+                  ? `${book.reviewCount} đánh giá`
+                  : "Chưa có đánh giá"}
               </div>
             </div>
           </div>
@@ -181,7 +226,11 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Tab navigation */}
-          <BookDetailTabs slug={book.slug} activeTab={activeTab} chapterCount={chapters.total} />
+          <BookDetailTabs
+            slug={book.slug}
+            activeTab={activeTab}
+            chapterCount={chapters.total}
+          />
 
           {/* Tab content */}
           {activeTab === "info" ? (
@@ -200,7 +249,9 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
               {/* Tags */}
               {book.tags.length > 0 && (
                 <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
-                  <span className="text-xs font-medium text-[var(--color-text-secondary)]">Tags: </span>
+                  <span className="text-xs font-medium text-[var(--color-text-secondary)]">
+                    Tags:{" "}
+                  </span>
                   {book.tags.map((t) => (
                     <span
                       key={t.id}
@@ -215,20 +266,32 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
               {/* Book info table */}
               <div className="mt-6 pt-4 border-t border-[var(--color-border)]">
                 <div className="grid grid-cols-2 gap-y-2 text-sm">
-                  <div className="text-[var(--color-text-secondary)]">Số chương</div>
+                  <div className="text-[var(--color-text-secondary)]">
+                    Số chương
+                  </div>
                   <div>{formatNumber(book.chapterCount)} chương</div>
-                  <div className="text-[var(--color-text-secondary)]">Số từ</div>
+                  <div className="text-[var(--color-text-secondary)]">
+                    Số từ
+                  </div>
                   <div>{formatNumber(book.wordCount)}</div>
                   {book.createdAt && (
                     <>
-                      <div className="text-[var(--color-text-secondary)]">Ngày đăng</div>
-                      <div>{new Date(book.createdAt).toLocaleDateString("vi-VN")}</div>
+                      <div className="text-[var(--color-text-secondary)]">
+                        Ngày đăng
+                      </div>
+                      <div>
+                        {new Date(book.createdAt).toLocaleDateString("vi-VN")}
+                      </div>
                     </>
                   )}
                   {book.updatedAt && (
                     <>
-                      <div className="text-[var(--color-text-secondary)]">Cập nhật</div>
-                      <div>{new Date(book.updatedAt).toLocaleDateString("vi-VN")}</div>
+                      <div className="text-[var(--color-text-secondary)]">
+                        Cập nhật
+                      </div>
+                      <div>
+                        {new Date(book.updatedAt).toLocaleDateString("vi-VN")}
+                      </div>
                     </>
                   )}
                 </div>
@@ -266,7 +329,10 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
           {/* Author card */}
           {book.author && (
             <div className="bg-white rounded-lg border border-[var(--color-border)] p-4">
-              <Link href={`/tac-gia/${book.author.id}`} className="flex flex-col items-center gap-2 group">
+              <Link
+                href={`/tac-gia/${book.author.id}`}
+                className="flex flex-col items-center gap-2 group"
+              >
                 <div className="w-16 h-16 rounded-full bg-[var(--color-primary)] flex items-center justify-center text-white font-bold text-2xl">
                   {book.author.name.charAt(0).toUpperCase()}
                 </div>
@@ -279,23 +345,41 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
 
           {/* Quick stats card */}
           <div className="bg-white rounded-lg border border-[var(--color-border)] p-4">
-            <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] mb-3">Thống kê</h3>
+            <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] mb-3">
+              Thống kê
+            </h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">Đề cử</span>
-                <span className="font-medium">{formatNumber(book.voteCount)}</span>
+                <span className="text-[var(--color-text-secondary)]">
+                  Đề cử
+                </span>
+                <span className="font-medium">
+                  {formatNumber(book.voteCount)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">Yêu thích</span>
-                <span className="font-medium">{formatNumber(book.bookmarkCount)}</span>
+                <span className="text-[var(--color-text-secondary)]">
+                  Yêu thích
+                </span>
+                <span className="font-medium">
+                  {formatNumber(book.bookmarkCount)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">Bình luận</span>
-                <span className="font-medium">{formatNumber(book.commentCount)}</span>
+                <span className="text-[var(--color-text-secondary)]">
+                  Bình luận
+                </span>
+                <span className="font-medium">
+                  {formatNumber(book.commentCount)}
+                </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-[var(--color-text-secondary)]">Đánh giá</span>
-                <span className="font-medium">{reviewScore > 0 ? reviewScore.toFixed(1) : "—"}</span>
+                <span className="text-[var(--color-text-secondary)]">
+                  Đánh giá
+                </span>
+                <span className="font-medium">
+                  {reviewScore > 0 ? reviewScore.toFixed(1) : "—"}
+                </span>
               </div>
             </div>
           </div>
