@@ -861,8 +861,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--min-chapters",
         type=int,
-        default=80,
-        help="Skip books with fewer than N chapters in the plan (default: 80). "
+        default=100,
+        help="Skip books with fewer than N chapters in the plan (default: 100). "
         "Ignored when explicit book IDs are given.",
     )
     return parser.parse_args()

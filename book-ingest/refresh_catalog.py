@@ -55,6 +55,10 @@ DEFAULT_INPUT = os.path.join(
 )
 DEFAULT_OUTPUT = DEFAULT_INPUT  # overwrite in place
 
+# Books with fewer chapters than this are excluded from the output.
+# Keeps the plan focused on substantial books worth downloading.
+MIN_CHAPTER_COUNT = 100
+
 # ID range for the MTC platform.  All valid book IDs fall within this range.
 # IDs below 100003 and above ~153200 return 404.
 ID_RANGE_START = 100003
@@ -247,6 +251,7 @@ async def refresh(
     workers: int,
     delay: float,
     scan: bool,
+    min_chapters: int = MIN_CHAPTER_COUNT,
 ) -> tuple[list[dict], Stats]:
     """Fetch fresh metadata for all entries.  Returns (updated_list, stats)."""
     stats = Stats(total=len(entries))
@@ -289,7 +294,7 @@ async def refresh(
         if new.get("latest_chapter"):
             entry["latest_chapter"] = new["latest_chapter"]
 
-        if entry["first_chapter"] and entry["chapter_count"] > 0:
+        if entry["first_chapter"] and entry["chapter_count"] >= min_chapters:
             updated_list.append(entry)
 
     # Phase 2 (optional): scan for missing books
@@ -301,9 +306,15 @@ async def refresh(
         print(f"  Detected upper bound: {upper}")
         known = set(old_by_id.keys())
         discovered = await scan_missing(known, workers, delay, upper)
+        # Apply the same chapter filter to discovered books
+        discovered = [
+            b for b in discovered if b.get("chapter_count", 0) >= min_chapters
+        ]
         stats.discovered = len(discovered)
         updated_list.extend(discovered)
-        print(f"  Discovered {len(discovered):,} new books")
+        print(
+            f"  Discovered {len(discovered):,} new books (>= {min_chapters} chapters)"
+        )
 
     # Sort by chapter_count descending (same as original)
     updated_list.sort(key=lambda b: -b.get("chapter_count", 0))
@@ -370,6 +381,12 @@ def parse_args() -> argparse.Namespace:
         help="Fetch and report but don't write the output file",
     )
     parser.add_argument(
+        "--min-chapters",
+        type=int,
+        default=MIN_CHAPTER_COUNT,
+        help=f"Exclude books with fewer than N chapters (default: {MIN_CHAPTER_COUNT})",
+    )
+    parser.add_argument(
         "--scan",
         action="store_true",
         help="Also scan the full ID range (100003–153500+) to discover "
@@ -401,6 +418,7 @@ def main() -> None:
     print(f"Output: {output_path}")
     print(f"Books : {len(entries):,}")
     print(f"Workers: {args.workers}, delay: {args.delay}s")
+    print(f"Min ch: {args.min_chapters}")
     print(
         f"Scan  : {'YES — full ID range' if args.scan else 'no (use --scan to discover missing books)'}"
     )
@@ -410,7 +428,13 @@ def main() -> None:
 
     start = time.time()
     updated, stats = asyncio.run(
-        refresh(entries, args.workers, args.delay, scan=args.scan)
+        refresh(
+            entries,
+            args.workers,
+            args.delay,
+            scan=args.scan,
+            min_chapters=args.min_chapters,
+        )
     )
     elapsed = time.time() - start
 
