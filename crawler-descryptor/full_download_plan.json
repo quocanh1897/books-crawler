@@ -1,0 +1,1552 @@
+{
+  "summary": {
+    "total_catalog": 405,
+    "downloadable": 396,
+    "no_api_chapters": 9,
+    "already_complete": 241,
+    "partial": 56,
+    "need_download": 99,
+    "chapters_to_fetch": 7829
+  },
+  "need_download": [
+    {
+      "id": 153175,
+      "name": "Đế Mệnh",
+      "slug": "de-menh",
+      "chapter_count": 30,
+      "first_chapter": 26921884,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 39105
+    },
+    {
+      "id": 153174,
+      "name": "Thiên Đế",
+      "slug": "thien-de",
+      "chapter_count": 30,
+      "first_chapter": 26921843,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 36559
+    },
+    {
+      "id": 153169,
+      "name": "Vạn Cổ Kỷ Nguyên",
+      "slug": "van-co-ky-nguyen",
+      "chapter_count": 18,
+      "first_chapter": 26894248,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 17132
+    },
+    {
+      "id": 153170,
+      "name": "Hỗn Nguyên Nhất Khí",
+      "slug": "hon-nguyen-nhat-khi",
+      "chapter_count": 10,
+      "first_chapter": 26894805,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 21421
+    },
+    {
+      "id": 153156,
+      "name": "Thỉnh Thoảng Hộc Máu Ta Tại Conan Bên Cạnh Sống Thế Nào",
+      "slug": "thinh-thoang-hoc-mau-ta-tai-conan-ben-canh-song-the-nao",
+      "chapter_count": 14,
+      "first_chapter": 26877475,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 23324
+    },
+    {
+      "id": 153155,
+      "name": "Kinh Duyệt Nhân",
+      "slug": "kinh-duyet-nhan",
+      "chapter_count": 10,
+      "first_chapter": 26874053,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 16159
+    },
+    {
+      "id": 152419,
+      "name": "Huyễn Nguyệt San",
+      "slug": "huyen-nguyet-san",
+      "chapter_count": 23,
+      "first_chapter": 26452158,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 48723
+    },
+    {
+      "id": 152568,
+      "name": "Đệ Nhất Ngân Hà",
+      "slug": "de-nhat-ngan-ha",
+      "chapter_count": 32,
+      "first_chapter": 26503865,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 51386
+    },
+    {
+      "id": 152585,
+      "name": "Ma Lộ Độc Tôn",
+      "slug": "ma-lo-doc-ton",
+      "chapter_count": 26,
+      "first_chapter": 26516052,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 74368
+    },
+    {
+      "id": 151031,
+      "name": "Quả Cấm",
+      "slug": "qua-cam",
+      "chapter_count": 33,
+      "first_chapter": 25849969,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 59563
+    },
+    {
+      "id": 150123,
+      "name": "Tam Giới",
+      "slug": "tam-gioi-1",
+      "chapter_count": 23,
+      "first_chapter": 25543398,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 42556
+    },
+    {
+      "id": 151665,
+      "name": "Pokemon: Khởi Đầu Mười Năm",
+      "slug": "pokemon-khoi-dau-muoi-nam",
+      "chapter_count": 40,
+      "first_chapter": 26119385,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 63144
+    },
+    {
+      "id": 152897,
+      "name": "Thợ Săn Tam Giới",
+      "slug": "tho-san-tam-gioi",
+      "chapter_count": 10,
+      "first_chapter": 26741055,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 23427
+    },
+    {
+      "id": 152353,
+      "name": "Trong Tuyết Mẫu Đơn, Phượng Minh Tam Quốc",
+      "slug": "tuyet-trung-mau-don-phuong-minh-tam-quoc",
+      "chapter_count": 16,
+      "first_chapter": 26421215,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 28703
+    },
+    {
+      "id": 152548,
+      "name": "Thống Soái, Uống Nhầm Thuốc Hay Ăn Nhầm Canh?",
+      "slug": "thong-soai-uong-nham-thuoc-hay-an-nham-canh",
+      "chapter_count": 24,
+      "first_chapter": 26483687,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 2,
+      "word_count": 33513
+    },
+    {
+      "id": 150773,
+      "name": "Vô Giải",
+      "slug": "vo-giai",
+      "chapter_count": 12,
+      "first_chapter": 25756311,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 27317
+    },
+    {
+      "id": 147561,
+      "name": "Vô Vọng Tiên Đồ",
+      "slug": "chinh-dao-muon-ta-chet-ta-lien-tu-ma",
+      "chapter_count": 24,
+      "first_chapter": 24629644,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 53621
+    },
+    {
+      "id": 151695,
+      "name": "Quỷ Dị Tai Ương",
+      "slug": "quy-di-tai-uong",
+      "chapter_count": 11,
+      "first_chapter": 26145517,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 24997
+    },
+    {
+      "id": 151238,
+      "name": "Tiếng Vọng Nơi Vực Sâu",
+      "slug": "ho-so-mien-son-cuoc",
+      "chapter_count": 18,
+      "first_chapter": 25894791,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 50888
+    },
+    {
+      "id": 136576,
+      "name": "Đấu La, Ta Thay Hoắc Vũ Hạo, Làm Thần Vương Trùng Sinh",
+      "slug": "dau-la-ta-thay-hoac-vu-hao-lam-than-vuong-trung-sinh",
+      "chapter_count": 45,
+      "first_chapter": 20657332,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 80265
+    },
+    {
+      "id": 111567,
+      "name": "Sức Mạnh Đế Vương",
+      "slug": "suc-manh-de-vuong",
+      "chapter_count": 33,
+      "first_chapter": 14549874,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 71506
+    },
+    {
+      "id": 151003,
+      "name": "Chép Nhạc: Lại Một Thế Ta Gặp Người",
+      "slug": "chep-nhac-lai-mot-the-ta-gap-nguoi",
+      "chapter_count": 12,
+      "first_chapter": 25834536,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 22326
+    },
+    {
+      "id": 150583,
+      "name": "Nghịch Mệnh",
+      "slug": "nghich-menh-1",
+      "chapter_count": 14,
+      "first_chapter": 25698063,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 27448
+    },
+    {
+      "id": 150834,
+      "name": "Tung Hoành Thiên Hạ",
+      "slug": "trong-sinh-thanh-su-phu-cua-nhan-vat-phan-dien",
+      "chapter_count": 10,
+      "first_chapter": 25775648,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 54114
+    },
+    {
+      "id": 143347,
+      "name": "Vu Sư Ký Sự",
+      "slug": "vu-su-ky-su",
+      "chapter_count": 36,
+      "first_chapter": 23079940,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 2,
+      "word_count": 59598
+    },
+    {
+      "id": 147314,
+      "name": "Cuồng Đồ",
+      "slug": "cuong-do-1",
+      "chapter_count": 53,
+      "first_chapter": 24546334,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 175619
+    },
+    {
+      "id": 146741,
+      "name": "Huyễn Kỳ Thư: Trò Chơi Của Thần",
+      "slug": "huyen-ky-thu-tro-choi-cua-than",
+      "chapter_count": 36,
+      "first_chapter": 24330084,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 56309
+    },
+    {
+      "id": 149630,
+      "name": "Mạc Hoàng Ký",
+      "slug": "mac-hoang-ky",
+      "chapter_count": 13,
+      "first_chapter": 25398543,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 20677
+    },
+    {
+      "id": 148958,
+      "name": "Thân Du Vạn Giới",
+      "slug": "than-du-van-gioi",
+      "chapter_count": 11,
+      "first_chapter": 25181791,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 31210
+    },
+    {
+      "id": 149029,
+      "name": "Dota 2: Làm Lại Cuộc Đời",
+      "slug": "dota-2-lam-lai-cuoc-doi",
+      "chapter_count": 18,
+      "first_chapter": 25221440,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 29133
+    },
+    {
+      "id": 149319,
+      "name": "Mạt Thế: Ta Là Số Mười",
+      "slug": "mac-the-ta-la-so-muoi",
+      "chapter_count": 11,
+      "first_chapter": 25295170,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 27304
+    },
+    {
+      "id": 147861,
+      "name": "Vì Sợ Chết Ta Gia Nhập Ma Đạo Lại Không Ngờ Thành Vạn Cổ Ma Đế!",
+      "slug": "vi-so-chet-ta-gia-nhap-ma-dao-lai-khong-ngo-thanh-van-co-ma-de",
+      "chapter_count": 20,
+      "first_chapter": 24783286,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 43146
+    },
+    {
+      "id": 147396,
+      "name": "Anh Hùng Diệt Thế",
+      "slug": "anh-hung-diet-the",
+      "chapter_count": 15,
+      "first_chapter": 24571022,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 32227
+    },
+    {
+      "id": 147288,
+      "name": "Nghịch Càn Khôn",
+      "slug": "nghich-can-khon",
+      "chapter_count": 22,
+      "first_chapter": 24532100,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 40253
+    },
+    {
+      "id": 145845,
+      "name": "Ký Ức Thần Vương",
+      "slug": "ky-uc-than-vuong",
+      "chapter_count": 18,
+      "first_chapter": 24004728,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 65540
+    },
+    {
+      "id": 146343,
+      "name": "Hội Thánh: Lần Đầu Triệu Hoán Tôn Ngộ Không",
+      "slug": "quy-bau-duoi-dam-giao",
+      "chapter_count": 10,
+      "first_chapter": 24180503,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 25325
+    },
+    {
+      "id": 145480,
+      "name": "Nguyệt Chiếu Vô Tâm",
+      "slug": "nguyet-chieu-vo-tam",
+      "chapter_count": 11,
+      "first_chapter": 23868809,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 20281
+    },
+    {
+      "id": 145330,
+      "name": "Dược Linh Sư",
+      "slug": "duoc-linh-su",
+      "chapter_count": 13,
+      "first_chapter": 23800739,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 20315
+    },
+    {
+      "id": 143908,
+      "name": "Vĩnh Sinh – Người Không Tên",
+      "slug": "toi-trong-sinh",
+      "chapter_count": 78,
+      "first_chapter": 23306262,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 136894
+    },
+    {
+      "id": 145168,
+      "name": "Kiếm Tuyết Cuồng Tiên",
+      "slug": "kiem-tuyet-cuong-tien",
+      "chapter_count": 32,
+      "first_chapter": 23748709,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 52988
+    },
+    {
+      "id": 145258,
+      "name": "Nhất Đạo Chí Tôn",
+      "slug": "nhat-dao-chi-ton",
+      "chapter_count": 14,
+      "first_chapter": 23781663,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 22276
+    },
+    {
+      "id": 143446,
+      "name": "Sen Tàn Khi Thu Đến",
+      "slug": "vien-trinh-di-xu",
+      "chapter_count": 32,
+      "first_chapter": 23116980,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 168376
+    },
+    {
+      "id": 140892,
+      "name": "Kẻ Dạo Bước Không Gian: Từ Nô Lệ Thành Bá Chủ",
+      "slug": "realmwalker-from-slave-to-sovereign",
+      "chapter_count": 15,
+      "first_chapter": 22348352,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 29593
+    },
+    {
+      "id": 144672,
+      "name": "Cứu Vớt Toàn Nhân Loại, Bắt Đầu Từ Cày Cấp Trong Thế Giới Giả Lập",
+      "slug": "cuu-vot-toan-nhan-loai-bat-dau-tu-cay-cap-trong-the-gioi-gia-lap",
+      "chapter_count": 15,
+      "first_chapter": 23560504,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 25548
+    },
+    {
+      "id": 140369,
+      "name": "Ánh Sáng Cuối Trên Bầu Trời Máu",
+      "slug": "anh-sang-cuoi-tren-bau-troi-mau",
+      "chapter_count": 48,
+      "first_chapter": 22059301,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 86411
+    },
+    {
+      "id": 143846,
+      "name": "Hội Phát Triển Di Sản Cuối Cùng",
+      "slug": "loi-ich-dau",
+      "chapter_count": 13,
+      "first_chapter": 23292636,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 32165
+    },
+    {
+      "id": 141444,
+      "name": "Bạch Nguyệt Vân Thiên",
+      "slug": "bach-nguyet-van-thien",
+      "chapter_count": 31,
+      "first_chapter": 22409243,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 61631
+    },
+    {
+      "id": 140514,
+      "name": "Võ Động: Bắt Đầu Một Quyển Hư Không Kinh",
+      "slug": "vo-dong-bat-dau-mot-quyen-hu-khong-de-kinh",
+      "chapter_count": 17,
+      "first_chapter": 22112693,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 26919
+    },
+    {
+      "id": 141880,
+      "name": "Đạo Ma Trường Đồ",
+      "slug": "dao-ma-truong-do",
+      "chapter_count": 75,
+      "first_chapter": 22548547,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 118912
+    },
+    {
+      "id": 138675,
+      "name": "Nhật Ký Sát Nhân",
+      "slug": "nhat-ky-sat-nhan",
+      "chapter_count": 47,
+      "first_chapter": 21507344,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 78215
+    },
+    {
+      "id": 130903,
+      "name": "Dị Giới Rubik Cube",
+      "slug": "di-gioi-rubik-cube",
+      "chapter_count": 19,
+      "first_chapter": 19018183,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 36564
+    },
+    {
+      "id": 142679,
+      "name": "Ma Chủng Truyền Thừa",
+      "slug": "ma-chung-truyen-thua",
+      "chapter_count": 15,
+      "first_chapter": 22833425,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 28115
+    },
+    {
+      "id": 143258,
+      "name": "Tiên Lộ Ngự Ảnh",
+      "slug": "tien-lo-ngu-anh",
+      "chapter_count": 10,
+      "first_chapter": 23051757,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 24322
+    },
+    {
+      "id": 143112,
+      "name": "Hệ Thống Bản Ngã Thức Tỉnh",
+      "slug": "he-thong-ban-nga-thuc-tinh",
+      "chapter_count": 30,
+      "first_chapter": 22996284,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 59093
+    },
+    {
+      "id": 143001,
+      "name": "Kỵ Sĩ Và Ánh Sao",
+      "slug": "ky-si-va-anh-sao",
+      "chapter_count": 13,
+      "first_chapter": 22957067,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 2,
+      "word_count": 31360
+    },
+    {
+      "id": 142638,
+      "name": "Mộng Tiêu Dao",
+      "slug": "mong-tieu-dao",
+      "chapter_count": 10,
+      "first_chapter": 22823388,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 18890
+    },
+    {
+      "id": 140712,
+      "name": "Khí Vận",
+      "slug": "khi-van-1",
+      "chapter_count": 39,
+      "first_chapter": 22182779,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 66212
+    },
+    {
+      "id": 141473,
+      "name": "Kẻ Si Tình",
+      "slug": "ke-si-tinh-2",
+      "chapter_count": 13,
+      "first_chapter": 22416975,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 22783
+    },
+    {
+      "id": 124023,
+      "name": "Hệ Thống Khoa Kỹ: Từ Ngày Đó Ta Thay Đổi Thế Giới Này",
+      "slug": "ta-yeu-ga-lai-bat-di-hanh-tau-thien-ha",
+      "chapter_count": 16,
+      "first_chapter": 19165943,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 38662
+    },
+    {
+      "id": 141380,
+      "name": "Tôi Có Gunny Hệ Thống",
+      "slug": "toi-co-gunny-he-thong",
+      "chapter_count": 17,
+      "first_chapter": 22385515,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 28108
+    },
+    {
+      "id": 129003,
+      "name": "Tự Tại Tiêu Dao",
+      "slug": "tu-tai-tieu-dao",
+      "chapter_count": 42,
+      "first_chapter": 18630801,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 71696
+    },
+    {
+      "id": 140512,
+      "name": "Tiêu Dao Tiên Truyện",
+      "slug": "tieu-dao-tien-truyen",
+      "chapter_count": 13,
+      "first_chapter": 22110498,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 29969
+    },
+    {
+      "id": 141348,
+      "name": "Ta Muôn Vạn Kiếp Đều Không Thể Yêu Người",
+      "slug": "ta-muon-van-kiep-deu-khong-the-yeu-nguoi",
+      "chapter_count": 10,
+      "first_chapter": 22374466,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 2,
+      "word_count": 16594
+    },
+    {
+      "id": 114029,
+      "name": "Nhất Nhân Chấn Thiên",
+      "slug": "tu-tu-vong-bat-dau-hoi-sinh-huyen-huyen",
+      "chapter_count": 34,
+      "first_chapter": 22313054,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 61957
+    },
+    {
+      "id": 141108,
+      "name": "Giáo Sư Vĩnh Hằng",
+      "slug": "giao-su-vinh-hang",
+      "chapter_count": 11,
+      "first_chapter": 22313824,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 18701
+    },
+    {
+      "id": 139802,
+      "name": "Bắt Đầu Xuất Sinh, Ta Cố Gắng Đến Vô Địch",
+      "slug": "bat-dau-xuat-sinh-ta-co-gang-den-vo-dich",
+      "chapter_count": 42,
+      "first_chapter": 21864270,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 75896
+    },
+    {
+      "id": 123498,
+      "name": "Linh Dị Người Ghi Chép",
+      "slug": "linh-di-nguoi-ghi-chep-1",
+      "chapter_count": 41,
+      "first_chapter": 17444388,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 78999
+    },
+    {
+      "id": 127614,
+      "name": "Khống Thiên Ma Công",
+      "slug": "khong-thien-ma-cong",
+      "chapter_count": 76,
+      "first_chapter": 18323656,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 237944
+    },
+    {
+      "id": 124035,
+      "name": "Đánh Dấu Thành Đế, Ta Chỉ Muốn Diệt Thế",
+      "slug": "ta-sang-tao-sieu-cap-tien-gioi",
+      "chapter_count": 5,
+      "first_chapter": 21998685,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 7271
+    },
+    {
+      "id": 135859,
+      "name": "Súc Sinh Ký I - Huyết Đàm",
+      "slug": "suc-sinh-ky-1-huyet-dam",
+      "chapter_count": 26,
+      "first_chapter": 20378368,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 40649
+    },
+    {
+      "id": 133297,
+      "name": "Ta Dùng Lôi Pháp Chứng Đạo Thành Tiên",
+      "slug": "cac-nguoi-tu-luyen-ta-nap-tien",
+      "chapter_count": 3,
+      "first_chapter": 21958524,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 4980
+    },
+    {
+      "id": 139195,
+      "name": "Lê Triều Huyền Sử",
+      "slug": "le-trieu-huyen-su",
+      "chapter_count": 10,
+      "first_chapter": 21636037,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 2,
+      "word_count": 16396
+    },
+    {
+      "id": 138446,
+      "name": "Tận Thế : Kí Ức Lãng Quên",
+      "slug": "nhung-nguyen-tac-sinh-ton-giua-dai-dich",
+      "chapter_count": 28,
+      "first_chapter": 21374536,
+      "status": "Tạm dừng",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 50723
+    },
+    {
+      "id": 136756,
+      "name": "One Piece: Ngai Vàng Sụp Đổ",
+      "slug": "onepiece-ngai-vang-sup-do",
+      "chapter_count": 38,
+      "first_chapter": 20684472,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 58816
+    },
+    {
+      "id": 135087,
+      "name": "Tiên Vực : Ngự Linh Chí Tôn",
+      "slug": "tien-vuc-ngu-thu-chi-ton",
+      "chapter_count": 59,
+      "first_chapter": 20281786,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 91482
+    },
+    {
+      "id": 133435,
+      "name": "Dị Giới Là Quá Dễ",
+      "slug": "di-gioi-la-qua-de",
+      "chapter_count": 23,
+      "first_chapter": 19712695,
+      "status": "Còn tiếp",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 34213
+    },
+    {
+      "id": 128191,
+      "name": "Bắt Đầu Từ Lập Trình Viên",
+      "slug": "sau-khi-chia-tay-ban-gai-mo-ra-thuoc-tinh-yandere",
+      "chapter_count": 51,
+      "first_chapter": 18414260,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 106870
+    },
+    {
+      "id": 128485,
+      "name": "Bắt Đầu Cùng Chị Dâu Nương Tựa Lẫn Nhau",
+      "slug": "bat-dau-cung-chi-dau-nuong-tua-lan-nhau",
+      "chapter_count": 70,
+      "first_chapter": 18480503,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 108907
+    },
+    {
+      "id": 127805,
+      "name": "Tiền Hạo Kiếp Tây Du",
+      "slug": "tien-hao-kiep-tay-du",
+      "chapter_count": 51,
+      "first_chapter": 18322091,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 77857
+    },
+    {
+      "id": 105233,
+      "name": "Sử Dụng Bookhub",
+      "slug": "test-2",
+      "chapter_count": 14,
+      "first_chapter": 17463639,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 1854
+    },
+    {
+      "id": 106815,
+      "name": "Comic Ác Ma Pháp Sư",
+      "slug": "comic-ac-ma-phap-su",
+      "chapter_count": 25,
+      "first_chapter": 13451708,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 48184
+    },
+    {
+      "id": 121905,
+      "name": "Người Rối",
+      "slug": "ngay-tan-the-luc-ay",
+      "chapter_count": 23,
+      "first_chapter": 17056943,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 40593
+    },
+    {
+      "id": 115830,
+      "name": "Ta Xuyên Qua Tới Ma Thổi Đèn Thế Giới",
+      "slug": "ta-la-nguoi-sang-tao",
+      "chapter_count": 28,
+      "first_chapter": 16446039,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 45643
+    },
+    {
+      "id": 107953,
+      "name": "Chuyện Xưa Ở Hollywood",
+      "slug": "chuyen-xua-o-hollywood",
+      "chapter_count": 31,
+      "first_chapter": 13832829,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 79871
+    },
+    {
+      "id": 117654,
+      "name": "Sứ Mệnh Giữa Cuộc Chiến Hai Thiên Hà",
+      "slug": "su-menh-giua-cuoc-chien-hai-thien-ha",
+      "chapter_count": 13,
+      "first_chapter": 16076211,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 32635
+    },
+    {
+      "id": 115565,
+      "name": "Jujutsu Kaisen: Mèo Của Gojo Hơi Quái Quái",
+      "slug": "jujutsu-kaisen-meo-cua-gojo-hoi-quai-quai",
+      "chapter_count": 17,
+      "first_chapter": 15567345,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 27075
+    },
+    {
+      "id": 114701,
+      "name": "Dị Giới Trọng Sinh Lục",
+      "slug": "di-gioi-trong-sinh-luc",
+      "chapter_count": 34,
+      "first_chapter": 15353300,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 70392
+    },
+    {
+      "id": 114819,
+      "name": "Mha + Jjk:  Chương Trình Khám Phá Lịch Sử Có Gì Đó Kì Lạ",
+      "slug": "mha-jjk-chuong-trinh-kham-pha-lich-su-co-gi-do-ki-la",
+      "chapter_count": 31,
+      "first_chapter": 15382727,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 50950
+    },
+    {
+      "id": 115036,
+      "name": "Đại Nam Quỷ Kí",
+      "slug": "dai-nam-quy-ki",
+      "chapter_count": 40,
+      "first_chapter": 15433497,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 64611
+    },
+    {
+      "id": 114157,
+      "name": "Hạt Giống Vũ Trụ",
+      "slug": "hat-giong-vu-tru",
+      "chapter_count": 42,
+      "first_chapter": 15220030,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 97712
+    },
+    {
+      "id": 109125,
+      "name": "Thẻ Bài Sinh Tử",
+      "slug": "the-bai-sinh-tu",
+      "chapter_count": 17,
+      "first_chapter": 14412554,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 25295
+    },
+    {
+      "id": 111765,
+      "name": "Minecraft: Thế Giới Sinh Tồn",
+      "slug": "minecraft-the-gioi-sinh-ton",
+      "chapter_count": 31,
+      "first_chapter": 14605607,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 50638
+    },
+    {
+      "id": 109958,
+      "name": "Hạnh Phúc Đơn Độc",
+      "slug": "hanh-phuc-don-doc",
+      "chapter_count": 59,
+      "first_chapter": 14208059,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 106674
+    },
+    {
+      "id": 109557,
+      "name": "Đại Cồ Việt Nhất Thống Chí",
+      "slug": "thach-sanh-dien-nghia",
+      "chapter_count": 21,
+      "first_chapter": 14098705,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 59682
+    },
+    {
+      "id": 110421,
+      "name": "Linh Dị: Tiểu Nhân Vật Hung Mãnh.",
+      "slug": "linh-di-tieu-nhan-vat-hung-manh",
+      "chapter_count": 15,
+      "first_chapter": 14295190,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 22979
+    },
+    {
+      "id": 105477,
+      "name": "Thu Nhập Và Thanh Toán",
+      "slug": "test-poster",
+      "chapter_count": 5,
+      "first_chapter": 14189171,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 772
+    },
+    {
+      "id": 109008,
+      "name": "Batman: Chuyển Vị",
+      "slug": "batman-chuyen-vi",
+      "chapter_count": 10,
+      "first_chapter": 13966135,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 15932
+    },
+    {
+      "id": 106124,
+      "name": "Định Mệnh",
+      "slug": "dinh-menh",
+      "chapter_count": 65,
+      "first_chapter": 13250966,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 173595
+    },
+    {
+      "id": 105511,
+      "name": "Pokemon: Thứ Này Nhìn Quen Quen",
+      "slug": "pokemon-thu-nay-nhin-quen-quen",
+      "chapter_count": 27,
+      "first_chapter": 13085680,
+      "status": "Hoàn thành",
+      "kind": 2,
+      "sex": 1,
+      "word_count": 45486
+    }
+  ],
+  "partial": [
+    {
+      "id": 102459,
+      "name": "Huyết Họa Tu Chân Giới",
+      "chapter_count": 4112,
+      "first_chapter": 13511941,
+      "local": 1542,
+      "gap": 2570
+    },
+    {
+      "id": 122222,
+      "name": "Thượng Thương Chi Hạ: Tuyên Cổ Đệ Nhất Tiên",
+      "chapter_count": 922,
+      "first_chapter": 17123734,
+      "local": 80,
+      "gap": 842
+    },
+    {
+      "id": 127016,
+      "name": "Mỹ Thực Gia Tại Tu Tiên Giới",
+      "chapter_count": 662,
+      "first_chapter": 18138201,
+      "local": 77,
+      "gap": 585
+    },
+    {
+      "id": 110675,
+      "name": "Dị Nhân Đại Náo Tu Tiên Giới",
+      "chapter_count": 669,
+      "first_chapter": 14393436,
+      "local": 135,
+      "gap": 534
+    },
+    {
+      "id": 106194,
+      "name": "Bát Long Quy Nguyên Truyện",
+      "chapter_count": 1131,
+      "first_chapter": 13542483,
+      "local": 679,
+      "gap": 452
+    },
+    {
+      "id": 149581,
+      "name": "1854",
+      "chapter_count": 829,
+      "first_chapter": 25366885,
+      "local": 770,
+      "gap": 59
+    },
+    {
+      "id": 133257,
+      "name": "Dị Giới Thương Nhân",
+      "chapter_count": 459,
+      "first_chapter": 19651800,
+      "local": 428,
+      "gap": 31
+    },
+    {
+      "id": 153168,
+      "name": "Thiên Tà",
+      "chapter_count": 30,
+      "first_chapter": 26893954,
+      "local": 10,
+      "gap": 20
+    },
+    {
+      "id": 119345,
+      "name": "Game Mới Cập Nhật, Ta Đem Sư Phụ Đi Gặp Người Yêu Cũ !?",
+      "chapter_count": 506,
+      "first_chapter": 16473593,
+      "local": 490,
+      "gap": 16
+    },
+    {
+      "id": 111111,
+      "name": "Từ Arknights Bắt  Đầu Xây Dựng Thế Lực",
+      "chapter_count": 231,
+      "first_chapter": 15433850,
+      "local": 218,
+      "gap": 13
+    },
+    {
+      "id": 121958,
+      "name": "Học Đường Rực Cháy",
+      "chapter_count": 125,
+      "first_chapter": 17061751,
+      "local": 112,
+      "gap": 13
+    },
+    {
+      "id": 140878,
+      "name": "Marvel: Ta Là Tiểu Chiến Sỹ Họ Stark",
+      "chapter_count": 129,
+      "first_chapter": 22239928,
+      "local": 122,
+      "gap": 7
+    },
+    {
+      "id": 129139,
+      "name": "Tam Quốc : Từ Giao Châu Bắt Đầu",
+      "chapter_count": 276,
+      "first_chapter": 18622095,
+      "local": 270,
+      "gap": 6
+    },
+    {
+      "id": 139039,
+      "name": "Đấu La: Khí Vận Chi Nữ? Cơ Duyên? Tất Cả Là Của Ta!",
+      "chapter_count": 633,
+      "first_chapter": 21589884,
+      "local": 627,
+      "gap": 6
+    },
+    {
+      "id": 142699,
+      "name": "Thiên Hành",
+      "chapter_count": 42,
+      "first_chapter": 22841282,
+      "local": 36,
+      "gap": 6
+    },
+    {
+      "id": 119569,
+      "name": "Xuyên Về Thời Lê Làm Quân Phiệt",
+      "chapter_count": 1009,
+      "first_chapter": 16519587,
+      "local": 1004,
+      "gap": 5
+    },
+    {
+      "id": 144974,
+      "name": "Cửu Đế",
+      "chapter_count": 57,
+      "first_chapter": 23667792,
+      "local": 52,
+      "gap": 5
+    },
+    {
+      "id": 136693,
+      "name": "Trở Về 1996 Bắt Đầu Từ Chợ Lớn Bán Thịt Heo",
+      "chapter_count": 1199,
+      "first_chapter": 20661257,
+      "local": 1195,
+      "gap": 4
+    },
+    {
+      "id": 115313,
+      "name": "Ngôi Sao Hi Vọng",
+      "chapter_count": 1195,
+      "first_chapter": 15501202,
+      "local": 1191,
+      "gap": 4
+    },
+    {
+      "id": 127250,
+      "name": "Bất Diệt Kinh",
+      "chapter_count": 211,
+      "first_chapter": 18205867,
+      "local": 207,
+      "gap": 4
+    },
+    {
+      "id": 108844,
+      "name": "Hồi Kí Hadidu",
+      "chapter_count": 81,
+      "first_chapter": 13935327,
+      "local": 77,
+      "gap": 4
+    },
+    {
+      "id": 104911,
+      "name": "Dòng Máu Lạc Hồng",
+      "chapter_count": 808,
+      "first_chapter": 13319529,
+      "local": 804,
+      "gap": 4
+    },
+    {
+      "id": 102139,
+      "name": "Thú Tu Thành Thần",
+      "chapter_count": 1487,
+      "first_chapter": 11847989,
+      "local": 1483,
+      "gap": 4
+    },
+    {
+      "id": 140643,
+      "name": "Lãng Nhân: Mỹ Nữ, Mời Tư Vấn",
+      "chapter_count": 712,
+      "first_chapter": 22204525,
+      "local": 709,
+      "gap": 3
+    },
+    {
+      "id": 138424,
+      "name": "Bị Bán Sang Cao Miên, Ta Triệu Hồi Tổ Chức Áo Đen!",
+      "chapter_count": 256,
+      "first_chapter": 21426692,
+      "local": 253,
+      "gap": 3
+    },
+    {
+      "id": 109768,
+      "name": "Ta Mạnh Lên Nhờ Group Chat • Vô Hạn Kĩ Năng ",
+      "chapter_count": 200,
+      "first_chapter": 14155676,
+      "local": 197,
+      "gap": 3
+    },
+    {
+      "id": 118545,
+      "name": "Đại Việt Quỷ Vương",
+      "chapter_count": 357,
+      "first_chapter": 16367031,
+      "local": 354,
+      "gap": 3
+    },
+    {
+      "id": 140101,
+      "name": "Thiên Địa Lưu Tiên",
+      "chapter_count": 167,
+      "first_chapter": 21965544,
+      "local": 165,
+      "gap": 2
+    },
+    {
+      "id": 126924,
+      "name": "Trở Lại 2009 Ta Làm Lại Cuộc Đời",
+      "chapter_count": 1050,
+      "first_chapter": 18112007,
+      "local": 1048,
+      "gap": 2
+    },
+    {
+      "id": 105434,
+      "name": "Vạn Biến Hồn Đế",
+      "chapter_count": 3259,
+      "first_chapter": 13244058,
+      "local": 3257,
+      "gap": 2
+    },
+    {
+      "id": 104758,
+      "name": "Khúc Độc Hành Trong Đêm Trường Tận Thế",
+      "chapter_count": 2607,
+      "first_chapter": 13995474,
+      "local": 2605,
+      "gap": 2
+    },
+    {
+      "id": 122993,
+      "name": "Ma Chủng",
+      "chapter_count": 1455,
+      "first_chapter": 17310347,
+      "local": 1453,
+      "gap": 2
+    },
+    {
+      "id": 139269,
+      "name": "Lan : Khuấy Đảo Cổ Sử",
+      "chapter_count": 133,
+      "first_chapter": 21671528,
+      "local": 131,
+      "gap": 2
+    },
+    {
+      "id": 117300,
+      "name": "Muốn Trường Sinh Trước Hết Phải Đồng Vợ Đồng Chồng ",
+      "chapter_count": 346,
+      "first_chapter": 16008675,
+      "local": 344,
+      "gap": 2
+    },
+    {
+      "id": 119844,
+      "name": "Long Cơ Chiến Hồn",
+      "chapter_count": 751,
+      "first_chapter": 16583283,
+      "local": 749,
+      "gap": 2
+    },
+    {
+      "id": 111117,
+      "name": "Kẻ Thủ Hộ Vũ Trụ",
+      "chapter_count": 720,
+      "first_chapter": 14462826,
+      "local": 718,
+      "gap": 2
+    },
+    {
+      "id": 146629,
+      "name": "May Mắn Xuyên Vào Vũ Trụ Creepypasta",
+      "chapter_count": 92,
+      "first_chapter": 24293050,
+      "local": 91,
+      "gap": 1
+    },
+    {
+      "id": 151448,
+      "name": "Dạng Thức Tâm Trí",
+      "chapter_count": 87,
+      "first_chapter": 26020622,
+      "local": 86,
+      "gap": 1
+    },
+    {
+      "id": 111422,
+      "name": "Thịnh Thế Diên Ninh",
+      "chapter_count": 1493,
+      "first_chapter": 14519068,
+      "local": 1492,
+      "gap": 1
+    },
+    {
+      "id": 110466,
+      "name": "Đế Quốc Nhật Bản",
+      "chapter_count": 403,
+      "first_chapter": 14307401,
+      "local": 402,
+      "gap": 1
+    },
+    {
+      "id": 149126,
+      "name": "Hắc Ám Ẩn Giả.",
+      "chapter_count": 114,
+      "first_chapter": 25251675,
+      "local": 113,
+      "gap": 1
+    },
+    {
+      "id": 108742,
+      "name": "Sắt Thép Ma Pháp",
+      "chapter_count": 965,
+      "first_chapter": 13912333,
+      "local": 964,
+      "gap": 1
+    },
+    {
+      "id": 120335,
+      "name": "Tây Sơn Hành Trình Vượt Thời Gian",
+      "chapter_count": 597,
+      "first_chapter": 16789555,
+      "local": 596,
+      "gap": 1
+    },
+    {
+      "id": 121873,
+      "name": "Xuyên Mộng Giả",
+      "chapter_count": 258,
+      "first_chapter": 17040410,
+      "local": 257,
+      "gap": 1
+    },
+    {
+      "id": 150712,
+      "name": "Ngự Thần Lục",
+      "chapter_count": 47,
+      "first_chapter": 25739738,
+      "local": 46,
+      "gap": 1
+    },
+    {
+      "id": 142470,
+      "name": "Devil'S Path: Quỷ Giới Và Nhẫn Giới",
+      "chapter_count": 322,
+      "first_chapter": 22763310,
+      "local": 321,
+      "gap": 1
+    },
+    {
+      "id": 125841,
+      "name": "Game Thực Tế Ảo: Người Chơi Trọng Sinh",
+      "chapter_count": 1165,
+      "first_chapter": 17912104,
+      "local": 1164,
+      "gap": 1
+    },
+    {
+      "id": 120219,
+      "name": "Lê Dung",
+      "chapter_count": 271,
+      "first_chapter": 16674091,
+      "local": 270,
+      "gap": 1
+    },
+    {
+      "id": 101516,
+      "name": "Quang Minh Bất Diệt, Tín Ngưỡng Vĩnh Hằng",
+      "chapter_count": 915,
+      "first_chapter": 11521364,
+      "local": 914,
+      "gap": 1
+    },
+    {
+      "id": 123608,
+      "name": "Ghế Số 12: Ta Tu Luyện Thành Một Cái Cây, Ngươi Nói Ta Nguy Hiểm?",
+      "chapter_count": 631,
+      "first_chapter": 17470209,
+      "local": 630,
+      "gap": 1
+    },
+    {
+      "id": 126573,
+      "name": "Hướng Dẫn Cơ Bản",
+      "chapter_count": 14,
+      "first_chapter": 18042525,
+      "local": 13,
+      "gap": 1
+    },
+    {
+      "id": 117008,
+      "name": "Chiến Kỳ Phương Nam Dũng Khởi",
+      "chapter_count": 389,
+      "first_chapter": 16669677,
+      "local": 388,
+      "gap": 1
+    },
+    {
+      "id": 104298,
+      "name": "Vô Địch Gian Thương",
+      "chapter_count": 562,
+      "first_chapter": 12786341,
+      "local": 561,
+      "gap": 1
+    },
+    {
+      "id": 100381,
+      "name": "Đế Chế Đại Việt",
+      "chapter_count": 1471,
+      "first_chapter": 10377441,
+      "local": 1470,
+      "gap": 1
+    },
+    {
+      "id": 100316,
+      "name": "Tới Dị Giới Làm Tiểu Bạch Kiểm",
+      "chapter_count": 1215,
+      "first_chapter": 12066062,
+      "local": 1214,
+      "gap": 1
+    },
+    {
+      "id": 102973,
+      "name": "Nhị Thứ Nguyên Thần Tượng Âm Nhạc",
+      "chapter_count": 377,
+      "first_chapter": 10832847,
+      "local": 376,
+      "gap": 1
+    }
+  ]
+}
