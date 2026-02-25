@@ -97,6 +97,7 @@ list_remote_files() {
 # Compares src vs dst by file size, then rsyncs in batches.
 sync_dir() {
   local local_dir="$1" remote_dir="$2" pattern="$3" label="$4"
+  local label_lc; label_lc=$(echo "$label" | tr A-Z a-z)
 
   log "--- ${label} ${DIRECTION} ---"
   log "Local:  ${local_dir}"
@@ -107,17 +108,17 @@ sync_dir() {
 
   # ── Build file lists ──────────────────────────────────────────────────
 
-  log "Building local ${label,,} list..."
+  log "Building local ${label_lc} list..."
   local local_list; local_list=$(mktemp)
   list_local_files "$local_dir" "$pattern" > "$local_list"
   local local_count; local_count=$(wc -l < "$local_list" | tr -d ' ')
-  log "Local ${label,,}: ${local_count}"
+  log "Local ${label_lc}: ${local_count}"
 
-  log "Fetching remote ${label,,} list with sizes..."
+  log "Fetching remote ${label_lc} list with sizes..."
   local remote_list; remote_list=$(mktemp)
   list_remote_files "$remote_dir" "$pattern" > "$remote_list"
   local remote_count; remote_count=$(wc -l < "$remote_list" | tr -d ' ')
-  log "Remote ${label,,}: ${remote_count}"
+  log "Remote ${label_lc}: ${remote_count}"
 
   # ── Diff by size ──────────────────────────────────────────────────────
 
