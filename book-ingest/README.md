@@ -58,6 +58,24 @@ book-ingest (Python, async)
     └─ update book metadata in DB
 ```
 
+## Bundle Format (BLIB v2)
+
+book-ingest writes **BLIB v2** bundles with inline per-chapter metadata. Each chapter's metadata (title, slug, word count) is stored as a fixed-size 256-byte block directly before its compressed data, making each chapter block self-contained. This enables DB recovery from bundles alone if the SQLite database is lost.
+
+See [`binslib/README.md` → Bundle format](../binslib/README.md#bundle-format) for the full binary layout.
+
+Key differences from v1:
+
+| | v1 | v2 |
+|---|---|---|
+| Header size | 12 bytes | 16 bytes (adds `meta_entry_size` field) |
+| Version field | `1` | `2` |
+| Chapter block | compressed data only | 256B metadata prefix + compressed data |
+| Read single chapter | `seek(offset)` | `seek(offset + 256)` |
+| DB recovery from bundle | Not possible | Read metadata blocks without decompressing |
+
+Existing v1 bundles remain readable — all readers accept both versions.
+
 ## File Paths
 
 | Resource | Path |

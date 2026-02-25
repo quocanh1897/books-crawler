@@ -91,24 +91,70 @@ Chapter bodies are stored in **per-book bundle files** on disk, not in the datab
 
 ### Bundle format
 
-The `.bundle` binary format (little-endian):
+The `.bundle` binary format (BLIB, little-endian) has two versions. Readers accept both; new writes use v2.
+
+#### v1 header (12 bytes)
 
 | Offset | Size | Field |
-|---|---|---|
+|--------|------|-------|
 | 0 | 4 | Magic bytes `BLIB` |
-| 4 | 4 | Version (uint32, currently `1`) |
+| 4 | 4 | Version (uint32, `1`) |
 | 8 | 4 | Entry count N (uint32) |
-| 12 | N × 16 | Index entries (sorted by chapter index) |
-| 12 + N×16 | variable | Concatenated zstd-compressed chapter data |
 
-Each 16-byte index entry:
+#### v2 header (16 bytes)
 
 | Offset | Size | Field |
-|---|---|---|
+|--------|------|-------|
+| 0 | 4 | Magic bytes `BLIB` |
+| 4 | 4 | Version (uint32, `2`) |
+| 8 | 4 | Entry count N (uint32) |
+| 12 | 2 | Meta entry size M (uint16, `256`) |
+| 14 | 2 | Reserved (uint16, `0`) |
+
+#### Index entries (N × 16 bytes, both versions)
+
+| Offset | Size | Field |
+|--------|------|-------|
 | 0 | 4 | Chapter index number (uint32) |
-| 4 | 4 | Data offset from file start (uint32) |
-| 8 | 4 | Compressed data length (uint32) |
+| 4 | 4 | Block offset from file start (uint32) |
+| 8 | 4 | Compressed data length (uint32, excludes metadata prefix) |
 | 12 | 4 | Uncompressed data length (uint32) |
+
+#### Chapter blocks
+
+In **v1**, each block offset points directly to compressed data:
+
+```
+[compressedLen bytes] zstd-compressed chapter text
+```
+
+In **v2**, each block offset points to a fixed-size metadata prefix followed by compressed data:
+
+```
+[M bytes]             per-chapter metadata (256B, zero-padded)
+[compressedLen bytes] zstd-compressed chapter text
+```
+
+The 256-byte metadata block layout:
+
+| Offset | Size | Field |
+|--------|------|-------|
+| 0 | 4 | `word_count` (uint32) |
+| 4 | 1 | `title_len` (uint8, max 200) |
+| 5 | 200 | `title` (UTF-8, zero-padded) |
+| 205 | 1 | `slug_len` (uint8, max 48) |
+| 206 | 48 | `slug` (UTF-8, zero-padded) |
+| 254 | 2 | Reserved (zero) |
+
+#### Read paths
+
+| Operation | v1 | v2 |
+|-----------|----|----|
+| Chapter data | `seek(offset)`, `read(compressedLen)` | `seek(offset + M)`, `read(compressedLen)` |
+| Chapter meta | N/A | `seek(offset)`, `read(M)` |
+| All indices | 12B header + N×16B index | 16B header + N×16B index |
+
+The per-chapter metadata enables DB recovery from bundles alone (if the SQLite DB is lost, chapter titles/slugs/word counts can be reconstructed by scanning the metadata blocks). The overhead is 256 bytes per chapter (~512KB for a 2000-chapter book, ~6% of a typical bundle).
 
 This reduces file count from millions of individual `.zst` files to one `.bundle` per book, eliminating filesystem overhead and dramatically improving I/O performance on both NTFS and ext4.
 

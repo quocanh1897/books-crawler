@@ -1,11 +1,11 @@
 /**
- * Chapter Storage Module — Per-book Bundle Format
+ * Chapter Storage Module — Per-book Bundle Format (BLIB v1 & v2)
  *
  * Stores all chapters for a book in a single binary bundle file instead of
  * individual .zst files per chapter. This reduces file count from millions
  * to thousands, eliminating filesystem overhead and improving I/O performance.
  *
- * Bundle format (little-endian):
+ * v1 format (little-endian, 12-byte header):
  *   [4 bytes]  magic: "BLIB"
  *   [4 bytes]  uint32: version (1)
  *   [4 bytes]  uint32: entry count (N)
@@ -16,12 +16,29 @@
  *     [4 bytes] uint32: uncompressed data length
  *   [variable] concatenated zstd-compressed chapter bodies
  *
+ * v2 format (little-endian, 16-byte header):
+ *   [4 bytes]  magic: "BLIB"
+ *   [4 bytes]  uint32: version (2)
+ *   [4 bytes]  uint32: entry count (N)
+ *   [2 bytes]  uint16: meta entry size M (256)
+ *   [2 bytes]  uint16: reserved (0)
+ *   [N × 16 bytes] index entries (sorted by chapter index):
+ *     [4 bytes] uint32: chapter index number
+ *     [4 bytes] uint32: block offset (from file start, points to meta+data)
+ *     [4 bytes] uint32: compressed data length (excludes metadata prefix)
+ *     [4 bytes] uint32: uncompressed data length
+ *   Per chapter block (at block offset):
+ *     [M bytes] fixed-size metadata (title, slug, word_count — zero-padded)
+ *     [variable] zstd-compressed chapter body
+ *
+ * Readers accept both v1 and v2.  New writes always produce v2.
+ *
  * Legacy support:
  *   Reads fall back to individual .zst/.gz files if no bundle exists,
  *   enabling gradual migration from the old per-file storage format.
  *
  * File layout:
- *   data/compressed/{book_id}.bundle    — new bundle format (one file per book)
+ *   data/compressed/{book_id}.bundle    — bundle format (one file per book)
  *   data/compressed/{book_id}/          — legacy individual files
  *     {index}.txt.zst
  *     {index}.txt.gz
@@ -45,9 +62,12 @@ const DICT_PATH = path.resolve(
 // ─── Bundle format constants ─────────────────────────────────────────────────
 
 const BUNDLE_MAGIC = Buffer.from("BLIB");
-const BUNDLE_VERSION = 1;
-const BUNDLE_HEADER_SIZE = 12; // magic(4) + version(4) + count(4)
+const BUNDLE_VERSION_1 = 1;
+const BUNDLE_VERSION_2 = 2;
+const BUNDLE_HEADER_SIZE_V1 = 12; // magic(4) + version(4) + count(4)
+const BUNDLE_HEADER_SIZE_V2 = 16; // magic(4) + version(4) + count(4) + metaSize(2) + reserved(2)
 const BUNDLE_ENTRY_SIZE = 16; // indexNum(4) + offset(4) + compLen(4) + rawLen(4)
+const META_ENTRY_SIZE = 256; // fixed per-chapter metadata block size for v2
 
 // ─── Compressor / Decompressor singletons ────────────────────────────────────
 
@@ -79,8 +99,8 @@ function getDecompressor(): Decompressor {
 
 interface BundleEntry {
   indexNum: number;
-  offset: number;
-  compressedLen: number;
+  offset: number; // v1: points to compressed data; v2: points to meta+data block
+  compressedLen: number; // compressed data length (excludes metadata prefix)
   uncompressedLen: number;
 }
 
@@ -89,6 +109,8 @@ interface BundleIndex {
   mtime: number;
   entries: Map<number, BundleEntry>;
   sortedIndices: number[];
+  metaEntrySize: number; // 0 for v1, META_ENTRY_SIZE for v2
+  headerSize: number; // 12 for v1, 16 for v2
 }
 
 const INDEX_CACHE_MAX = 128;
@@ -155,15 +177,23 @@ function readBundleIndex(bookId: number): BundleIndex | null {
 
   try {
     const stat = fs.fstatSync(fd);
-    if (stat.size < BUNDLE_HEADER_SIZE) return null;
+    if (stat.size < BUNDLE_HEADER_SIZE_V1) return null;
 
-    // Read header
-    const headerBuf = Buffer.alloc(BUNDLE_HEADER_SIZE);
-    fs.readSync(fd, headerBuf, 0, BUNDLE_HEADER_SIZE, 0);
+    // Read max header size (v2 = 16 bytes; v1 = 12 bytes fits inside)
+    const headerBuf = Buffer.alloc(BUNDLE_HEADER_SIZE_V2);
+    fs.readSync(fd, headerBuf, 0, BUNDLE_HEADER_SIZE_V2, 0);
 
     if (!headerBuf.subarray(0, 4).equals(BUNDLE_MAGIC)) return null;
     const version = headerBuf.readUInt32LE(4);
-    if (version !== BUNDLE_VERSION) return null;
+    if (version !== BUNDLE_VERSION_1 && version !== BUNDLE_VERSION_2)
+      return null;
+
+    const isV2 = version === BUNDLE_VERSION_2;
+    const headerSize = isV2 ? BUNDLE_HEADER_SIZE_V2 : BUNDLE_HEADER_SIZE_V1;
+    const metaEntrySize = isV2 ? headerBuf.readUInt16LE(12) : 0;
+
+    if (stat.size < headerSize) return null;
+
     const count = headerBuf.readUInt32LE(8);
     if (count === 0) {
       // Valid but empty bundle
@@ -172,6 +202,8 @@ function readBundleIndex(bookId: number): BundleIndex | null {
         mtime: stat.mtimeMs,
         entries: new Map(),
         sortedIndices: [],
+        metaEntrySize,
+        headerSize,
       };
       invalidateBookCache(bookId);
       indexCache.set(bookId, bi);
@@ -181,11 +213,11 @@ function readBundleIndex(bookId: number): BundleIndex | null {
     }
 
     const indexBufSize = count * BUNDLE_ENTRY_SIZE;
-    if (stat.size < BUNDLE_HEADER_SIZE + indexBufSize) return null;
+    if (stat.size < headerSize + indexBufSize) return null;
 
     // Read index section
     const indexBuf = Buffer.alloc(indexBufSize);
-    fs.readSync(fd, indexBuf, 0, indexBufSize, BUNDLE_HEADER_SIZE);
+    fs.readSync(fd, indexBuf, 0, indexBufSize, headerSize);
 
     const entries = new Map<number, BundleEntry>();
     const sortedIndices: number[] = [];
@@ -207,6 +239,8 @@ function readBundleIndex(bookId: number): BundleIndex | null {
       mtime: stat.mtimeMs,
       entries,
       sortedIndices,
+      metaEntrySize,
+      headerSize,
     };
 
     // Populate cache
@@ -233,7 +267,9 @@ function readFromBundle(bookId: number, indexNum: number): string | null {
   const fd = fs.openSync(bi.filePath, "r");
   try {
     const buf = Buffer.alloc(entry.compressedLen);
-    fs.readSync(fd, buf, 0, entry.compressedLen, entry.offset);
+    // v2: offset points to meta+data block; skip metadata prefix to reach data
+    const dataOffset = entry.offset + bi.metaEntrySize;
+    fs.readSync(fd, buf, 0, entry.compressedLen, dataOffset);
     return getDecompressor().decompress(buf).toString("utf-8");
   } finally {
     fs.closeSync(fd);
@@ -244,8 +280,11 @@ function readFromBundle(bookId: number, indexNum: number): string | null {
 
 function readAllBundleRaw(
   bookId: number,
-): Map<number, { compressed: Buffer; rawLen: number }> {
-  const result = new Map<number, { compressed: Buffer; rawLen: number }>();
+): Map<number, { compressed: Buffer; rawLen: number; metaBlock?: Buffer }> {
+  const result = new Map<
+    number,
+    { compressed: Buffer; rawLen: number; metaBlock?: Buffer }
+  >();
   const bp = bundlePath(bookId);
 
   let fileBuf: Buffer;
@@ -255,26 +294,42 @@ function readAllBundleRaw(
     return result;
   }
 
-  if (fileBuf.length < BUNDLE_HEADER_SIZE) return result;
+  if (fileBuf.length < BUNDLE_HEADER_SIZE_V1) return result;
   if (!fileBuf.subarray(0, 4).equals(BUNDLE_MAGIC)) return result;
-  if (fileBuf.readUInt32LE(4) !== BUNDLE_VERSION) return result;
+
+  const version = fileBuf.readUInt32LE(4);
+  if (version !== BUNDLE_VERSION_1 && version !== BUNDLE_VERSION_2)
+    return result;
+
+  const isV2 = version === BUNDLE_VERSION_2;
+  const headerSize = isV2 ? BUNDLE_HEADER_SIZE_V2 : BUNDLE_HEADER_SIZE_V1;
+  const metaEntrySize = isV2 ? fileBuf.readUInt16LE(12) : 0;
 
   const count = fileBuf.readUInt32LE(8);
-  const indexEnd = BUNDLE_HEADER_SIZE + count * BUNDLE_ENTRY_SIZE;
+  const indexEnd = headerSize + count * BUNDLE_ENTRY_SIZE;
   if (fileBuf.length < indexEnd) return result;
 
   for (let i = 0; i < count; i++) {
-    const base = BUNDLE_HEADER_SIZE + i * BUNDLE_ENTRY_SIZE;
+    const base = headerSize + i * BUNDLE_ENTRY_SIZE;
     const indexNum = fileBuf.readUInt32LE(base);
     const offset = fileBuf.readUInt32LE(base + 4);
     const compLen = fileBuf.readUInt32LE(base + 8);
     const rawLen = fileBuf.readUInt32LE(base + 12);
 
-    if (offset + compLen <= fileBuf.length) {
+    const dataOffset = offset + metaEntrySize;
+    if (dataOffset + compLen <= fileBuf.length) {
       // Copy the slice so the large fileBuf can be GC'd
       const compressed = Buffer.alloc(compLen);
-      fileBuf.copy(compressed, 0, offset, offset + compLen);
-      result.set(indexNum, { compressed, rawLen });
+      fileBuf.copy(compressed, 0, dataOffset, dataOffset + compLen);
+
+      // Preserve metadata block for round-trip (v2 only)
+      let metaBlock: Buffer | undefined;
+      if (metaEntrySize > 0 && offset + metaEntrySize <= fileBuf.length) {
+        metaBlock = Buffer.alloc(metaEntrySize);
+        fileBuf.copy(metaBlock, 0, offset, offset + metaEntrySize);
+      }
+
+      result.set(indexNum, { compressed, rawLen, metaBlock });
     }
   }
 
@@ -330,37 +385,48 @@ function listLegacyChapters(bookId: number): number[] {
  */
 export function writeBookBundleRaw(
   bookId: number,
-  chapters: Map<number, { compressed: Buffer; rawLen: number }>,
+  chapters: Map<
+    number,
+    { compressed: Buffer; rawLen: number; metaBlock?: Buffer }
+  >,
 ): void {
   if (chapters.size === 0) return;
 
   fs.mkdirSync(CHAPTERS_DIR, { recursive: true });
 
+  // Always write v2 format
+  const headerSize = BUNDLE_HEADER_SIZE_V2;
+  const metaSize = META_ENTRY_SIZE;
+
   // Sort entries by chapter index
   const sorted = [...chapters.entries()].sort((a, b) => a[0] - b[0]);
   const count = sorted.length;
-  const dataStart = BUNDLE_HEADER_SIZE + count * BUNDLE_ENTRY_SIZE;
+  const dataStart = headerSize + count * BUNDLE_ENTRY_SIZE;
 
-  // Compute data offsets
+  // Compute block offsets (each block = metaSize + compressedLen)
   interface LayoutEntry {
     indexNum: number;
-    offset: number;
+    blockOffset: number; // points to start of meta+data block
     compLen: number;
     rawLen: number;
     compressed: Buffer;
+    metaBlock: Buffer; // META_ENTRY_SIZE bytes (preserved or zero-filled)
   }
   const layout: LayoutEntry[] = [];
   let cursor = dataStart;
+  const emptyMeta = Buffer.alloc(metaSize);
 
-  for (const [indexNum, { compressed, rawLen }] of sorted) {
+  for (const [indexNum, { compressed, rawLen, metaBlock }] of sorted) {
     layout.push({
       indexNum,
-      offset: cursor,
+      blockOffset: cursor,
       compLen: compressed.length,
       rawLen,
       compressed,
+      metaBlock:
+        metaBlock && metaBlock.length === metaSize ? metaBlock : emptyMeta,
     });
-    cursor += compressed.length;
+    cursor += metaSize + compressed.length;
   }
 
   const totalSize = cursor;
@@ -368,24 +434,27 @@ export function writeBookBundleRaw(
   // Assemble the file
   const buf = Buffer.alloc(totalSize);
 
-  // Header
+  // v2 header: magic + version + count + metaEntrySize + reserved
   BUNDLE_MAGIC.copy(buf, 0);
-  buf.writeUInt32LE(BUNDLE_VERSION, 4);
+  buf.writeUInt32LE(BUNDLE_VERSION_2, 4);
   buf.writeUInt32LE(count, 8);
+  buf.writeUInt16LE(metaSize, 12);
+  buf.writeUInt16LE(0, 14); // reserved
 
   // Index entries
   for (let i = 0; i < layout.length; i++) {
-    const base = BUNDLE_HEADER_SIZE + i * BUNDLE_ENTRY_SIZE;
+    const base = headerSize + i * BUNDLE_ENTRY_SIZE;
     const e = layout[i];
     buf.writeUInt32LE(e.indexNum, base);
-    buf.writeUInt32LE(e.offset, base + 4);
+    buf.writeUInt32LE(e.blockOffset, base + 4);
     buf.writeUInt32LE(e.compLen, base + 8);
     buf.writeUInt32LE(e.rawLen, base + 12);
   }
 
-  // Chapter data
+  // Chapter blocks: metadata prefix + compressed data
   for (const e of layout) {
-    e.compressed.copy(buf, e.offset);
+    e.metaBlock.copy(buf, e.blockOffset);
+    e.compressed.copy(buf, e.blockOffset + metaSize);
   }
 
   // Atomic write: temp file → rename
@@ -424,7 +493,10 @@ export function writeBookBundleRaw(
  *   const count = writer.flush();
  */
 export class BundleWriter {
-  private chapters = new Map<number, { compressed: Buffer; rawLen: number }>();
+  private chapters = new Map<
+    number,
+    { compressed: Buffer; rawLen: number; metaBlock?: Buffer }
+  >();
 
   constructor(
     private bookId: number,
@@ -507,7 +579,7 @@ export function writeChapterBody(
   const raw = Buffer.from(body, "utf-8");
   const compressedBuf = getCompressor().compress(raw);
 
-  // Read-modify-write the bundle
+  // Read-modify-write the bundle (preserves existing metadata blocks)
   const existing = readAllBundleRaw(bookId);
   existing.set(indexNum, { compressed: compressedBuf, rawLen: raw.length });
   writeBookBundleRaw(bookId, existing);

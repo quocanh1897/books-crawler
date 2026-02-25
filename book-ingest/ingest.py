@@ -10,6 +10,7 @@ Usage:
     python3 ingest.py --audit-only              # audit mode: report missing, no downloads
     python3 ingest.py --dry-run                 # simulate only
 """
+
 from __future__ import annotations
 
 import argparse
@@ -32,9 +33,14 @@ from rich.progress import (
     TimeElapsedColumn,
     TimeRemainingColumn,
 )
-
 from src.api import APIError, AsyncBookClient, decrypt_chapter
-from src.bundle import read_bundle_indices, read_bundle_raw, write_bundle
+from src.bundle import (
+    ChapterMeta,
+    read_bundle_indices,
+    read_bundle_meta,
+    read_bundle_raw,
+    write_bundle,
+)
 from src.compress import ChapterCompressor
 from src.cover import download_cover
 from src.db import (
@@ -141,7 +147,9 @@ async def run_audit(entries: list[dict], client: AsyncBookClient) -> None:
 
     total = len(entries)
     complete = 0
-    missing_chapters: list[tuple[int, str, int, int, int]] = []  # (id, name, bundle, api, missing)
+    missing_chapters: list[
+        tuple[int, str, int, int, int]
+    ] = []  # (id, name, bundle, api, missing)
     not_in_db = 0
     missing_covers = 0
 
@@ -218,12 +226,14 @@ async def run_audit(entries: list[dict], client: AsyncBookClient) -> None:
     if len(missing_chapters) > 20:
         report_lines.append(f"    ... and {len(missing_chapters) - 20} more")
 
-    report_lines.extend([
-        f"  Books not in DB:             {format_num(not_in_db):>8}",
-        f"  Books missing covers:        {format_num(missing_covers):>8}",
-        "  " + "─" * 40,
-        "",
-    ])
+    report_lines.extend(
+        [
+            f"  Books not in DB:             {format_num(not_in_db):>8}",
+            f"  Books missing covers:        {format_num(missing_covers):>8}",
+            "  " + "─" * 40,
+            "",
+        ]
+    )
 
     report_text = "\n".join(report_lines)
     console.print(report_text)
@@ -302,12 +312,35 @@ async def ingest_book(
             try:
                 existing_hash = get_book_meta_hash(db, book_id)
                 meta_hash = compute_meta_hash(meta)
-                if existing_hash != meta_hash:
-                    # Update metadata only
-                    db_indices = get_chapter_indices(db, book_id)
+                db_indices = get_chapter_indices(db, book_id)
+                missing_in_db = bundle_indices - db_indices
+                need_meta_update = existing_hash != meta_hash
+
+                if need_meta_update:
                     upsert_book_metadata(db, meta, None, len(bundle_indices), meta_hash)
+
+                # Recover missing chapter rows from v2 bundle metadata
+                if missing_in_db:
+                    bundle_ch_meta = read_bundle_meta(bundle_path)
+                    recover = {
+                        idx: (m.title, m.slug, m.word_count)
+                        for idx, m in bundle_ch_meta.items()
+                        if idx in missing_in_db and m.title
+                    }
+                    if recover:
+                        insert_chapters(db, book_id, recover)
+                        log_detail(
+                            f'RECOVER {book_id} "{book_name}": '
+                            f"{len(recover)} chapter rows from bundle metadata"
+                        )
+
+                if need_meta_update or missing_in_db:
                     db.commit()
-                    log_detail(f"META {book_id} \"{book_name}\": metadata updated (chapters complete)")
+
+                if need_meta_update and not missing_in_db:
+                    log_detail(
+                        f'META {book_id} "{book_name}": metadata updated (chapters complete)'
+                    )
             finally:
                 db.close()
 
@@ -343,19 +376,19 @@ async def ingest_book(
         return stats
 
     if not first_chapter:
-        log_detail(f"SKIP {book_id} \"{book_name}\": no first_chapter")
+        log_detail(f'SKIP {book_id} "{book_name}": no first_chapter')
         stats["errors"] = -1
         return stats
 
     if dry_run:
         remaining = api_chapter_count - len(existing)
-        log_detail(f"DRY-RUN {book_id} \"{book_name}\": would fetch {remaining} chapters")
+        log_detail(f'DRY-RUN {book_id} "{book_name}": would fetch {remaining} chapters')
         stats["saved"] = remaining
         return stats
 
     # 3. Walk chapter linked list
     log_detail(
-        f"START {book_id} \"{book_name}\": {api_chapter_count} total, "
+        f'START {book_id} "{book_name}": {api_chapter_count} total, '
         f"{len(existing)} existing, ~{api_chapter_count - len(existing)} to fetch"
     )
 
@@ -420,9 +453,7 @@ async def ingest_book(
 
     # 4. Final flush
     if pending_chapters:
-        await _flush_checkpoint(
-            db_path, book_id, bundle_path, pending_chapters, lock
-        )
+        await _flush_checkpoint(db_path, book_id, bundle_path, pending_chapters, lock)
         pending_chapters.clear()
 
     # 5. Update book metadata in DB
@@ -446,7 +477,7 @@ async def ingest_book(
     elapsed = time.time() - start_time
     rate = stats["saved"] / elapsed if elapsed > 0 else 0
     log_detail(
-        f"DONE {book_id} \"{book_name}\": +{stats['saved']} chapters "
+        f'DONE {book_id} "{book_name}": +{stats["saved"]} chapters '
         f"({total_saved} total), {stats['errors']} errors, "
         f"{elapsed:.0f}s ({rate:.1f}/s)"
         f"{', cover OK' if stats['cover'] else ''}"
@@ -462,34 +493,38 @@ async def _flush_checkpoint(
     pending: dict[int, tuple[bytes, int, str, str, int]],
     lock: asyncio.Lock,
 ) -> None:
-    """Commit pending chapters to DB and merge into bundle.
+    """Commit pending chapters to DB and merge into v2 bundle.
 
     DB transaction commits first; bundle flush follows.
     """
-    # Prepare chapter metadata for DB
-    ch_meta: dict[int, tuple[str, str, int]] = {}
+    # Prepare chapter metadata for DB (title, slug, word_count tuples)
+    ch_db_meta: dict[int, tuple[str, str, int]] = {}
     for idx, (_, _, title, slug, wc) in pending.items():
-        ch_meta[idx] = (title, slug, wc)
+        ch_db_meta[idx] = (title, slug, wc)
 
-    # Prepare compressed data for bundle
+    # Prepare compressed data + inline metadata for v2 bundle
     ch_data: dict[int, tuple[bytes, int]] = {}
-    for idx, (compressed, raw_len, _, _, _) in pending.items():
+    ch_bundle_meta: dict[int, ChapterMeta] = {}
+    for idx, (compressed, raw_len, title, slug, wc) in pending.items():
         ch_data[idx] = (compressed, raw_len)
+        ch_bundle_meta[idx] = ChapterMeta(word_count=wc, title=title, slug=slug)
 
     async with lock:
         # DB commit
         db = open_db(db_path)
         try:
-            insert_chapters(db, book_id, ch_meta)
+            insert_chapters(db, book_id, ch_db_meta)
             db.commit()
         finally:
             db.close()
 
     # Bundle merge + write (can run outside lock — file is per-book)
     def _merge_and_write():
-        existing_bundle = read_bundle_raw(bundle_path)
-        existing_bundle.update(ch_data)
-        write_bundle(bundle_path, existing_bundle)
+        existing_data = read_bundle_raw(bundle_path)
+        existing_meta = read_bundle_meta(bundle_path)
+        existing_data.update(ch_data)
+        existing_meta.update(ch_bundle_meta)
+        write_bundle(bundle_path, existing_data, existing_meta)
 
     await asyncio.to_thread(_merge_and_write)
 
@@ -559,12 +594,8 @@ async def run_ingest(
         TimeRemainingColumn(),
         console=console,
     ) as progress:
-        book_task = progress.add_task(
-            "[cyan]Books", total=total_books
-        )
-        chapter_task = progress.add_task(
-            "[green]Chapters", total=max(est_chapters, 1)
-        )
+        book_task = progress.add_task("[cyan]Books", total=total_books)
+        chapter_task = progress.add_task("[green]Chapters", total=max(est_chapters, 1))
 
         async def worker():
             nonlocal total_saved, total_skipped, total_errors, total_covers
@@ -668,7 +699,8 @@ def parse_args() -> argparse.Namespace:
         help="Specific book IDs to ingest (overrides plan file)",
     )
     parser.add_argument(
-        "-w", "--workers",
+        "-w",
+        "--workers",
         type=int,
         default=5,
         help="Number of parallel workers (default: 5)",

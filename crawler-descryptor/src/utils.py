@@ -17,9 +17,12 @@ BINSLIB_COMPRESSED_DIR = os.path.join(
 # ─── BLIB bundle format constants (must match chapter-storage.ts) ─────────────
 
 _BUNDLE_MAGIC = b"BLIB"
-_BUNDLE_HEADER_SIZE = 12  # magic(4) + version(4) + count(4)
+_BUNDLE_HEADER_SIZE_V1 = 12  # magic(4) + version(4) + count(4)
+_BUNDLE_HEADER_SIZE_V2 = (
+    16  # magic(4) + version(4) + count(4) + metaSize(2) + reserved(2)
+)
 _BUNDLE_ENTRY_SIZE = 16  # indexNum(4) + offset(4) + compLen(4) + rawLen(4)
-_BUNDLE_SUPPORTED_VERSION = 1
+_BUNDLE_SUPPORTED_VERSIONS = (1, 2)
 
 
 def get_output_dir(book_id: int) -> str:
@@ -69,8 +72,8 @@ def read_bundle_indices(book_id: int) -> set[int]:
         return set()
 
     try:
-        hdr = os.read(fd, _BUNDLE_HEADER_SIZE)
-        if len(hdr) < _BUNDLE_HEADER_SIZE:
+        hdr = os.read(fd, _BUNDLE_HEADER_SIZE_V2)
+        if len(hdr) < _BUNDLE_HEADER_SIZE_V1:
             return set()
 
         magic = hdr[:4]
@@ -78,12 +81,16 @@ def read_bundle_indices(book_id: int) -> set[int]:
             return set()
 
         version = struct.unpack_from("<I", hdr, 4)[0]
-        if version != _BUNDLE_SUPPORTED_VERSION:
+        if version not in _BUNDLE_SUPPORTED_VERSIONS:
             return set()
 
         count = struct.unpack_from("<I", hdr, 8)[0]
         if count == 0:
             return set()
+
+        # v1: index starts at byte 12; v2: at byte 16
+        header_size = _BUNDLE_HEADER_SIZE_V2 if version == 2 else _BUNDLE_HEADER_SIZE_V1
+        os.lseek(fd, header_size, os.SEEK_SET)
 
         idx_buf = os.read(fd, count * _BUNDLE_ENTRY_SIZE)
         if len(idx_buf) < count * _BUNDLE_ENTRY_SIZE:
