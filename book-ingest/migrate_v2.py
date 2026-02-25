@@ -37,6 +37,7 @@ import os
 import struct
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 from rich.console import Console
@@ -70,7 +71,31 @@ BINSLIB_DIR = SCRIPT_DIR.parent / "binslib"
 COMPRESSED_DIR = BINSLIB_DIR / "data" / "compressed"
 DB_PATH = BINSLIB_DIR / "data" / "binslib.db"
 
+LOG_DIR = SCRIPT_DIR / "data"
+DETAIL_LOG = LOG_DIR / "migrate-v2-detail.log"
+
 console = Console()
+
+
+def timestamp() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def format_duration(seconds: float) -> str:
+    s = int(seconds)
+    if s < 60:
+        return f"{s}s"
+    m, sec = divmod(s, 60)
+    if m < 60:
+        return f"{m}m {sec}s"
+    h, m = divmod(m, 60)
+    return f"{h}h {m}m {sec}s"
+
+
+def log_detail(msg: str) -> None:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    with open(DETAIL_LOG, "a") as f:
+        f.write(f"[{timestamp()}] {msg}\n")
 
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -159,11 +184,13 @@ def migrate_local(
                 raw_data = read_bundle_raw(bundle_path)
                 if not raw_data:
                     stats["skipped_no_data"] += 1
+                    log_detail(f"SKIP {book_id}: empty bundle")
                     progress.advance(task)
                     continue
 
                 # Get metadata from DB
                 db_meta = get_db_chapter_meta(db_path, book_id)
+                db_hits = sum(1 for idx in raw_data if idx in db_meta)
 
                 # Build ChapterMeta for each chapter
                 meta: dict[int, ChapterMeta] = {}
@@ -180,8 +207,13 @@ def migrate_local(
                     write_bundle(bundle_path, raw_data, meta)
 
                 stats["migrated"] += 1
+                log_detail(
+                    f"MIGRATE {book_id}: {len(raw_data)} chapters, "
+                    f"{db_hits}/{len(raw_data)} with DB metadata"
+                )
             except Exception as e:
                 console.print(f"  [red]ERROR[/red] {book_id}: {e}")
+                log_detail(f"ERROR {book_id}: {e}")
                 stats["errors"] += 1
 
             progress.advance(task)
@@ -270,15 +302,19 @@ async def migrate_refetch(
                     raw_data = read_bundle_raw(bundle_path)
                     if not raw_data:
                         stats["skipped_no_data"] += 1
+                        log_detail(f"SKIP {book_id}: empty bundle")
                         progress.advance(task)
                         return
 
                     db_meta = get_db_chapter_meta(db_path, book_id)
                     max_idx = max(raw_data.keys())
+                    db_hits = sum(1 for idx in raw_data if idx in db_meta)
 
                     # Fetch chapter_ids from API
                     id_map = await fetch_chapter_ids(book_id, max_idx, workers)
-                    stats["api_calls"] += len(id_map) + 1  # +1 for book metadata
+                    api_calls = len(id_map) + 1  # +1 for book metadata
+                    stats["api_calls"] += api_calls
+                    ids_found = sum(1 for v in id_map.values() if v > 0)
 
                     # Build ChapterMeta
                     meta: dict[int, ChapterMeta] = {}
@@ -297,8 +333,14 @@ async def migrate_refetch(
                         )
 
                     stats["migrated"] += 1
+                    log_detail(
+                        f"MIGRATE {book_id}: {len(raw_data)} chapters, "
+                        f"{db_hits}/{len(raw_data)} DB meta, "
+                        f"{ids_found} ch_ids fetched ({api_calls} API calls)"
+                    )
                 except Exception as e:
                     console.print(f"  [red]ERROR[/red] {book_id}: {e}")
+                    log_detail(f"ERROR {book_id}: {e}")
                     stats["errors"] += 1
 
                 progress.advance(task)
@@ -384,6 +426,15 @@ def main():
         console.print("[green]Nothing to migrate![/green]\n")
         return
 
+    # Start banner
+    mode_str = "refetch (API)" if args.refetch else "local (DB only)"
+    log_detail("=" * 60)
+    log_detail(
+        f"Migration started — {mode_str}, {len(bundles):,} v1 bundles"
+        f"{' (dry run)' if args.dry_run else ''}"
+    )
+    log_detail("=" * 60)
+
     start = time.time()
 
     if args.refetch:
@@ -395,7 +446,24 @@ def main():
 
     elapsed = time.time() - start
 
-    # Report
+    # Summary log
+    log_detail("─" * 40)
+    summary = (
+        f"Migrated: {stats['migrated']:,}, "
+        f"Skipped: {stats.get('skipped_no_data', 0):,}, "
+        f"Errors: {stats['errors']:,}"
+    )
+    if args.refetch:
+        summary += f", API calls: {stats.get('api_calls', 0):,}"
+    log_detail(summary)
+    log_detail("=" * 60)
+    log_detail(
+        f"COMPLETED in {format_duration(elapsed)}: {stats['migrated']:,} migrated, "
+        f"{stats['errors']:,} errors"
+    )
+    log_detail("=" * 60 + "\n")
+
+    # Console report
     console.print(
         f"\n[bold]{'Dry-run report' if args.dry_run else 'Migration complete'}[/bold]"
     )
@@ -404,7 +472,8 @@ def main():
     console.print(f"  Errors:       {stats['errors']:,}")
     if args.refetch:
         console.print(f"  API calls:    {stats.get('api_calls', 0):,}")
-    console.print(f"  Duration:     {elapsed:.1f}s")
+    console.print(f"  Duration:     {format_duration(elapsed)}")
+    console.print(f"  Detail log:   {DETAIL_LOG}")
     console.print()
 
     # Verify a sample
