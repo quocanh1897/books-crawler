@@ -669,7 +669,19 @@ async def run_ingest(
     # Init compressor
     compressor = ChapterCompressor(str(DICT_PATH))
 
-    # Estimate total chapters from plan entries
+    # Estimate total chapters from plan entries (enrich from DB if missing)
+    missing_counts = [e for e in entries if not e.get("chapter_count")]
+    if missing_counts:
+        db = open_db(db_path)
+        try:
+            for e in missing_counts:
+                row = db.execute(
+                    "SELECT chapter_count FROM books WHERE id = ?", (e["id"],)
+                ).fetchone()
+                if row and row[0]:
+                    e["chapter_count"] = row[0]
+        finally:
+            db.close()
     est_chapters = sum(e.get("chapter_count", 0) for e in entries)
 
     start_time = time.time()
