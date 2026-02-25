@@ -4,6 +4,48 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.0] - 2026-02-25
+
+### Added
+
+- **BLIB v2 bundle format** (`binslib/src/lib/chapter-storage.ts`, `book-ingest/src/bundle.py`)
+  - 256-byte per-chapter metadata block inline with compressed data: `chapter_id` (uint32), `word_count` (uint32), `title` (UTF-8, max 196B), `slug` (UTF-8, max 48B)
+  - Enables DB recovery from bundles alone — chapter titles, slugs, and word counts can be reconstructed by scanning metadata blocks without any external source
+  - Stored `chapter_id` enables O(missing) resume via reverse walk from last known ID instead of O(total) linked-list traversal from chapter 1
+  - 16-byte v2 header with `meta_entry_size` field for future extensibility
+  - Readers accept both v1 and v2; new writes always produce v2
+  - Overhead: 256 bytes/chapter (~512 KB for a 2000-chapter book, ~6% of typical bundle)
+- **`migrate_v2.py`** (`book-ingest/`)
+  - Converts v1 bundles to v2 format with metadata from local SQLite DB or `--refetch` from API
+  - Syncs DB chapter rows by decompressing bundle content to extract titles and word counts
+  - Supports `--dry-run`, `--ids`, `--workers` for controlled migration
+- **`sync-book/sync-bundles.sh`** (moved from root `sync-bundles.sh`)
+  - Refactored into reusable `sync_dir()` function — no logic duplication between bundles and covers
+  - Syncs covers (`binslib/public/covers/*.jpg`) alongside bundles by default
+  - `--cover-only` flag to only sync covers
+  - `--bundle-only` flag to only sync bundles (preserves old behavior)
+  - Proper argument parsing with `--help`; direction and flags accepted in any order
+- **`--cover-only` flag for meta-puller** (`meta-puller/pull_metadata.py`)
+  - Downloads cover images directly to `binslib/public/covers/{book_id}.jpg`
+  - Reads poster URLs from existing `metadata.json` to avoid unnecessary API calls
+  - Falls back to API fetch (without saving metadata) when no local metadata exists
+  - Composes with `--ids`, `--force`, `--dry-run`
+
+### Changed
+
+- **BLIB v2 writer in import pipeline** (`binslib/scripts/import.ts`)
+  - `BundleWriter` now writes v2 format with inline chapter metadata
+  - `chapters_saved` count derived from actual bundle entry count after flush
+  - Chapter progress estimation enriched from DB for CLI-specified book IDs
+- **BLIB v2 writer in book-ingest** (`book-ingest/ingest.py`, `book-ingest/src/bundle.py`)
+  - Python `BundleWriter` produces v2 bundles with metadata blocks
+  - Ingest pipeline populates `chapter_id`, `word_count`, `title`, `slug` per chapter
+
+### Fixed
+
+- **FK constraint on chapter flush** (`binslib/scripts/import.ts`) — ensure book row exists in DB before flushing chapter metadata to avoid foreign key violations
+- **Chapter progress estimate** (`binslib/scripts/import.ts`) — CLI book IDs now enrich expected chapter counts from DB when `metadata.json` is unavailable
+
 ## [0.2.4] - 2026-02-24
 
 ### Changed
@@ -136,6 +178,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `PARALLEL_DOWNLOAD.md` — dual-emulator setup and usage
   - `crawler/CONTEXT.md` — crawler architecture and flow notes
 
+[0.3.0]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.2...v0.2.3
 [0.2.2]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.1...v0.2.2
