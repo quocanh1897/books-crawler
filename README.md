@@ -20,6 +20,9 @@ graph LR
             C2["<b>crawler-descryptor/</b><br/>direct API decryption"]
             C3["<b>crawler-tangthuvien/</b><br/>HTML scraper"]
         end
+        subgraph UNIFIED["Unified Pipeline"]
+            BI["<b>book-ingest/</b><br/>API → decrypt → compress → DB"]
+        end
         subgraph UTIL["Utilities"]
             U1["<b>meta-puller/</b><br/>metadata + covers"]
             U3["<b>progress-checking/</b><br/>TUI dashboard"]
@@ -39,10 +42,12 @@ graph LR
 
     MTC_SRC -->|"AES-128-CBC"| C1
     MTC_SRC -->|"AES-128-CBC"| C2
+    MTC_SRC -->|"AES-128-CBC"| BI
     TTV_SRC -->|"HTML"| C3
 
     C1 -->|".txt chapters"| IMP
     C2 -->|".txt chapters"| IMP
+    BI -->|"bundles + SQLite"| WEB
     C3 -->|".txt chapters"| IMP
     U1 -->|".json metadata<br/>.jpg covers"| IMP
 
@@ -60,7 +65,7 @@ graph LR
 
 **Source data** — Two upstream sites provide the raw content. MTC exposes an Android mobile API that returns AES-128-CBC encrypted chapter text (key embedded at `[17:33]` in the response). TTV serves public HTML pages.
 
-**Crawler layer** — Three crawlers produce the same output format: plain `.txt` chapter files under `output/{book_id}/`. `crawler/` automates an Android emulator to bypass MTC encryption. `crawler-descryptor/` decrypts the MTC API directly (preferred). `crawler-tangthuvien/` scrapes TTV HTML. Supporting utilities: `meta-puller/` fetches book metadata and cover images as `.json`/`.jpg`, and `progress-checking/` provides a real-time TUI dashboard.
+**Crawler layer** — Three crawlers produce the same output format: plain `.txt` chapter files under `output/{book_id}/`. `crawler/` automates an Android emulator to bypass MTC encryption. `crawler-descryptor/` decrypts the MTC API directly. `crawler-tangthuvien/` scrapes TTV HTML. `book-ingest/` is the preferred unified pipeline for MTC: it fetches, decrypts, compresses, and writes directly to bundles + SQLite with no intermediate `.txt` files. Supporting utilities: `meta-puller/` fetches book metadata and cover images as `.json`/`.jpg`, and `progress-checking/` provides a real-time TUI dashboard.
 
 **Data mapping layer** — `binslib/scripts/import.ts` scans all crawler output directories, reads `.txt` chapters, `.json` metadata, and `.jpg` covers, then inserts everything into a SQLite database with FTS5 full-text search indexes. Each book is tagged with a `source` column (`mtc` or `ttv`). `epub-converter/` also operates at this layer, generating EPUB 3.0 files from the stored chapter data for download through binslib.
 
@@ -71,7 +76,8 @@ graph LR
 | Directory              | Layer        | Language    | Purpose                                |
 | ---------------------- | ------------ | ----------- | -------------------------------------- |
 | `crawler/`             | Crawler      | Python 3.9+ | Emulator-based book grabber (MTC)      |
-| `crawler-descryptor/`  | Crawler      | Python 3.9+ | Direct API decryption (MTC, preferred) |
+| `crawler-descryptor/`  | Crawler      | Python 3.9+ | Direct API decryption (MTC)             |
+| `book-ingest/`         | Unified      | Python 3.9+ | API → decrypt → compress → DB (MTC, preferred) |
 | `crawler-tangthuvien/` | Crawler      | Python 3.9+ | HTML scraper (TTV)                     |
 | `meta-puller/`         | Crawler util | Python 3.9+ | Book metadata + cover images           |
 | `progress-checking/`   | Crawler util | Python 3.9+ | Real-time TUI dashboard (rich)         |
@@ -81,7 +87,19 @@ graph LR
 
 ## Quick Start
 
-### Download books (API-based, preferred)
+### Ingest books (unified pipeline, preferred)
+
+```bash
+cd book-ingest/
+pip install -r requirements.txt
+python3 ingest.py 100358 100441             # specific book IDs
+python3 ingest.py -w 5                      # from plan file, 5 workers
+python3 ingest.py --audit-only              # report gaps without downloading
+```
+
+Goes directly from API → decrypt → compress → bundle + DB with no intermediate files.
+
+### Download books (API-based, crawl only)
 
 ```bash
 cd crawler-descryptor/
@@ -168,6 +186,7 @@ The mobile API returns AES-128-CBC encrypted content in a Laravel envelope. The 
 
 - `crawler/` — macOS only (hardcoded ADB paths, `sips`, fork-based multiprocessing)
 - `crawler-descryptor/` — cross-platform
+- `book-ingest/` — cross-platform
 - `crawler-tangthuvien/` — cross-platform
 - `binslib/` — cross-platform (Docker or Node.js)
 - `vbook-extension/` — Android (vBook app)

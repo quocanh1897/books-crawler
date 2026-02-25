@@ -1,0 +1,4 @@
+httpx>=0.27
+pycryptodome>=3.20
+pyzstd>=0.16
+rich>=13.0

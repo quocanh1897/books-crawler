@@ -1,0 +1,757 @@
+#!/usr/bin/env python3
+"""book-ingest — Unified crawl-decrypt-compress-import pipeline for metruyencv.
+
+Usage:
+    python3 ingest.py                           # ingest from plan file
+    python3 ingest.py 100358 100441             # specific book IDs
+    python3 ingest.py -w 5                      # parallel workers
+    python3 ingest.py --plan fresh_books.json   # custom plan file
+    python3 ingest.py --flush-every 100         # checkpoint interval (default: 100)
+    python3 ingest.py --audit-only              # audit mode: report missing, no downloads
+    python3 ingest.py --dry-run                 # simulate only
+"""
+from __future__ import annotations
+
+import argparse
+import asyncio
+import json
+import os
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+from rich.console import Console
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
+
+from src.api import APIError, AsyncBookClient, decrypt_chapter
+from src.bundle import read_bundle_indices, read_bundle_raw, write_bundle
+from src.compress import ChapterCompressor
+from src.cover import download_cover
+from src.db import (
+    compute_meta_hash,
+    get_book_meta_hash,
+    get_chapter_indices,
+    insert_chapters,
+    open_db,
+    update_chapters_saved,
+    update_cover_url,
+    upsert_book_metadata,
+)
+from src.decrypt import DecryptionError
+
+# ─── Paths ────────────────────────────────────────────────────────────────────
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+BINSLIB_DIR = SCRIPT_DIR.parent / "binslib"
+COMPRESSED_DIR = BINSLIB_DIR / "data" / "compressed"
+DB_PATH = BINSLIB_DIR / "data" / "binslib.db"
+DICT_PATH = BINSLIB_DIR / "data" / "global.dict"
+COVERS_DIR = BINSLIB_DIR / "public" / "covers"
+DEFAULT_PLAN = SCRIPT_DIR.parent / "crawler-descryptor" / "fresh_books_download.json"
+
+LOG_DIR = SCRIPT_DIR / "data"
+DETAIL_LOG = LOG_DIR / "ingest-detail.log"
+SUMMARY_LOG = LOG_DIR / "ingest-log.txt"
+AUDIT_LOG = LOG_DIR / "audit.log"
+
+console = Console()
+
+# ─── Helpers ──────────────────────────────────────────────────────────────────
+
+
+def timestamp() -> str:
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def format_duration(seconds: float) -> str:
+    s = int(seconds)
+    if s < 60:
+        return f"{s}s"
+    m, sec = divmod(s, 60)
+    if m < 60:
+        return f"{m}m {sec}s"
+    h, m = divmod(m, 60)
+    return f"{h}h {m}m {sec}s"
+
+
+def format_num(n: int) -> str:
+    return f"{n:,}"
+
+
+def log_detail(msg: str) -> None:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    with open(DETAIL_LOG, "a") as f:
+        f.write(f"[{timestamp()}] {msg}\n")
+
+
+def log_summary(msg: str) -> None:
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    with open(SUMMARY_LOG, "a") as f:
+        f.write(f"[{timestamp()}] {msg}\n")
+
+
+# ─── Plan File Loading ────────────────────────────────────────────────────────
+
+
+def load_plan(plan_path: str, offset: int = 0, limit: int = 0) -> list[dict]:
+    """Load book entries from a plan JSON file.
+
+    Supports both flat arrays and structured plans with need_download/partial.
+    """
+    with open(plan_path) as f:
+        data = json.load(f)
+
+    entries: list[dict] = []
+    if isinstance(data, list):
+        entries = data
+    elif isinstance(data, dict):
+        for key in ("need_download", "partial", "have_partial", "books"):
+            if key in data and isinstance(data[key], list):
+                entries.extend(data[key])
+
+    if offset > 0:
+        entries = entries[offset:]
+    if limit > 0:
+        entries = entries[:limit]
+
+    return entries
+
+
+def entries_from_ids(book_ids: list[int]) -> list[dict]:
+    """Create minimal plan entries from explicit book IDs."""
+    return [{"id": bid} for bid in book_ids]
+
+
+# ─── Audit Mode ───────────────────────────────────────────────────────────────
+
+
+async def run_audit(entries: list[dict], client: AsyncBookClient) -> None:
+    """Audit mode: report missing books/chapters without downloading."""
+    console.print("\n[bold]AUDIT MODE[/bold] — scanning for gaps...\n")
+
+    total = len(entries)
+    complete = 0
+    missing_chapters: list[tuple[int, str, int, int, int]] = []  # (id, name, bundle, api, missing)
+    not_in_db = 0
+    missing_covers = 0
+
+    db = open_db(str(DB_PATH))
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        TimeRemainingColumn(),
+        console=console,
+    ) as progress:
+        task = progress.add_task("Auditing books", total=total)
+
+        for entry in entries:
+            book_id = entry["id"]
+            name = entry.get("name", "?")
+
+            # Check bundle
+            bundle_path = str(COMPRESSED_DIR / f"{book_id}.bundle")
+            bundle_indices = read_bundle_indices(bundle_path)
+
+            # Get API chapter count (from plan or fetch)
+            api_count = entry.get("chapter_count", 0)
+            if not api_count:
+                try:
+                    meta = await client.get_book(book_id)
+                    api_count = meta.get("chapter_count", 0)
+                    name = meta.get("name", name)
+                except Exception:
+                    pass
+
+            bundle_count = len(bundle_indices)
+
+            if bundle_count >= api_count and api_count > 0:
+                complete += 1
+            elif api_count > 0:
+                gap = api_count - bundle_count
+                missing_chapters.append((book_id, name, bundle_count, api_count, gap))
+
+            # Check DB
+            cur = db.execute("SELECT id FROM books WHERE id = ?", (book_id,))
+            if not cur.fetchone():
+                not_in_db += 1
+
+            # Check cover
+            cover_path = COVERS_DIR / f"{book_id}.jpg"
+            if not cover_path.exists():
+                missing_covers += 1
+
+            progress.update(task, advance=1)
+
+    db.close()
+
+    # Report
+    report_lines = [
+        "",
+        "  AUDIT REPORT",
+        "  " + "─" * 40,
+        f"  Total books in plan:         {format_num(total):>8}",
+        f"  Books with complete data:    {format_num(complete):>8}",
+        f"  Books with missing chapters: {format_num(len(missing_chapters)):>8}",
+    ]
+
+    # Show top missing books
+    missing_chapters.sort(key=lambda x: x[4], reverse=True)
+    for book_id, name, bundle, api, gap in missing_chapters[:20]:
+        report_lines.append(
+            f"    Book {book_id}: bundle={bundle}, API={api}, missing={gap}"
+        )
+    if len(missing_chapters) > 20:
+        report_lines.append(f"    ... and {len(missing_chapters) - 20} more")
+
+    report_lines.extend([
+        f"  Books not in DB:             {format_num(not_in_db):>8}",
+        f"  Books missing covers:        {format_num(missing_covers):>8}",
+        "  " + "─" * 40,
+        "",
+    ])
+
+    report_text = "\n".join(report_lines)
+    console.print(report_text)
+
+    # Write to audit log
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    with open(AUDIT_LOG, "w") as f:
+        f.write(f"Audit run at {timestamp()}\n")
+        f.write(report_text + "\n")
+        f.write("\nFull missing chapters list:\n")
+        for book_id, name, bundle, api, gap in missing_chapters:
+            f.write(f"  {book_id}\t{name}\tbundle={bundle}\tAPI={api}\tmissing={gap}\n")
+
+    console.print(f"  Full report written to: {AUDIT_LOG}\n")
+
+
+# ─── Per-Book Ingest ──────────────────────────────────────────────────────────
+
+
+async def ingest_book(
+    client: AsyncBookClient,
+    entry: dict,
+    compressor: ChapterCompressor,
+    db_path: str,
+    flush_every: int,
+    dry_run: bool,
+    book_progress: Progress,
+    book_task_id: int,
+    chapter_progress: Progress,
+    chapter_task_id: int,
+    lock: asyncio.Lock,
+) -> dict:
+    """Ingest a single book: fetch → decrypt → compress → bundle + DB.
+
+    Returns stats dict with keys: book_id, name, saved, skipped, errors.
+    """
+    book_id = entry["id"]
+    stats = {
+        "book_id": book_id,
+        "name": entry.get("name", "?"),
+        "saved": 0,
+        "skipped": 0,
+        "errors": 0,
+        "cover": False,
+    }
+
+    # 1. Fetch metadata from API
+    try:
+        meta = await client.get_book(book_id)
+        if meta.get("id") != book_id:
+            log_detail(f"SKIP {book_id}: API ID mismatch (got {meta.get('id')})")
+            stats["errors"] = -1
+            return stats
+        stats["name"] = meta.get("name", stats["name"])
+    except FileNotFoundError:
+        log_detail(f"SKIP {book_id}: not found on API")
+        stats["errors"] = -1
+        return stats
+    except Exception as e:
+        log_detail(f"SKIP {book_id}: metadata error — {e}")
+        stats["errors"] = -1
+        return stats
+
+    api_chapter_count = meta.get("chapter_count", 0)
+    first_chapter = meta.get("first_chapter")
+    book_name = meta.get("name", "?")
+
+    # 2. Determine what's needed — bundle-first skip logic
+    bundle_path = str(COMPRESSED_DIR / f"{book_id}.bundle")
+    bundle_indices = await asyncio.to_thread(read_bundle_indices, bundle_path)
+
+    if len(bundle_indices) >= api_chapter_count and api_chapter_count > 0:
+        # Bundle is complete — check if DB needs update
+        async with lock:
+            db = open_db(db_path)
+            try:
+                existing_hash = get_book_meta_hash(db, book_id)
+                meta_hash = compute_meta_hash(meta)
+                if existing_hash != meta_hash:
+                    # Update metadata only
+                    db_indices = get_chapter_indices(db, book_id)
+                    upsert_book_metadata(db, meta, None, len(bundle_indices), meta_hash)
+                    db.commit()
+                    log_detail(f"META {book_id} \"{book_name}\": metadata updated (chapters complete)")
+            finally:
+                db.close()
+
+        # Pull cover if missing
+        cover_url = await download_cover(
+            client.client, book_id, meta.get("poster"), str(COVERS_DIR)
+        )
+        if cover_url:
+            async with lock:
+                db = open_db(db_path)
+                try:
+                    update_cover_url(db, book_id, cover_url)
+                    db.commit()
+                finally:
+                    db.close()
+            stats["cover"] = True
+
+        stats["skipped"] = len(bundle_indices)
+        return stats
+
+    # Bundle incomplete — query DB for chapter indices
+    async with lock:
+        db = open_db(db_path)
+        try:
+            db_indices = get_chapter_indices(db, book_id)
+        finally:
+            db.close()
+
+    existing = bundle_indices | db_indices
+
+    if len(existing) >= api_chapter_count and api_chapter_count > 0:
+        stats["skipped"] = len(existing)
+        return stats
+
+    if not first_chapter:
+        log_detail(f"SKIP {book_id} \"{book_name}\": no first_chapter")
+        stats["errors"] = -1
+        return stats
+
+    if dry_run:
+        remaining = api_chapter_count - len(existing)
+        log_detail(f"DRY-RUN {book_id} \"{book_name}\": would fetch {remaining} chapters")
+        stats["saved"] = remaining
+        return stats
+
+    # 3. Walk chapter linked list
+    log_detail(
+        f"START {book_id} \"{book_name}\": {api_chapter_count} total, "
+        f"{len(existing)} existing, ~{api_chapter_count - len(existing)} to fetch"
+    )
+
+    # pending_chapters: index -> (compressed, raw_len, title, slug, word_count)
+    pending_chapters: dict[int, tuple[bytes, int, str, str, int]] = {}
+    chapter_id = first_chapter
+    start_time = time.time()
+
+    while chapter_id:
+        try:
+            chapter = await client.get_chapter(chapter_id)
+        except FileNotFoundError:
+            break
+        except Exception as e:
+            log_detail(f"  ch fetch error {book_id} ch_id={chapter_id}: {e}")
+            stats["errors"] += 1
+            break
+
+        index = chapter.get("index", 0)
+        next_info = chapter.get("next")
+        chapter_id = next_info.get("id") if next_info else None
+
+        if index in existing:
+            stats["skipped"] += 1
+            continue
+
+        encrypted = chapter.get("content", "")
+        if not encrypted:
+            stats["errors"] += 1
+            continue
+
+        try:
+            title, slug, body, word_count = decrypt_chapter(chapter)
+        except DecryptionError as e:
+            log_detail(f"  DECRYPT FAIL {book_id}[{index}]: {e}")
+            stats["errors"] += 1
+            continue
+
+        # Compress body
+        compressed, raw_len = await asyncio.to_thread(compressor.compress, body)
+
+        pending_chapters[index] = (compressed, raw_len, title, slug, word_count)
+        existing.add(index)
+        stats["saved"] += 1
+
+        # Update chapter progress
+        chapter_progress.update(chapter_task_id, advance=1)
+
+        # Checkpoint every flush_every chapters
+        if len(pending_chapters) >= flush_every:
+            await _flush_checkpoint(
+                db_path, book_id, bundle_path, pending_chapters, lock
+            )
+            pending_chapters.clear()
+
+            elapsed = time.time() - start_time
+            rate = stats["saved"] / elapsed if elapsed > 0 else 0
+            log_detail(
+                f"  CHECKPOINT {book_id}[{index}/{api_chapter_count}]: "
+                f"+{stats['saved']} chapters ({rate:.1f}/s)"
+            )
+
+    # 4. Final flush
+    if pending_chapters:
+        await _flush_checkpoint(
+            db_path, book_id, bundle_path, pending_chapters, lock
+        )
+        pending_chapters.clear()
+
+    # 5. Update book metadata in DB
+    meta_hash = compute_meta_hash(meta)
+    total_saved = len(read_bundle_indices(bundle_path))
+
+    # Pull cover
+    cover_url = await download_cover(
+        client.client, book_id, meta.get("poster"), str(COVERS_DIR)
+    )
+    stats["cover"] = cover_url is not None
+
+    async with lock:
+        db = open_db(db_path)
+        try:
+            upsert_book_metadata(db, meta, cover_url, total_saved, meta_hash)
+            db.commit()
+        finally:
+            db.close()
+
+    elapsed = time.time() - start_time
+    rate = stats["saved"] / elapsed if elapsed > 0 else 0
+    log_detail(
+        f"DONE {book_id} \"{book_name}\": +{stats['saved']} chapters "
+        f"({total_saved} total), {stats['errors']} errors, "
+        f"{elapsed:.0f}s ({rate:.1f}/s)"
+        f"{', cover OK' if stats['cover'] else ''}"
+    )
+
+    return stats
+
+
+async def _flush_checkpoint(
+    db_path: str,
+    book_id: int,
+    bundle_path: str,
+    pending: dict[int, tuple[bytes, int, str, str, int]],
+    lock: asyncio.Lock,
+) -> None:
+    """Commit pending chapters to DB and merge into bundle.
+
+    DB transaction commits first; bundle flush follows.
+    """
+    # Prepare chapter metadata for DB
+    ch_meta: dict[int, tuple[str, str, int]] = {}
+    for idx, (_, _, title, slug, wc) in pending.items():
+        ch_meta[idx] = (title, slug, wc)
+
+    # Prepare compressed data for bundle
+    ch_data: dict[int, tuple[bytes, int]] = {}
+    for idx, (compressed, raw_len, _, _, _) in pending.items():
+        ch_data[idx] = (compressed, raw_len)
+
+    async with lock:
+        # DB commit
+        db = open_db(db_path)
+        try:
+            insert_chapters(db, book_id, ch_meta)
+            db.commit()
+        finally:
+            db.close()
+
+    # Bundle merge + write (can run outside lock — file is per-book)
+    def _merge_and_write():
+        existing_bundle = read_bundle_raw(bundle_path)
+        existing_bundle.update(ch_data)
+        write_bundle(bundle_path, existing_bundle)
+
+    await asyncio.to_thread(_merge_and_write)
+
+
+# ─── Worker Pool ──────────────────────────────────────────────────────────────
+
+
+async def run_ingest(
+    entries: list[dict],
+    workers: int,
+    flush_every: int,
+    dry_run: bool,
+) -> None:
+    """Run the ingest pipeline with a worker pool."""
+    total_books = len(entries)
+    db_path = str(DB_PATH)
+
+    console.print(
+        f"\n[bold]book-ingest[/bold] — {format_num(total_books)} books, "
+        f"{workers} workers, flush every {flush_every} chapters"
+        f"{' [yellow](dry run)[/yellow]' if dry_run else ''}\n"
+        f"  DB:      {DB_PATH}\n"
+        f"  Bundles: {COMPRESSED_DIR}\n"
+        f"  Covers:  {COVERS_DIR}\n"
+        f"  Log:     {DETAIL_LOG}\n"
+    )
+
+    log_detail("=" * 60)
+    log_detail(
+        f"Ingest started — {total_books} books, workers={workers}"
+        f"{', dry-run' if dry_run else ''}"
+    )
+    log_detail("=" * 60)
+
+    # Init compressor
+    compressor = ChapterCompressor(str(DICT_PATH))
+
+    # Estimate total chapters from plan entries
+    est_chapters = sum(e.get("chapter_count", 0) for e in entries)
+
+    start_time = time.time()
+    lock = asyncio.Lock()  # protects DB access
+
+    # Stats
+    total_saved = 0
+    total_skipped = 0
+    total_errors = 0
+    total_covers = 0
+    books_processed = 0
+    progress_interval = max(10, total_books // 20)
+
+    # Queue of entries
+    queue: asyncio.Queue[dict | None] = asyncio.Queue()
+    for entry in entries:
+        queue.put_nowait(entry)
+    # Sentinel values for workers
+    for _ in range(workers):
+        queue.put_nowait(None)
+
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        BarColumn(),
+        MofNCompleteColumn(),
+        TaskProgressColumn(),
+        TimeElapsedColumn(),
+        TimeRemainingColumn(),
+        console=console,
+    ) as progress:
+        book_task = progress.add_task(
+            "[cyan]Books", total=total_books
+        )
+        chapter_task = progress.add_task(
+            "[green]Chapters", total=max(est_chapters, 1)
+        )
+
+        async def worker():
+            nonlocal total_saved, total_skipped, total_errors, total_covers
+            nonlocal books_processed
+
+            async with AsyncBookClient(
+                max_concurrent=max(30, 180 // workers),
+                request_delay=0.015,
+            ) as client:
+                while True:
+                    entry = await queue.get()
+                    if entry is None:
+                        break
+
+                    try:
+                        stats = await ingest_book(
+                            client=client,
+                            entry=entry,
+                            compressor=compressor,
+                            db_path=db_path,
+                            flush_every=flush_every,
+                            dry_run=dry_run,
+                            book_progress=progress,
+                            book_task_id=book_task,
+                            chapter_progress=progress,
+                            chapter_task_id=chapter_task,
+                            lock=lock,
+                        )
+                        total_saved += max(stats["saved"], 0)
+                        total_skipped += max(stats["skipped"], 0)
+                        total_errors += max(stats["errors"], 0)
+                        if stats.get("cover"):
+                            total_covers += 1
+                    except Exception as e:
+                        log_detail(f"FAIL {entry['id']}: {e}")
+                        total_errors += 1
+
+                    books_processed += 1
+                    progress.update(book_task, advance=1)
+
+                    # Periodic progress log
+                    if books_processed % progress_interval == 0:
+                        elapsed = time.time() - start_time
+                        pct = (books_processed / total_books) * 100
+                        books_per_sec = books_processed / elapsed if elapsed > 0 else 0
+                        remaining = (
+                            (total_books - books_processed) / books_per_sec
+                            if books_per_sec > 0
+                            else 0
+                        )
+                        log_detail(
+                            f"PROGRESS: {format_num(books_processed)}/{format_num(total_books)} "
+                            f"books ({pct:.1f}%), +{format_num(total_saved)} chapters, "
+                            f"elapsed {format_duration(elapsed)}, "
+                            f"ETA {format_duration(remaining)}"
+                        )
+
+        # Launch workers
+        tasks = [asyncio.create_task(worker()) for _ in range(workers)]
+        await asyncio.gather(*tasks)
+
+    # Summary
+    elapsed = time.time() - start_time
+
+    log_detail("=" * 60)
+    log_detail(
+        f"COMPLETED: {total_books} books, {format_num(total_saved)} chapters added, "
+        f"{format_num(total_skipped)} skipped, {total_errors} errors, "
+        f"{total_covers} covers"
+    )
+    log_detail(f"Duration: {format_duration(elapsed)}")
+    log_detail("=" * 60 + "\n")
+
+    log_summary(
+        f"ingest workers={workers} duration={format_duration(elapsed)} "
+        f"books={total_books} chapters={total_saved} "
+        f"skipped={total_skipped} covers={total_covers} errors={total_errors}"
+    )
+
+    console.print(
+        f"\n[bold]Completed[/bold] in {format_duration(elapsed)}\n"
+        f"  Books:    {format_num(total_books)}\n"
+        f"  Chapters: +{format_num(total_saved)} new, "
+        f"{format_num(total_skipped)} skipped\n"
+        f"  Covers:   {total_covers}\n"
+        f"  Errors:   {total_errors}\n"
+    )
+
+
+# ─── CLI ──────────────────────────────────────────────────────────────────────
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="book-ingest: unified crawl-decrypt-compress-import pipeline",
+    )
+    parser.add_argument(
+        "book_ids",
+        nargs="*",
+        type=int,
+        help="Specific book IDs to ingest (overrides plan file)",
+    )
+    parser.add_argument(
+        "-w", "--workers",
+        type=int,
+        default=5,
+        help="Number of parallel workers (default: 5)",
+    )
+    parser.add_argument(
+        "--plan",
+        type=str,
+        default=None,
+        help="Path to plan JSON file (default: fresh_books_download.json)",
+    )
+    parser.add_argument(
+        "--flush-every",
+        type=int,
+        default=100,
+        help="Checkpoint interval in chapters (default: 100)",
+    )
+    parser.add_argument(
+        "--audit-only",
+        action="store_true",
+        help="Audit mode: report missing data without downloading",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simulate without writing any data",
+    )
+    parser.add_argument(
+        "--offset",
+        type=int,
+        default=0,
+        help="Skip first N entries in plan file",
+    )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=0,
+        help="Limit to N entries from plan file (0 = all)",
+    )
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    # Validate paths
+    if not DB_PATH.exists():
+        console.print(f"[red]Error:[/red] Database not found: {DB_PATH}")
+        sys.exit(1)
+    if not DICT_PATH.exists():
+        console.print(f"[red]Error:[/red] Zstd dictionary not found: {DICT_PATH}")
+        sys.exit(1)
+    COMPRESSED_DIR.mkdir(parents=True, exist_ok=True)
+    COVERS_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Build entries list
+    if args.book_ids:
+        entries = entries_from_ids(args.book_ids)
+    elif args.plan:
+        entries = load_plan(args.plan, args.offset, args.limit)
+    elif DEFAULT_PLAN.exists():
+        entries = load_plan(str(DEFAULT_PLAN), args.offset, args.limit)
+    else:
+        console.print(
+            "[red]Error:[/red] No book IDs provided and no plan file found.\n"
+            f"  Expected: {DEFAULT_PLAN}\n"
+            "  Use: python3 ingest.py 100358  or  --plan path/to/plan.json"
+        )
+        sys.exit(1)
+
+    if not entries:
+        console.print("[yellow]No entries to process.[/yellow]")
+        sys.exit(0)
+
+    if args.audit_only:
+        asyncio.run(_run_audit_with_client(entries))
+    else:
+        asyncio.run(run_ingest(entries, args.workers, args.flush_every, args.dry_run))
+
+
+async def _run_audit_with_client(entries: list[dict]) -> None:
+    async with AsyncBookClient(max_concurrent=30, request_delay=0.1) as client:
+        await run_audit(entries, client)
+
+
+if __name__ == "__main__":
+    main()
