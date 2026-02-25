@@ -2,14 +2,16 @@ services:
   epub-converter:
     build: .
     volumes:
-      # Crawler dir — contains output/, config.py, and AUDIT.md
-      - ../crawler:/data/crawler
+      # Binslib data — bundles, database, dictionary, covers, epub cache
+      - ../binslib/data:/data/binslib-data
+      - ../binslib/public/covers:/data/covers:ro
 
-      # Meta-puller — needed to auto-fetch missing metadata
-      - ../meta-puller:/data/meta-puller
-
-      # EPUB output — {book_id}/epub-output/ directories written here
-      - ./:/data/epub-output
+    environment:
+      - COMPRESSED_DIR=/data/binslib-data/compressed
+      - DATABASE_PATH=/data/binslib-data/binslib.db
+      - COVERS_DIR=/data/covers
+      - EPUB_CACHE_DIR=/data/binslib-data/epub
+      - ZSTD_DICT_PATH=/data/binslib-data/global.dict
 
     # Pass through any CLI args:  docker compose run epub-converter --ids 100358
     # Default (no args) converts all eligible books.
@@ -21,7 +23,6 @@ services:
     #   docker compose run --rm epub-converter --list
     #   docker compose run --rm epub-converter --dry-run
     #   docker compose run --rm epub-converter --force
-    #   docker compose run --rm epub-converter --no-audit
 
     # Allocate a TTY so rich progress bars render properly
     tty: true

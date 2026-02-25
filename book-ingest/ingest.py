@@ -63,7 +63,7 @@ COMPRESSED_DIR = BINSLIB_DIR / "data" / "compressed"
 DB_PATH = BINSLIB_DIR / "data" / "binslib.db"
 DICT_PATH = BINSLIB_DIR / "data" / "global.dict"
 COVERS_DIR = BINSLIB_DIR / "public" / "covers"
-DEFAULT_PLAN = SCRIPT_DIR.parent / "crawler-descryptor" / "fresh_books_download.json"
+DEFAULT_PLAN = SCRIPT_DIR / "data" / "fresh_books_download.json"
 
 LOG_DIR = SCRIPT_DIR / "data"
 DETAIL_LOG = LOG_DIR / "ingest-detail.log"
