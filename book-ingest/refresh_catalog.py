@@ -3,10 +3,9 @@
 
 Reads the existing plan file, fetches current metadata for every book ID
 via GET /api/books/{id}, and writes an updated plan with the latest
-chapter counts, statuses, word counts, etc.
+chapter counts, statuses, word counts, author, creator, genres, etc.
 
 Books that return 404 (removed from the platform) are dropped.
-New fields like latest_chapter are added where available.
 The output is sorted by chapter_count descending (same as the original).
 
 With --scan, also probes every ID in the range 100003–{max_id} to
@@ -14,10 +13,15 @@ discover books missing from the plan (the /api/books listing and search
 endpoints are severely limited — many valid books are invisible to them
 but accessible by direct ID).
 
+With --fix-author, books that have no author but have a creator will get
+a synthetic author generated as {id: 999{creator_id}, name: creator_name}.
+
 Usage:
     cd book-ingest
     python3 refresh_catalog.py                          # update existing entries
     python3 refresh_catalog.py --scan                   # + discover missing books
+    python3 refresh_catalog.py --fix-author             # generate missing authors
+    python3 refresh_catalog.py --scan --fix-author      # both
     python3 refresh_catalog.py --scan --workers 200     # faster scanning
     python3 refresh_catalog.py --dry-run                # preview, don't write
     python3 refresh_catalog.py --input path/to/plan.json --output updated.json
@@ -82,20 +86,101 @@ class Stats:
 # ── API fetching ──────────────────────────────────────────────────────────────
 
 
-def parse_book(data: dict) -> dict | None:
-    """Extract a flat book entry from the API response, handling nesting."""
-    # The /api/books/{id} endpoint wraps the book differently depending on
-    # the request params.  Handle all known shapes.
+def _unwrap_book(data: dict) -> dict | None:
+    """Unwrap the varying API response shapes into a flat book dict."""
     if isinstance(data, list):
         if not data:
             return None
         item = data[0]
-        book = item.get("book", item)
-    elif isinstance(data, dict) and "book" in data:
-        book = data["book"]
-    else:
-        book = data
+        return item.get("book", item)
+    if isinstance(data, dict) and "book" in data:
+        return data["book"]
+    return data
 
+
+def _parse_author(raw: dict | None) -> dict | None:
+    """Normalise an author object from the API."""
+    if not raw or not isinstance(raw, dict):
+        return None
+    aid = raw.get("id")
+    if aid is None:
+        return None
+    return {
+        "id": aid,
+        "name": raw.get("name", ""),
+        "local_name": raw.get("local_name"),
+        "avatar": raw.get("avatar"),
+    }
+
+
+def _parse_creator(raw: dict | None) -> dict | None:
+    """Normalise a creator (uploader) object from the API."""
+    if not raw or not isinstance(raw, dict):
+        return None
+    cid = raw.get("id")
+    if cid is None:
+        return None
+    return {
+        "id": cid,
+        "name": raw.get("name", ""),
+    }
+
+
+def _parse_genres(raw: list | None) -> list[dict]:
+    if not raw or not isinstance(raw, list):
+        return []
+    return [
+        {"id": g["id"], "name": g.get("name", ""), "slug": g.get("slug", "")}
+        for g in raw
+        if isinstance(g, dict) and "id" in g
+    ]
+
+
+def _parse_tags(raw: list | None) -> list[dict]:
+    if not raw or not isinstance(raw, list):
+        return []
+    return [
+        {"id": t["id"], "name": t.get("name", ""), "type_id": t.get("type_id")}
+        for t in raw
+        if isinstance(t, dict) and "id" in t
+    ]
+
+
+def _parse_poster(raw: dict | None) -> dict | None:
+    if not raw or not isinstance(raw, dict):
+        return None
+    return {
+        "default": raw.get("default"),
+        "600": raw.get("600"),
+        "300": raw.get("300"),
+        "150": raw.get("150"),
+    }
+
+
+def generate_author_from_creator(creator: dict | None) -> dict | None:
+    """Create a synthetic author entry from a creator (uploader).
+
+    ID is prefixed with 999 to avoid collisions with real author IDs.
+    E.g. creator id=1000043 → author id=9991000043.
+    """
+    if not creator or not creator.get("id"):
+        return None
+    return {
+        "id": int(f"999{creator['id']}"),
+        "name": creator["name"],
+        "local_name": None,
+        "avatar": None,
+    }
+
+
+def parse_book(data: dict, fix_author: bool = False) -> dict | None:
+    """Extract a full book entry from the API response.
+
+    Includes author, creator, genres, tags, synopsis, poster, and all
+    stats fields.  When *fix_author* is True and the book has no author
+    but has a creator, a synthetic author is generated.
+    """
+    book = _unwrap_book(data)
     if not isinstance(book, dict) or "id" not in book:
         return None
 
@@ -103,10 +188,28 @@ def parse_book(data: dict) -> dict | None:
     first_chapter = book.get("first_chapter")
     status_name = book.get("status_name") or book.get("state") or "?"
 
-    return {
+    author = _parse_author(book.get("author"))
+    creator = _parse_creator(book.get("creator"))
+
+    # Generate a synthetic author from the creator if requested
+    author_generated = False
+    if fix_author and not author and creator:
+        author = generate_author_from_creator(creator)
+        author_generated = True
+
+    review_score = book.get("review_score")
+    if isinstance(review_score, str):
+        try:
+            review_score = float(review_score)
+        except ValueError:
+            review_score = 0
+    review_score = review_score or 0
+
+    entry: dict = {
         "id": book["id"],
         "name": book.get("name", "?"),
         "slug": book.get("slug", ""),
+        "synopsis": book.get("synopsis"),
         "chapter_count": chapter_count,
         "first_chapter": first_chapter,
         "latest_chapter": book.get("latest_chapter"),
@@ -114,7 +217,25 @@ def parse_book(data: dict) -> dict | None:
         "kind": book.get("kind"),
         "sex": book.get("sex"),
         "word_count": book.get("word_count", 0),
+        "view_count": book.get("view_count", 0),
+        "vote_count": book.get("vote_count", 0),
+        "bookmark_count": book.get("bookmark_count", 0),
+        "comment_count": book.get("comment_count", 0),
+        "review_score": review_score,
+        "review_count": book.get("review_count", 0),
+        "poster": _parse_poster(book.get("poster")),
+        "author": author,
+        "author_generated": author_generated,
+        "creator": creator,
+        "genres": _parse_genres(book.get("genres")),
+        "tags": _parse_tags(book.get("tags")),
+        "created_at": book.get("created_at"),
+        "updated_at": book.get("updated_at"),
+        "published_at": book.get("published_at"),
+        "new_chap_at": book.get("new_chap_at"),
     }
+
+    return entry
 
 
 async def fetch_book(
@@ -122,6 +243,7 @@ async def fetch_book(
     sem: asyncio.Semaphore,
     book_id: int,
     delay: float,
+    fix_author: bool = False,
     retries: int = 3,
 ) -> dict | None:
     """Fetch metadata for a single book.  Returns parsed entry or None."""
@@ -159,7 +281,7 @@ async def fetch_book(
         if not data.get("success"):
             return None
 
-        return parse_book(data.get("data", {}))
+        return parse_book(data.get("data", {}), fix_author=fix_author)
 
     return None
 
@@ -172,6 +294,7 @@ async def _fetch_batch(
     workers: int,
     delay: float,
     label: str,
+    fix_author: bool = False,
 ) -> dict[int, dict | None]:
     """Fetch metadata for a batch of book IDs.  Returns {id: entry_or_None}."""
     results: dict[int, dict | None] = {}
@@ -184,7 +307,7 @@ async def _fetch_batch(
     async with httpx.AsyncClient(headers=HEADERS, timeout=30) as client:
 
         async def _do(bid: int) -> None:
-            entry = await fetch_book(client, sem, bid, delay)
+            entry = await fetch_book(client, sem, bid, delay, fix_author=fix_author)
             async with results_lock:
                 results[bid] = entry
                 progress["done"] += 1
@@ -220,6 +343,7 @@ async def scan_missing(
     workers: int,
     delay: float,
     upper_bound: int,
+    fix_author: bool = False,
 ) -> list[dict]:
     """Scan the full ID range and return entries for books not in known_ids."""
     to_probe = [
@@ -232,7 +356,9 @@ async def scan_missing(
     print(
         f"  Scanning {len(to_probe):,} unknown IDs ({ID_RANGE_START}–{upper_bound})..."
     )
-    results = await _fetch_batch(to_probe, workers, delay, "scan")
+    results = await _fetch_batch(
+        to_probe, workers, delay, "scan", fix_author=fix_author
+    )
 
     discovered: list[dict] = []
     for bid, entry in results.items():
@@ -252,6 +378,7 @@ async def refresh(
     delay: float,
     scan: bool,
     min_chapters: int = MIN_CHAPTER_COUNT,
+    fix_author: bool = False,
 ) -> tuple[list[dict], Stats]:
     """Fetch fresh metadata for all entries.  Returns (updated_list, stats)."""
     stats = Stats(total=len(entries))
@@ -259,7 +386,9 @@ async def refresh(
 
     # Phase 1: refresh existing entries
     print("Phase 1: refreshing existing entries...")
-    results = await _fetch_batch(list(old_by_id.keys()), workers, delay, "refresh")
+    results = await _fetch_batch(
+        list(old_by_id.keys()), workers, delay, "refresh", fix_author=fix_author
+    )
 
     # Reconcile results
     updated_list: list[dict] = []
@@ -280,22 +409,8 @@ async def refresh(
         else:
             stats.unchanged += 1
 
-        entry = {
-            "id": new["id"],
-            "name": new["name"],
-            "slug": new["slug"],
-            "chapter_count": new["chapter_count"],
-            "first_chapter": new["first_chapter"],
-            "status": new["status"],
-            "kind": new["kind"],
-            "sex": new["sex"],
-            "word_count": new["word_count"],
-        }
-        if new.get("latest_chapter"):
-            entry["latest_chapter"] = new["latest_chapter"]
-
-        if entry["first_chapter"] and entry["chapter_count"] >= min_chapters:
-            updated_list.append(entry)
+        if new["first_chapter"] and new["chapter_count"] >= min_chapters:
+            updated_list.append(new)
 
     # Phase 2 (optional): scan for missing books
     stats.discovered = 0
@@ -305,7 +420,9 @@ async def refresh(
         upper = await find_upper_bound(workers, delay)
         print(f"  Detected upper bound: {upper}")
         known = set(old_by_id.keys())
-        discovered = await scan_missing(known, workers, delay, upper)
+        discovered = await scan_missing(
+            known, workers, delay, upper, fix_author=fix_author
+        )
         # Apply the same chapter filter to discovered books
         discovered = [
             b for b in discovered if b.get("chapter_count", 0) >= min_chapters
@@ -334,7 +451,7 @@ def print_report(stats: Stats, old_count: int, new_count: int, elapsed: float) -
     print(f"  Unchanged       : {stats.unchanged:>10,}")
     print(f"  Removed (404)   : {stats.removed:>10,}")
     print(f"  Errors          : {stats.errors:>10,}")
-    if hasattr(stats, "discovered") and stats.discovered:
+    if stats.discovered:
         print(f"  Discovered (new): {stats.discovered:>10,}")
     print(f"  ─────────────────────────────────")
     print(f"  New chapters    : {stats.new_chapters:>10,}")
@@ -393,6 +510,12 @@ def parse_args() -> argparse.Namespace:
         "books missing from the plan.  Many valid books are invisible to "
         "the search/listing API but accessible by direct ID.",
     )
+    parser.add_argument(
+        "--fix-author",
+        action="store_true",
+        help="For books without an author, generate a synthetic author from "
+        "the creator (uploader): {id: 999{creator_id}, name: creator_name}.",
+    )
     return parser.parse_args()
 
 
@@ -422,6 +545,9 @@ def main() -> None:
     print(
         f"Scan  : {'YES — full ID range' if args.scan else 'no (use --scan to discover missing books)'}"
     )
+    print(
+        f"Fix author: {'YES' if args.fix_author else 'no (use --fix-author to generate from creator)'}"
+    )
     if args.dry_run:
         print("DRY RUN — will not write output")
     print()
@@ -434,11 +560,20 @@ def main() -> None:
             args.delay,
             scan=args.scan,
             min_chapters=args.min_chapters,
+            fix_author=args.fix_author,
         )
     )
     elapsed = time.time() - start
 
+    # Count author stats
+    authors_generated = sum(1 for b in updated if b.get("author_generated"))
+    no_author = sum(1 for b in updated if not b.get("author"))
+
     print_report(stats, len(entries), len(updated), elapsed)
+
+    if authors_generated or no_author:
+        print(f"\n  Authors generated from creator: {authors_generated:,}")
+        print(f"  Books still without author: {no_author:,}")
 
     if args.dry_run:
         print("\nDry run complete — no file written.")
