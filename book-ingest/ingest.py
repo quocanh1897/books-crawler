@@ -387,6 +387,17 @@ async def ingest_book(
         stats["saved"] = remaining
         return stats
 
+    # Ensure book row exists in DB before any chapter inserts (FK constraint)
+    meta_hash = compute_meta_hash(meta)
+    async with lock:
+        db = open_db(db_path)
+        try:
+            if not get_book_meta_hash(db, book_id):
+                upsert_book_metadata(db, meta, None, 0, meta_hash)
+                db.commit()
+        finally:
+            db.close()
+
     # 3. Walk chapters — resume from stored chapter_id, reverse walk, or forward
     log_detail(
         f'START {book_id} "{book_name}": {api_chapter_count} total, '
@@ -551,8 +562,7 @@ async def ingest_book(
         await _flush_checkpoint(db_path, book_id, bundle_path, pending_chapters, lock)
         pending_chapters.clear()
 
-    # 5. Update book metadata in DB
-    meta_hash = compute_meta_hash(meta)
+    # 5. Update book metadata in DB (final — with cover + chapters_saved)
     total_saved = len(read_bundle_indices(bundle_path))
 
     # Pull cover
