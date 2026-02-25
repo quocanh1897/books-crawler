@@ -858,6 +858,13 @@ def parse_args() -> argparse.Namespace:
         default=0,
         help="Limit to N entries from plan file (0 = all)",
     )
+    parser.add_argument(
+        "--min-chapters",
+        type=int,
+        default=80,
+        help="Skip books with fewer than N chapters in the plan (default: 80). "
+        "Ignored when explicit book IDs are given.",
+    )
     return parser.parse_args()
 
 
@@ -888,6 +895,17 @@ def main():
             "  Use: python3 ingest.py 100358  or  --plan path/to/plan.json"
         )
         sys.exit(1)
+
+    # Filter out small books (only when loading from a plan, not explicit IDs)
+    if not args.book_ids and args.min_chapters > 0:
+        before = len(entries)
+        entries = [e for e in entries if e.get("chapter_count", 0) >= args.min_chapters]
+        skipped = before - len(entries)
+        if skipped:
+            console.print(
+                f"[dim]Filtered out {skipped:,} books with < {args.min_chapters} chapters "
+                f"({len(entries):,} remaining)[/dim]"
+            )
 
     if not entries:
         console.print("[yellow]No entries to process.[/yellow]")
