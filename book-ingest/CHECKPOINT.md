@@ -61,9 +61,10 @@ Each chapter's metadata is stored as a **fixed-size block** directly before its 
 
 | Offset | Size | Field |
 |--------|------|-------|
-| 0 | 4 | `word_count` (uint32) |
-| 4 | 1 | `title_len` (uint8, actual UTF-8 bytes, max 200) |
-| 5 | 200 | `title` (UTF-8, zero-padded) |
+| 0 | 4 | `chapter_id` (uint32, API ID, 0 = unknown) |
+| 4 | 4 | `word_count` (uint32) |
+| 8 | 1 | `title_len` (uint8, actual UTF-8 bytes, max 196) |
+| 9 | 196 | `title` (UTF-8, zero-padded) |
 | 205 | 1 | `slug_len` (uint8, actual bytes, max 48) |
 | 206 | 48 | `slug` (UTF-8, zero-padded) |
 | 254 | 2 | Reserved (zero) |
@@ -79,6 +80,7 @@ Total metadata block: **256 bytes** per chapter.
 | Read chapter meta | `seek(offset)`, `read(meta_size)` |
 | Read both | `seek(offset)`, `read(meta_size + compressedLen)` |
 | Read all indices | Read 16B header + N×16B index (same as v1) |
+| Resume walk | Read max-index chapter's `chapter_id` from meta → fetch → get `next.id` |
 
 ### Backward compatibility
 
@@ -86,6 +88,7 @@ Total metadata block: **256 bytes** per chapter.
 - **v2 bundles**: 16B header, `meta_size` from header bytes 12–13, skip prefix before data
 - **v1 readers** already reject `version !== 1` → no corruption risk
 - All 21,103 existing v1 bundles remain readable
+- v1 bundles have no stored `chapter_id` → first re-run uses reverse walk, subsequent runs resume
 
 ### Overhead
 
@@ -103,57 +106,55 @@ For a 2000-chapter book:
 | Self-describing per chapter? | No, disconnected JSON blob | Yes, meta is co-located with data |
 | TS reader complexity | Must parse `meta_offset`, guard data boundary | Just skip `meta_size` bytes before data |
 | Future-proof | No | `meta_entry_size` in header allows size changes without version bump |
+| Walk optimization | N/A | Stored `chapter_id` enables O(missing) resume instead of O(total) walk |
 
 ## Remaining Tasks
 
-### Task 1: Implement v2 in Python (`book-ingest/src/bundle.py`)
-- Add v2 constants: `BUNDLE_VERSION_2 = 2`, `HEADER_SIZE_V2 = 16`, `META_ENTRY_SIZE = 256`
-- Add `ChapterMeta` dataclass: `word_count`, `title`, `slug`
-- Update `write_bundle()` to accept optional metadata per chapter, write v2 format
-- Update `read_bundle_indices()` to handle both v1 (12B header) and v2 (16B header)
-- Update `read_bundle_raw()` to skip metadata prefix for v2
-- Add `read_bundle_meta()` to read metadata blocks without decompressing chapter data
-- Maintain v1 read backward compatibility
+### Task 1: Implement v2 in Python (`book-ingest/src/bundle.py`) ✅
+- Added v2 constants, `ChapterMeta` dataclass (with `chapter_id`, `word_count`, `title`, `slug`)
+- `write_bundle()` always writes v2 with per-chapter metadata blocks
+- All readers (`read_bundle_indices`, `read_bundle_raw`, `read_bundle_meta`) accept v1 + v2
+- v1 backward compatibility verified against real bundles
 
-### Task 2: Update `ingest.py` to write v2
-- `_flush_checkpoint()` passes chapter metadata (title, slug, word_count) to `write_bundle()`
+### Task 2: Update `ingest.py` to write v2 + resume optimization ✅
+- `_flush_checkpoint()` passes `ChapterMeta` (including `chapter_id`) to `write_bundle()`
 - "bundle complete" recovery path reads metadata from v2 bundles to reconstruct missing DB rows
+- **Resume walk**: reads last chapter's `chapter_id` from bundle meta → fetches it → walks forward from `next.id`
+- **Reverse walk fallback**: if stored `chapter_id` is stale (404), walks backwards from `latest_chapter` via `previous.id`
+- Turns chapter walk from O(total) to O(missing) for the common tail-append case
 
-### Task 3: Update TypeScript reader (`binslib/src/lib/chapter-storage.ts`)
-- Accept version 1 or 2
-- For v2: read `meta_entry_size` from header bytes 12–13, use 16B header
-- `readFromBundle()`: seek to `offset + meta_entry_size` instead of `offset`
-- `readBundleIndex()`: parse 16B header for v2, 12B for v1
-- `readAllBundleRaw()`: skip meta prefix when extracting compressed data
-- `writeBookBundleRaw()` / `BundleWriter`: write v2 format with metadata blocks
-- The TS side doesn't need to read/parse the metadata content (that's for Python DB recovery)
+### Task 3: Update TypeScript reader (`binslib/src/lib/chapter-storage.ts`) ✅
+- Readers accept v1 and v2 (`metaEntrySize` + `headerSize` in `BundleIndex`)
+- `readFromBundle()` skips meta prefix for v2
+- `readAllBundleRaw()` preserves `metaBlock` for round-trip
+- `writeBookBundleRaw()` / `BundleWriter` always write v2 format
 
-### Task 4: Test
+### Task 4: Update `crawler-descryptor/src/utils.py` ✅
+- `read_bundle_indices()` accepts v1 and v2 bundles
+
+### Task 5: Test ✅
+- v2 encode/decode round-trip (with chapter_id) pass
+- v2 write → read indices, raw data, metadata pass
+- v1 backward compat (synthetic + real 1067-chapter bundle) pass
+- v1→v2 merge preserves data, adds metadata pass
+- 10 fresh books ingested as v2 (518 chapters, 0 errors) pass
+- TS reader reads v2 bundles correctly pass
+- TS reader still reads v1 bundles pass
+
+### Task 6: Test resume/reverse walk with books with missing chapters
 ```bash
-# Real v2 ingest test
 cd /data/mtc/book-ingest
-python3 ingest.py 103293 -w 1
-
-# Verify metadata round-trip
-python3 -c "
-from src.bundle import read_bundle_meta
-meta = read_bundle_meta('../binslib/data/compressed/103293.bundle')
-for idx, m in sorted(meta.items())[:3]:
-    print(f'  [{idx}] {m.title[:40]}  wc={m.word_count}')
-"
-
-# Verify v1 backward compat
-python3 -c "
-from src.bundle import read_bundle_indices
-indices = read_bundle_indices('../binslib/data/compressed/100267.bundle')
-print(f'v1 bundle: {len(indices)} chapters')
-"
+# Pick books with missing tail chapters
+python3 ingest.py 150741 110037 103293 -w 3
+# Should see RESUME or REVERSE log lines instead of full forward walk
+tail -20 data/ingest-detail.log
 ```
 
-### Task 5: Commit & push
+### Task 7: Commit & push
 ```bash
 git add book-ingest/src/bundle.py book-ingest/ingest.py binslib/src/lib/chapter-storage.ts
 git add book-ingest/CHECKPOINT.md book-ingest/README.md binslib/README.md
-git commit -m "BLIB v2: inline per-chapter metadata (256B fixed block per chapter)"
+git add crawler-descryptor/src/utils.py
+git commit -m "BLIB v2: inline metadata with chapter_id, resume/reverse walk optimization"
 git push -u origin bundle-v2
 ```

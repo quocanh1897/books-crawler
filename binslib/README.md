@@ -139,9 +139,10 @@ The 256-byte metadata block layout:
 
 | Offset | Size | Field |
 |--------|------|-------|
-| 0 | 4 | `word_count` (uint32) |
-| 4 | 1 | `title_len` (uint8, max 200) |
-| 5 | 200 | `title` (UTF-8, zero-padded) |
+| 0 | 4 | `chapter_id` (uint32, API ID, 0 = unknown) |
+| 4 | 4 | `word_count` (uint32) |
+| 8 | 1 | `title_len` (uint8, max 196) |
+| 9 | 196 | `title` (UTF-8, zero-padded) |
 | 205 | 1 | `slug_len` (uint8, max 48) |
 | 206 | 48 | `slug` (UTF-8, zero-padded) |
 | 254 | 2 | Reserved (zero) |
@@ -154,7 +155,7 @@ The 256-byte metadata block layout:
 | Chapter meta | N/A | `seek(offset)`, `read(M)` |
 | All indices | 12B header + N×16B index | 16B header + N×16B index |
 
-The per-chapter metadata enables DB recovery from bundles alone (if the SQLite DB is lost, chapter titles/slugs/word counts can be reconstructed by scanning the metadata blocks). The overhead is 256 bytes per chapter (~512KB for a 2000-chapter book, ~6% of a typical bundle).
+The per-chapter metadata enables DB recovery from bundles alone (if the SQLite DB is lost, chapter titles/slugs/word counts can be reconstructed by scanning the metadata blocks). The stored `chapter_id` also enables O(missing) chapter walk resumption instead of O(total) linked-list traversal. The overhead is 256 bytes per chapter (~512KB for a 2000-chapter book, ~6% of a typical bundle).
 
 This reduces file count from millions of individual `.zst` files to one `.bundle` per book, eliminating filesystem overhead and dramatically improving I/O performance on both NTFS and ext4.
 

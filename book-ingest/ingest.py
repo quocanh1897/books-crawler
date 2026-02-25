@@ -299,6 +299,7 @@ async def ingest_book(
 
     api_chapter_count = meta.get("chapter_count", 0)
     first_chapter = meta.get("first_chapter")
+    latest_chapter = meta.get("latest_chapter")
     book_name = meta.get("name", "?")
 
     # 2. Determine what's needed — bundle-first skip logic
@@ -386,70 +387,164 @@ async def ingest_book(
         stats["saved"] = remaining
         return stats
 
-    # 3. Walk chapter linked list
+    # 3. Walk chapters — resume from stored chapter_id, reverse walk, or forward
     log_detail(
         f'START {book_id} "{book_name}": {api_chapter_count} total, '
         f"{len(existing)} existing, ~{api_chapter_count - len(existing)} to fetch"
     )
 
-    # pending_chapters: index -> (compressed, raw_len, title, slug, word_count)
-    pending_chapters: dict[int, tuple[bytes, int, str, str, int]] = {}
-    chapter_id = first_chapter
+    # pending: index -> (compressed, raw_len, title, slug, word_count, chapter_id)
+    pending_chapters: dict[int, tuple[bytes, int, str, str, int, int]] = {}
     start_time = time.time()
 
-    while chapter_id:
-        try:
-            chapter = await client.get_chapter(chapter_id)
-        except FileNotFoundError:
-            break
-        except Exception as e:
-            log_detail(f"  ch fetch error {book_id} ch_id={chapter_id}: {e}")
-            stats["errors"] += 1
-            break
+    # --- Determine walk strategy ---
+    walk_chapter_id: int | None = None
+    walk_reverse = False
 
+    if bundle_indices:
+        max_bundle_idx = max(bundle_indices)
+        bundle_meta_map = await asyncio.to_thread(read_bundle_meta, bundle_path)
+        last_meta = bundle_meta_map.get(max_bundle_idx)
+
+        if last_meta and last_meta.chapter_id:
+            # Resume: fetch last known chapter to get its next link
+            try:
+                last_ch = await client.get_chapter(last_meta.chapter_id)
+                returned_idx = last_ch.get("index", -1)
+                if returned_idx != max_bundle_idx:
+                    log_detail(
+                        f"  FATAL {book_id}: resume ch_id={last_meta.chapter_id} "
+                        f"returned index={returned_idx}, expected {max_bundle_idx}"
+                    )
+                    stats["errors"] = -1
+                    return stats
+
+                next_info = last_ch.get("next")
+                walk_chapter_id = next_info.get("id") if next_info else None
+                if walk_chapter_id:
+                    log_detail(
+                        f"  RESUME {book_id}: last_index={max_bundle_idx} "
+                        f"-> forward from ch_id={walk_chapter_id}"
+                    )
+                else:
+                    log_detail(f"  RESUME {book_id}: already at last chapter")
+
+            except FileNotFoundError:
+                # Stored chapter_id is stale — try reverse walk from latest
+                if latest_chapter:
+                    walk_chapter_id = latest_chapter
+                    walk_reverse = True
+                    log_detail(
+                        f"  REVERSE {book_id}: stored ch_id 404, "
+                        f"walking back from latest={latest_chapter}"
+                    )
+                else:
+                    walk_chapter_id = first_chapter
+                    log_detail(
+                        f"  FALLBACK {book_id}: stored ch_id 404, "
+                        f"no latest_chapter, full forward walk"
+                    )
+
+            except Exception as e:
+                log_detail(
+                    f"  RESUME ERROR {book_id}: {e}, falling back to forward walk"
+                )
+                walk_chapter_id = first_chapter
+        else:
+            # No stored chapter_id (v1 bundle or empty meta) — reverse walk
+            if latest_chapter:
+                walk_chapter_id = latest_chapter
+                walk_reverse = True
+                log_detail(
+                    f"  REVERSE {book_id}: no stored ch_id, "
+                    f"walking back from latest={latest_chapter}"
+                )
+            else:
+                walk_chapter_id = first_chapter
+    else:
+        # No bundle at all — full forward walk
+        walk_chapter_id = first_chapter
+
+    # --- Helper: decrypt, compress, buffer a chapter ---
+    async def _save_chapter(chapter: dict) -> bool:
+        """Process a fetched chapter. Returns True if saved."""
         index = chapter.get("index", 0)
-        next_info = chapter.get("next")
-        chapter_id = next_info.get("id") if next_info else None
-
-        if index in existing:
-            stats["skipped"] += 1
-            continue
+        ch_id = chapter.get("id", 0)
 
         encrypted = chapter.get("content", "")
         if not encrypted:
             stats["errors"] += 1
-            continue
+            return False
 
         try:
             title, slug, body, word_count = decrypt_chapter(chapter)
         except DecryptionError as e:
             log_detail(f"  DECRYPT FAIL {book_id}[{index}]: {e}")
             stats["errors"] += 1
-            continue
+            return False
 
-        # Compress body
         compressed, raw_len = await asyncio.to_thread(compressor.compress, body)
-
-        pending_chapters[index] = (compressed, raw_len, title, slug, word_count)
+        pending_chapters[index] = (compressed, raw_len, title, slug, word_count, ch_id)
         existing.add(index)
         stats["saved"] += 1
-
-        # Update chapter progress
         chapter_progress.update(chapter_task_id, advance=1)
 
-        # Checkpoint every flush_every chapters
         if len(pending_chapters) >= flush_every:
             await _flush_checkpoint(
                 db_path, book_id, bundle_path, pending_chapters, lock
             )
             pending_chapters.clear()
-
             elapsed = time.time() - start_time
             rate = stats["saved"] / elapsed if elapsed > 0 else 0
             log_detail(
                 f"  CHECKPOINT {book_id}[{index}/{api_chapter_count}]: "
                 f"+{stats['saved']} chapters ({rate:.1f}/s)"
             )
+        return True
+
+    # --- Execute walk ---
+    if walk_reverse:
+        # Reverse walk: go backwards via previous.id, stop at first existing
+        ch_id = walk_chapter_id
+        while ch_id:
+            try:
+                chapter = await client.get_chapter(ch_id)
+            except FileNotFoundError:
+                break
+            except Exception as e:
+                log_detail(f"  ch fetch error {book_id} ch_id={ch_id}: {e}")
+                stats["errors"] += 1
+                break
+
+            if chapter.get("index", 0) in existing:
+                break  # reached existing data; all prior chapters should exist
+
+            await _save_chapter(chapter)
+
+            prev_info = chapter.get("previous")
+            ch_id = prev_info.get("id") if prev_info else None
+    else:
+        # Forward walk from walk_chapter_id
+        ch_id = walk_chapter_id
+        while ch_id:
+            try:
+                chapter = await client.get_chapter(ch_id)
+            except FileNotFoundError:
+                break
+            except Exception as e:
+                log_detail(f"  ch fetch error {book_id} ch_id={ch_id}: {e}")
+                stats["errors"] += 1
+                break
+
+            index = chapter.get("index", 0)
+            next_info = chapter.get("next")
+            ch_id = next_info.get("id") if next_info else None
+
+            if index in existing:
+                stats["skipped"] += 1
+                continue
+
+            await _save_chapter(chapter)
 
     # 4. Final flush
     if pending_chapters:
@@ -490,7 +585,7 @@ async def _flush_checkpoint(
     db_path: str,
     book_id: int,
     bundle_path: str,
-    pending: dict[int, tuple[bytes, int, str, str, int]],
+    pending: dict[int, tuple[bytes, int, str, str, int, int]],
     lock: asyncio.Lock,
 ) -> None:
     """Commit pending chapters to DB and merge into v2 bundle.
@@ -499,15 +594,17 @@ async def _flush_checkpoint(
     """
     # Prepare chapter metadata for DB (title, slug, word_count tuples)
     ch_db_meta: dict[int, tuple[str, str, int]] = {}
-    for idx, (_, _, title, slug, wc) in pending.items():
+    for idx, (_, _, title, slug, wc, _) in pending.items():
         ch_db_meta[idx] = (title, slug, wc)
 
     # Prepare compressed data + inline metadata for v2 bundle
     ch_data: dict[int, tuple[bytes, int]] = {}
     ch_bundle_meta: dict[int, ChapterMeta] = {}
-    for idx, (compressed, raw_len, title, slug, wc) in pending.items():
+    for idx, (compressed, raw_len, title, slug, wc, ch_id) in pending.items():
         ch_data[idx] = (compressed, raw_len)
-        ch_bundle_meta[idx] = ChapterMeta(word_count=wc, title=title, slug=slug)
+        ch_bundle_meta[idx] = ChapterMeta(
+            chapter_id=ch_id, word_count=wc, title=title, slug=slug
+        )
 
     async with lock:
         # DB commit

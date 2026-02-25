@@ -11,26 +11,27 @@ v1 format (little-endian):
     [4 bytes] uint32: uncompressed data length
   [variable] concatenated zstd-compressed chapter data
 
-v2 format (little-endian):
-  [4 bytes]  magic: "BLIB"
-  [4 bytes]  uint32: version (2)
-  [4 bytes]  uint32: entry count (N)
-  [2 bytes]  uint16: meta entry size (M, currently 256)
-  [2 bytes]  uint16: reserved (0)
-  [N x 16 bytes] index entries sorted by chapter index:
-    [4 bytes] uint32: chapter index number
-    [4 bytes] uint32: block offset from file start (points to meta+data)
-    [4 bytes] uint32: compressed data length (excludes metadata prefix)
-    [4 bytes] uint32: uncompressed data length
-  Per chapter block (at block offset):
-    [M bytes] fixed-size metadata:
-      [4 bytes]   uint32: word_count
-      [1 byte]    uint8:  title_len (max 200)
-      [200 bytes] title UTF-8 (zero-padded)
-      [1 byte]    uint8:  slug_len (max 48)
-      [48 bytes]  slug UTF-8 (zero-padded)
-      [2 bytes]   reserved (zero)
-    [variable] zstd-compressed chapter data
++  v2 format (little-endian):
++  [4 bytes]  magic: "BLIB"
++  [4 bytes]  uint32: version (2)
++  [4 bytes]  uint32: entry count (N)
++  [2 bytes]  uint16: meta entry size (M, currently 256)
++  [2 bytes]  uint16: reserved (0)
++  [N x 16 bytes] index entries sorted by chapter index:
++    [4 bytes] uint32: chapter index number
++    [4 bytes] uint32: block offset from file start (points to meta+data)
++    [4 bytes] uint32: compressed data length (excludes metadata prefix)
++    [4 bytes] uint32: uncompressed data length
++  Per chapter block (at block offset):
++    [M bytes] fixed-size metadata:
++      [4 bytes]   uint32: chapter_id (API ID, 0 = unknown)
++      [4 bytes]   uint32: word_count
++      [1 byte]    uint8:  title_len (max 196)
++      [196 bytes] title UTF-8 (zero-padded)
++      [1 byte]    uint8:  slug_len (max 48)
++      [48 bytes]  slug UTF-8 (zero-padded)
++      [2 bytes]   reserved (zero)
++    [variable] zstd-compressed chapter data
 """
 
 from __future__ import annotations
@@ -52,7 +53,7 @@ HEADER_SIZE_V2 = 16  # magic(4) + version(4) + count(4) + meta_size(2) + reserve
 ENTRY_SIZE = 16  # indexNum(4) + offset(4) + compLen(4) + rawLen(4)
 
 META_ENTRY_SIZE = 256  # fixed metadata block per chapter
-_META_TITLE_MAX = 200
+_META_TITLE_MAX = 196
 _META_SLUG_MAX = 48
 
 
@@ -63,6 +64,7 @@ _META_SLUG_MAX = 48
 class ChapterMeta:
     """Per-chapter metadata stored inline in v2 bundles."""
 
+    chapter_id: int = 0
     word_count: int = 0
     title: str = ""
     slug: str = ""
@@ -98,16 +100,29 @@ def _parse_header(buf: bytes) -> tuple[int, int, int, int] | None:
 
 
 def _encode_meta(meta: ChapterMeta) -> bytes:
-    """Encode a ChapterMeta into a fixed-size META_ENTRY_SIZE byte block."""
+    """Encode a ChapterMeta into a fixed-size META_ENTRY_SIZE byte block.
+
+    Layout (256 bytes):
+      [0..3]     uint32 chapter_id  (API ID, 0 = unknown)
+      [4..7]     uint32 word_count
+      [8]        uint8  title_len   (max 196)
+      [9..204]   title UTF-8        (zero-padded)
+      [205]      uint8  slug_len    (max 48)
+      [206..253] slug UTF-8         (zero-padded)
+      [254..255] reserved           (zero)
+    """
     buf = bytearray(META_ENTRY_SIZE)
 
-    # word_count at offset 0
-    struct.pack_into("<I", buf, 0, meta.word_count)
+    # chapter_id at offset 0
+    struct.pack_into("<I", buf, 0, meta.chapter_id)
 
-    # title at offset 4: 1-byte length + 200-byte padded content
+    # word_count at offset 4
+    struct.pack_into("<I", buf, 4, meta.word_count)
+
+    # title at offset 8: 1-byte length + 196-byte padded content
     title_bytes = meta.title.encode("utf-8")[:_META_TITLE_MAX]
-    buf[4] = len(title_bytes)
-    buf[5 : 5 + len(title_bytes)] = title_bytes
+    buf[8] = len(title_bytes)
+    buf[9 : 9 + len(title_bytes)] = title_bytes
 
     # slug at offset 205: 1-byte length + 48-byte padded content
     slug_bytes = meta.slug.encode("utf-8")[:_META_SLUG_MAX]
@@ -123,19 +138,22 @@ def _decode_meta(buf: bytes | bytearray) -> ChapterMeta:
     if len(buf) < META_ENTRY_SIZE:
         return ChapterMeta()
 
-    word_count = struct.unpack_from("<I", buf, 0)[0]
+    chapter_id = struct.unpack_from("<I", buf, 0)[0]
+    word_count = struct.unpack_from("<I", buf, 4)[0]
 
-    title_len = buf[4]
+    title_len = buf[8]
     if title_len > _META_TITLE_MAX:
         title_len = _META_TITLE_MAX
-    title = buf[5 : 5 + title_len].decode("utf-8", errors="replace")
+    title = buf[9 : 9 + title_len].decode("utf-8", errors="replace")
 
     slug_len = buf[205]
     if slug_len > _META_SLUG_MAX:
         slug_len = _META_SLUG_MAX
     slug = buf[206 : 206 + slug_len].decode("utf-8", errors="replace")
 
-    return ChapterMeta(word_count=word_count, title=title, slug=slug)
+    return ChapterMeta(
+        chapter_id=chapter_id, word_count=word_count, title=title, slug=slug
+    )
 
 
 _EMPTY_META_BLOCK = _encode_meta(ChapterMeta())
