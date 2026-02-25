@@ -12,7 +12,9 @@ Usage:
     python3 pull_metadata.py --force            # re-pull everything
     python3 pull_metadata.py --ids 147360 116007  # specific books only
     python3 pull_metadata.py --dry-run          # show what would be fetched
+    python3 pull_metadata.py --cover-only --ids 132599 131197  # covers → binslib
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,7 +24,14 @@ import sys
 import time
 
 import httpx
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, TimeRemainingColumn, MofNCompleteColumn
+from rich.progress import (
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 
 # ── Config (shared with crawler) ────────────────────────────────────────────
 
@@ -30,9 +39,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "crawler"))
 from config import BASE_URL, HEADERS, REQUEST_DELAY
 
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "crawler", "output")
+COVERS_DIR = os.path.join(
+    os.path.dirname(__file__), "..", "binslib", "public", "covers"
+)
 
 
 # ── API helpers ─────────────────────────────────────────────────────────────
+
 
 def fetch_book_metadata(client: httpx.Client, book_id: int) -> dict | None:
     """Fetch full book metadata from API by ID.
@@ -44,8 +57,7 @@ def fetch_book_metadata(client: httpx.Client, book_id: int) -> dict | None:
 
     # Direct lookup by ID
     try:
-        r = client.get(f"{BASE_URL}/api/books/{book_id}",
-                       params={"include": includes})
+        r = client.get(f"{BASE_URL}/api/books/{book_id}", params={"include": includes})
         if r.status_code == 200:
             data = r.json()
             if data.get("success") and data.get("data"):
@@ -70,38 +82,40 @@ def fetch_book_metadata(client: httpx.Client, book_id: int) -> dict | None:
             with open(book_json) as f:
                 name = json.load(f).get("book_name", "")
     if name:
-            try:
-                r = client.get(f"{BASE_URL}/api/books",
-                               params={"filter[keyword]": name,
-                                       "include": includes, "limit": 5})
-                if r.status_code == 200:
-                    data = r.json()
-                    if data.get("success") and data.get("data"):
-                        for item in data["data"]:
-                            book = item.get("book", item)
-                            if book.get("id") == book_id:
-                                return book
-                        # If exact ID not found, return first result if ID matches
-                        first = data["data"][0]
-                        book = first.get("book", first)
+        try:
+            r = client.get(
+                f"{BASE_URL}/api/books",
+                params={"filter[keyword]": name, "include": includes, "limit": 5},
+            )
+            if r.status_code == 200:
+                data = r.json()
+                if data.get("success") and data.get("data"):
+                    for item in data["data"]:
+                        book = item.get("book", item)
                         if book.get("id") == book_id:
                             return book
-            except Exception as e:
-                print(f"    filter[keyword] fallback: {e}")
+                    # If exact ID not found, return first result if ID matches
+                    first = data["data"][0]
+                    book = first.get("book", first)
+                    if book.get("id") == book_id:
+                        return book
+        except Exception as e:
+            print(f"    filter[keyword] fallback: {e}")
 
-            # Fuzzy search fallback
-            try:
-                r = client.get(f"{BASE_URL}/api/books/search",
-                               params={"keyword": name, "limit": 10})
-                if r.status_code == 200:
-                    data = r.json()
-                    if data.get("success") and data.get("data"):
-                        for item in data["data"]:
-                            book = item.get("book", item)
-                            if book.get("id") == book_id:
-                                return book
-            except Exception as e:
-                print(f"    /search fallback: {e}")
+        # Fuzzy search fallback
+        try:
+            r = client.get(
+                f"{BASE_URL}/api/books/search", params={"keyword": name, "limit": 10}
+            )
+            if r.status_code == 200:
+                data = r.json()
+                if data.get("success") and data.get("data"):
+                    for item in data["data"]:
+                        book = item.get("book", item)
+                        if book.get("id") == book_id:
+                            return book
+        except Exception as e:
+            print(f"    /search fallback: {e}")
 
     return None
 
@@ -129,6 +143,7 @@ def download_cover(client: httpx.Client, poster: dict, dest_path: str) -> bool:
 
 
 # ── Core logic ──────────────────────────────────────────────────────────────
+
 
 def get_book_ids() -> list[int]:
     """Scan crawler/output/ for book ID directories."""
@@ -180,6 +195,59 @@ def pull_one(client: httpx.Client, book_id: int, log=print) -> bool:
     return True
 
 
+def _get_poster_from_metadata(book_id: int) -> dict | str | None:
+    """Read poster info from existing metadata.json without hitting the API."""
+    meta_path = os.path.join(OUTPUT_DIR, str(book_id), "metadata.json")
+    if os.path.exists(meta_path):
+        try:
+            with open(meta_path) as f:
+                return json.load(f).get("poster")
+        except (json.JSONDecodeError, OSError):
+            pass
+    return None
+
+
+def pull_cover_only(client: httpx.Client, book_id: int, log=print) -> bool:
+    """Download cover directly to binslib/public/covers/{book_id}.jpg.
+
+    Uses existing metadata.json when available to avoid an API call.
+    Falls back to fetching metadata from the API (without saving it).
+    """
+    dest_path = os.path.join(COVERS_DIR, f"{book_id}.jpg")
+
+    # Try existing metadata first to avoid an API round-trip
+    poster = _get_poster_from_metadata(book_id)
+
+    if not poster:
+        book = fetch_book_metadata(client, book_id)
+        if not book:
+            log(f"  [red]FAILED[/red] {book_id}: no API data")
+            return False
+        poster = book.get("poster")
+
+    if not poster:
+        log(f"  [yellow]WARNING[/yellow] {book_id}: no poster info")
+        return False
+
+    if isinstance(poster, dict):
+        if download_cover(client, poster, dest_path):
+            return True
+        log(f"  [yellow]WARNING[/yellow] {book_id}: cover download failed")
+        return False
+
+    if isinstance(poster, str):
+        try:
+            r = client.get(poster, follow_redirects=True, timeout=30)
+            if r.status_code == 200 and len(r.content) > 100:
+                with open(dest_path, "wb") as f:
+                    f.write(r.content)
+                return True
+        except Exception as e:
+            log(f"  [yellow]WARNING[/yellow] {book_id}: cover failed: {e}")
+
+    return False
+
+
 def _get_book_name(book_id: int) -> str:
     """Get book name from metadata.json, falling back to book.json."""
     meta_path = os.path.join(OUTPUT_DIR, str(book_id), "metadata.json")
@@ -201,19 +269,36 @@ def _get_book_name(book_id: int) -> str:
 
 # ── Main ────────────────────────────────────────────────────────────────────
 
+
 def main():
     parser = argparse.ArgumentParser(
-        description="Pull metadata + cover images for crawled books")
-    parser.add_argument("--ids", type=int, nargs="+",
-                        help="Specific book IDs to pull (default: all)")
-    parser.add_argument("--list", action="store_true",
-                        help="List books missing metadata.json and exit")
-    parser.add_argument("--force", action="store_true",
-                        help="Re-pull even if metadata.json exists")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Show what would be fetched without doing it")
-    parser.add_argument("--delay", type=float, default=REQUEST_DELAY,
-                        help=f"Seconds between API requests (default: {REQUEST_DELAY})")
+        description="Pull metadata + cover images for crawled books"
+    )
+    parser.add_argument(
+        "--ids", type=int, nargs="+", help="Specific book IDs to pull (default: all)"
+    )
+    parser.add_argument(
+        "--list", action="store_true", help="List books missing metadata.json and exit"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Re-pull even if metadata.json exists"
+    )
+    parser.add_argument(
+        "--cover-only",
+        action="store_true",
+        help="Only download covers directly to binslib/public/covers/",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be fetched without doing it",
+    )
+    parser.add_argument(
+        "--delay",
+        type=float,
+        default=REQUEST_DELAY,
+        help=f"Seconds between API requests (default: {REQUEST_DELAY})",
+    )
     args = parser.parse_args()
 
     all_ids = get_book_ids()
@@ -225,6 +310,72 @@ def main():
     else:
         target_ids = all_ids
 
+    # ── Cover-only mode ─────────────────────────────────────────────────
+    if args.cover_only:
+        os.makedirs(COVERS_DIR, exist_ok=True)
+
+        if args.force:
+            pending_covers = target_ids
+        else:
+            pending_covers = [
+                bid
+                for bid in target_ids
+                if not os.path.exists(os.path.join(COVERS_DIR, f"{bid}.jpg"))
+            ]
+
+        print(f"Books in output/:    {len(all_ids)}")
+        print(f"Targeted:            {len(target_ids)}")
+        print(f"Missing covers:      {len(pending_covers)}")
+        print(f"Destination:         {os.path.abspath(COVERS_DIR)}")
+        print()
+
+        if not pending_covers:
+            print("All covers present. Nothing to do.")
+            return
+
+        if args.dry_run:
+            print("Would download covers for:")
+            for bid in pending_covers:
+                name = _get_book_name(bid)
+                print(f"  {bid}: {name}")
+            return
+
+        succeeded = 0
+        failed = 0
+
+        progress = Progress(
+            TextColumn("[bold blue]{task.description}"),
+            BarColumn(bar_width=30),
+            MofNCompleteColumn(),
+            TextColumn("•"),
+            TimeElapsedColumn(),
+            TextColumn("•"),
+            TimeRemainingColumn(),
+        )
+
+        with progress, httpx.Client(headers=HEADERS, timeout=30) as client:
+            task = progress.add_task("Pulling covers", total=len(pending_covers))
+
+            for i, bid in enumerate(pending_covers, 1):
+                name = _get_book_name(bid)
+                progress.update(task, description=f"{bid}: {name}")
+
+                if pull_cover_only(client, bid, log=progress.console.print):
+                    succeeded += 1
+                else:
+                    failed += 1
+
+                progress.advance(task)
+
+                if i < len(pending_covers):
+                    time.sleep(args.delay)
+
+        print(
+            f"\nDone: {succeeded} succeeded, {failed} failed out of {len(pending_covers)}"
+        )
+        return
+
+    # ── Normal mode ─────────────────────────────────────────────────────
     pending = [bid for bid in target_ids if needs_pull(bid, args.force)]
 
     print(f"Books in output/:    {len(all_ids)}")

@@ -55,6 +55,9 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# Sync logs
+sync-book/*.log
+
 # macOS
 .DS_Store
 ._*
