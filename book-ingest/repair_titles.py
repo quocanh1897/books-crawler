@@ -3,27 +3,38 @@
 
 The old import.ts extracted chapter titles from the *body text* stored in
 bundles (first non-empty line), which produced wrong titles like "đau"
-instead of the correct API name "Chương 1: ửng đỏ".
+instead of the correct API name "Chương 1: ửng đỏ".  The same problem
+affects TTV books imported by the old crawler-tangthuvien pipeline.
 
 This script:
   1. Finds books whose chapter titles don't match the expected "Chương …"
      format (or optionally, ALL books with --full).
-  2. Fetches the correct titles from the bulk chapters API in a single
-     request per book:  GET /api/chapters?filter[book_id]=X
+  2. Fetches the correct titles from the upstream source:
+     - MTC: bulk chapters API  GET /api/chapters?filter[book_id]=X
+     - TTV: scrape each chapter page and extract the <h2> title
   3. Batch-updates the DB rows.
 
 Usage:
     cd book-ingest
-    python3 repair_titles.py                    # fix books with bad titles
-    python3 repair_titles.py --full             # re-sync ALL chapter titles
+
+    # ── MTC (default) ────────────────────────────────────────
+    python3 repair_titles.py                    # fix MTC books with bad titles
+    python3 repair_titles.py --full             # re-sync ALL MTC chapter titles
     python3 repair_titles.py --book-ids 101380 101037
     python3 repair_titles.py --dry-run          # preview without writing
     python3 repair_titles.py --workers 20       # parallel API requests
+
+    # ── TTV ──────────────────────────────────────────────────
+    python3 repair_titles.py --source ttv                   # fix TTV bad titles
+    python3 repair_titles.py --source ttv --full            # re-sync ALL TTV titles
+    python3 repair_titles.py --source ttv --book-ids 10000004
+    python3 repair_titles.py --source ttv --workers 20      # parallel HTML fetches
 """
 
 from __future__ import annotations
 
 import argparse
+import asyncio
 import os
 import sqlite3
 import sys
@@ -123,49 +134,86 @@ def fetch_chapter_titles(
     return None
 
 
-def get_books_with_bad_titles(conn: sqlite3.Connection) -> list[tuple[int, str, int]]:
-    """Return (book_id, book_name, bad_chapter_count) for books with wrong titles."""
+def get_books_with_bad_titles(
+    conn: sqlite3.Connection, source: str | None = None
+) -> list[tuple[int, str, int]]:
+    """Return (book_id, book_name, bad_chapter_count) for books with wrong titles.
+
+    When *source* is given, only books from that source are returned.
+    """
+    where = "WHERE c.title NOT LIKE 'Chương %' AND c.title NOT LIKE 'chương %'"
+    params: list = []
+    if source == "ttv":
+        where += " AND b.source = ?"
+        params.append(source)
+    elif source == "mtc":
+        where += " AND (b.source = 'mtc' OR b.source IS NULL)"
     cur = conn.execute(
-        """
+        f"""
         SELECT b.id, b.name, COUNT(*) AS bad_count
         FROM chapters c
         JOIN books b ON b.id = c.book_id
-        WHERE c.title NOT LIKE 'Chương %'
+        {where}
         GROUP BY b.id
         ORDER BY bad_count DESC
-        """
+        """,
+        params,
     )
     return [(row[0], row[1], row[2]) for row in cur]
 
 
-def get_all_books_with_chapters(conn: sqlite3.Connection) -> list[tuple[int, str, int]]:
-    """Return (book_id, book_name, chapter_count) for ALL books."""
-    cur = conn.execute(
-        """
-        SELECT b.id, b.name, COUNT(*) AS ch_count
-        FROM chapters c
-        JOIN books b ON b.id = c.book_id
-        GROUP BY b.id
-        ORDER BY ch_count DESC
-        """
-    )
-    return [(row[0], row[1], row[2]) for row in cur]
-
-
-def get_specific_books(
-    conn: sqlite3.Connection, book_ids: list[int]
+def get_all_books_with_chapters(
+    conn: sqlite3.Connection, source: str | None = None
 ) -> list[tuple[int, str, int]]:
-    """Return (book_id, book_name, chapter_count) for specific book IDs."""
-    placeholders = ",".join("?" for _ in book_ids)
+    """Return (book_id, book_name, chapter_count) for ALL books.
+
+    When *source* is given, only books from that source are returned.
+    """
+    where = "WHERE 1=1"
+    params: list = []
+    if source == "ttv":
+        where += " AND b.source = ?"
+        params.append(source)
+    elif source == "mtc":
+        where += " AND (b.source = 'mtc' OR b.source IS NULL)"
     cur = conn.execute(
         f"""
         SELECT b.id, b.name, COUNT(*) AS ch_count
         FROM chapters c
         JOIN books b ON b.id = c.book_id
-        WHERE b.id IN ({placeholders})
+        {where}
+        GROUP BY b.id
+        ORDER BY ch_count DESC
+        """,
+        params,
+    )
+    return [(row[0], row[1], row[2]) for row in cur]
+
+
+def get_specific_books(
+    conn: sqlite3.Connection, book_ids: list[int], source: str | None = None
+) -> list[tuple[int, str, int]]:
+    """Return (book_id, book_name, chapter_count) for specific book IDs.
+
+    When *source* is given, the results are further filtered by source.
+    """
+    placeholders = ",".join("?" for _ in book_ids)
+    where = f"WHERE b.id IN ({placeholders})"
+    params: list = list(book_ids)
+    if source == "ttv":
+        where += " AND b.source = ?"
+        params.append(source)
+    elif source == "mtc":
+        where += " AND (b.source = 'mtc' OR b.source IS NULL)"
+    cur = conn.execute(
+        f"""
+        SELECT b.id, b.name, COUNT(*) AS ch_count
+        FROM chapters c
+        JOIN books b ON b.id = c.book_id
+        {where}
         GROUP BY b.id
         """,
-        book_ids,
+        params,
     )
     return [(row[0], row[1], row[2]) for row in cur]
 
@@ -277,14 +325,14 @@ def run_repair(
 
     # Determine which books to repair
     if book_ids:
-        books = get_specific_books(conn, book_ids)
-        mode = f"{len(books)} specific books"
+        books = get_specific_books(conn, book_ids, source="mtc")
+        mode = f"{len(books)} specific MTC books"
     elif full:
-        books = get_all_books_with_chapters(conn)
-        mode = f"ALL {len(books)} books (--full)"
+        books = get_all_books_with_chapters(conn, source="mtc")
+        mode = f"ALL {len(books)} MTC books (--full)"
     else:
-        books = get_books_with_bad_titles(conn)
-        mode = f"{len(books)} books with bad titles"
+        books = get_books_with_bad_titles(conn, source="mtc")
+        mode = f"{len(books)} MTC books with bad titles"
 
     if not books:
         print("No books to repair.")
@@ -446,11 +494,192 @@ def run_repair(
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 
+# ── TTV title repair ─────────────────────────────────────────────────────────
+
+
+async def run_repair_ttv(
+    db_path: str,
+    full: bool,
+    book_ids: list[int] | None,
+    dry_run: bool,
+    workers: int,
+    request_delay: float,
+) -> None:
+    """Repair TTV chapter titles by scraping correct titles from HTML pages.
+
+    For each book, fetches all chapter pages in parallel (bounded by
+    *workers*), extracts the ``<h2>`` title, and updates the DB.
+    """
+    from src.sources.ttv import TTV_BASE_URL, TTV_HEADERS, parse_chapter
+
+    conn = open_db(db_path)
+
+    # Determine which books to repair
+    if book_ids:
+        books = get_specific_books(conn, book_ids, source="ttv")
+        mode = f"{len(books)} specific TTV books"
+    elif full:
+        books = get_all_books_with_chapters(conn, source="ttv")
+        mode = f"ALL {len(books)} TTV books (--full)"
+    else:
+        books = get_books_with_bad_titles(conn, source="ttv")
+        mode = f"{len(books)} TTV books with bad titles"
+
+    if not books:
+        print("No TTV books to repair.")
+        conn.close()
+        return
+
+    # Get slugs for all books
+    book_slugs: dict[int, str] = {}
+    for bid, _, _ in books:
+        row = conn.execute("SELECT slug FROM books WHERE id = ?", (bid,)).fetchone()
+        if row and row[0]:
+            book_slugs[bid] = row[0]
+
+    total_chapters_in_scope = sum(c for _, _, c in books)
+    print(f"Repair mode: {mode}")
+    print(f"Chapters in scope: {total_chapters_in_scope:,}")
+    print(f"Workers: {workers}")
+    if dry_run:
+        print("DRY RUN — no changes will be written")
+    print()
+
+    total_updated = 0
+    total_skipped = 0
+    total_errors = 0
+    start_time = time.time()
+
+    sem = asyncio.Semaphore(workers)
+
+    async with httpx.AsyncClient(
+        headers=TTV_HEADERS,
+        timeout=httpx.Timeout(connect=10, read=30, write=10, pool=30),
+        follow_redirects=True,
+        limits=httpx.Limits(
+            max_connections=workers + 10,
+            max_keepalive_connections=workers,
+        ),
+    ) as client:
+        for book_i, (bid, bname, bcount) in enumerate(books):
+            slug = book_slugs.get(bid)
+            if not slug:
+                print(f'  [{book_i + 1}/{len(books)}] ✗ {bid} "{bname[:40]}": no slug')
+                total_errors += 1
+                continue
+
+            # Get current DB titles for this book
+            cur = conn.execute(
+                "SELECT index_num, title FROM chapters WHERE book_id = ?",
+                (bid,),
+            )
+            db_rows: dict[int, str] = {row[0]: row[1] for row in cur}
+            if not db_rows:
+                continue
+
+            # Fetch titles from TTV chapter pages in parallel
+            fetched: dict[int, str] = {}
+
+            async def _fetch_title(ch_idx: int, _slug: str = slug) -> None:
+                url = f"{TTV_BASE_URL}/doc-truyen/{_slug}/chuong-{ch_idx}"
+                for attempt in range(3):
+                    async with sem:
+                        await asyncio.sleep(request_delay)
+                        try:
+                            r = await client.get(url)
+                        except httpx.TransportError:
+                            if attempt < 2:
+                                await asyncio.sleep(2 ** (attempt + 1))
+                                continue
+                            return
+                    if r.status_code == 404:
+                        return
+                    if r.status_code != 200:
+                        if attempt < 2:
+                            await asyncio.sleep(2 ** (attempt + 1))
+                            continue
+                        return
+                    parsed = parse_chapter(r.text)
+                    if parsed:
+                        fetched[ch_idx] = parsed["title"]
+                    return
+
+            tasks = [_fetch_title(idx) for idx in sorted(db_rows)]
+            await asyncio.gather(*tasks)
+
+            # Compare fetched titles with DB and build updates
+            updates: list[tuple[str, str, int, int]] = []
+            book_skipped = 0
+            for idx, db_title in db_rows.items():
+                ttv_title = fetched.get(idx)
+                if ttv_title is None:
+                    continue
+                if db_title == ttv_title:
+                    book_skipped += 1
+                    continue
+                updates.append((ttv_title, slugify(ttv_title), bid, idx))
+
+            if updates and not dry_run:
+                conn.execute("BEGIN")
+                try:
+                    conn.executemany(
+                        "UPDATE chapters SET title = ?, slug = ? "
+                        "WHERE book_id = ? AND index_num = ?",
+                        updates,
+                    )
+                    conn.execute("COMMIT")
+                except Exception:
+                    conn.execute("ROLLBACK")
+                    raise
+
+            total_updated += len(updates)
+            total_skipped += book_skipped
+
+            elapsed = time.time() - start_time
+            rate = (book_i + 1) / elapsed if elapsed > 0 else 0
+            eta = (len(books) - book_i - 1) / rate if rate > 0 else 0
+            marker = "✓" if updates else "—"
+            print(
+                f"  [{book_i + 1}/{len(books)}] {marker} {bid} "
+                f'"{bname[:40]}" — +{len(updates)} titles, '
+                f"{len(fetched)}/{len(db_rows)} fetched "
+                f"[{rate:.1f} books/s, ETA {eta:.0f}s]"
+            )
+
+    elapsed = time.time() - start_time
+    conn.close()
+
+    print()
+    print("=" * 60)
+    print(f"  Source          : TTV")
+    print(f"  Books processed : {len(books):>10,}")
+    print(f"  Chapters updated: {total_updated:>10,}")
+    print(f"  Chapters skipped: {total_skipped:>10,}")
+    print(f"  Errors          : {total_errors:>10,}")
+    print(f"  Duration        : {elapsed:>10.1f}s")
+    if elapsed > 0:
+        print(f"  Rate            : {len(books) / elapsed:>10.1f} books/s")
+    print("=" * 60)
+
+    if dry_run:
+        print("\nDRY RUN complete — no changes were written.")
+        print("Run without --dry-run to apply fixes.")
+
+
+# ── CLI ───────────────────────────────────────────────────────────────────────
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Repair chapter titles from the MTC API",
+        description="Repair chapter titles from the upstream source (MTC API or TTV HTML)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
+    )
+    parser.add_argument(
+        "--source",
+        choices=["mtc", "ttv"],
+        default="mtc",
+        help="Data source: mtc (metruyencv API, default) or ttv (tangthuvien HTML)",
     )
     parser.add_argument(
         "--db",
@@ -477,13 +706,13 @@ def parse_args() -> argparse.Namespace:
         "--workers",
         type=int,
         default=1,
-        help="Number of parallel API workers (default: 1)",
+        help="Number of parallel workers (default: 1 for MTC, recommend 20 for TTV)",
     )
     parser.add_argument(
         "--delay",
         type=float,
-        default=0.02,
-        help="Delay between API requests in seconds (default: 0.02)",
+        default=None,
+        help="Delay between requests in seconds (default: 0.02 for MTC, 0.3 for TTV)",
     )
     return parser.parse_args()
 
@@ -496,17 +725,34 @@ def main() -> None:
         print(f"Database not found: {db_path}", file=sys.stderr)
         sys.exit(1)
 
+    # Resolve delay default per source
+    if args.delay is None:
+        args.delay = 0.3 if args.source == "ttv" else 0.02
+
     print(f"Database: {db_path}")
+    print(f"Source:   {args.source}")
     print()
 
-    run_repair(
-        db_path=db_path,
-        full=args.full,
-        book_ids=args.book_ids,
-        dry_run=args.dry_run,
-        workers=args.workers,
-        request_delay=args.delay,
-    )
+    if args.source == "ttv":
+        asyncio.run(
+            run_repair_ttv(
+                db_path=db_path,
+                full=args.full,
+                book_ids=args.book_ids,
+                dry_run=args.dry_run,
+                workers=args.workers,
+                request_delay=args.delay,
+            )
+        )
+    else:
+        run_repair(
+            db_path=db_path,
+            full=args.full,
+            book_ids=args.book_ids,
+            dry_run=args.dry_run,
+            workers=args.workers,
+            request_delay=args.delay,
+        )
 
 
 if __name__ == "__main__":

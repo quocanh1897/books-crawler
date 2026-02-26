@@ -504,7 +504,7 @@ When book IDs are passed on the command line instead of a plan file, each entry 
 | Cover images | `binslib/public/covers/{book_id}.jpg` |
 | MTC plan file | `book-ingest/data/books_plan_mtc.json` |
 | TTV plan file | `book-ingest/data/books_plan_ttv.json` |
-| TTV ID registry | `book-ingest/data/book_registry_ttv.json` |
+| TTV ID registry | `book-ingest/data/books_registry_ttv.json` |
 | Catalog audit | `book-ingest/data/catalog_audit.json` |
 | Detail log | `book-ingest/data/ingest-detail.log` |
 | Summary log | `book-ingest/data/ingest-log.txt` |

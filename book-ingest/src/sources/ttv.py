@@ -55,7 +55,7 @@ ID_OFFSET = 10_000_000
 
 _INGEST_DIR = Path(__file__).resolve().parent.parent.parent  # book-ingest/
 DATA_DIR = _INGEST_DIR / "data"
-REGISTRY_PATH = DATA_DIR / "book_registry_ttv.json"
+REGISTRY_PATH = DATA_DIR / "books_registry_ttv.json"
 TTV_PLAN_FILE = DATA_DIR / "books_plan_ttv.json"
 BINSLIB_DB_PATH = _INGEST_DIR.parent / "binslib" / "data" / "binslib.db"
 
@@ -388,6 +388,15 @@ def parse_chapter(html: str) -> dict | None:
 
     Returns ``{"title": str, "body": str}`` or ``None`` if the page
     does not contain chapter content.
+
+    The ``<h2>`` element provides the canonical chapter title.  The body
+    is extracted from ``div.box-chap`` elements with two dedup steps:
+
+    1. ``<h5>`` tags inside ``box-chap`` (which duplicate the title) are
+       removed before text extraction.
+    2. If the first non-empty line of the body matches the title, it is
+       stripped to avoid duplication in the reader UI — same fix applied
+       to MTC chapters in ``decrypt_chapter()``.
     """
     soup = BeautifulSoup(html, "lxml")
 
@@ -400,6 +409,11 @@ def parse_chapter(html: str) -> dict | None:
     if not box_chaps:
         return None
 
+    # Remove embedded <h5> headings that duplicate the chapter title
+    for box in box_chaps:
+        for h5 in box.find_all("h5"):
+            h5.decompose()
+
     paragraphs: list[str] = []
     for box in box_chaps:
         text = box.get_text(separator="\n").strip()
@@ -410,7 +424,50 @@ def parse_chapter(html: str) -> dict | None:
     if not body:
         return None
 
-    return {"title": unescape(title), "body": body}
+    # Strip leading text that matches the chapter title (same dedup as MTC).
+    # TTV pages embed the title in the body in two ways:
+    #   a) As a separate line:  "Chương 1: Kim Biên hoa\nBody text..."
+    #   b) As a prefix on the same line: "Chương 1: Kim Biên hoa  Body text..."
+    # We handle both by checking for exact-line match first, then prefix match.
+    title_clean = unescape(title)
+    norm = lambda s: re.sub(r"\s*:\s*", ": ", s).strip()
+    title_norm = norm(title_clean)
+
+    lines = body.split("\n")
+    body_start = 0
+
+    # Skip leading empty lines
+    while body_start < len(lines) and lines[body_start].strip() == "":
+        body_start += 1
+
+    if body_start < len(lines):
+        first_line = lines[body_start].strip()
+        first_norm = norm(first_line)
+
+        if first_line == title_clean or first_norm == title_norm:
+            # Case (a): title is the entire line — drop it
+            body_start += 1
+        elif first_norm.startswith(title_norm):
+            # Case (b): title is a prefix — strip it, keep the rest
+            remainder = first_line[len(title_clean) :].strip()
+            # Also try stripping with normalised colon spacing
+            if not remainder:
+                raw_prefix_len = len(title_clean)
+                # Try matching with flexible whitespace around colon
+                m = re.match(
+                    re.escape(title_norm).replace(r":\ ", r"\s*:\s*"),
+                    first_line,
+                )
+                if m:
+                    remainder = first_line[m.end() :].strip()
+            if remainder:
+                lines[body_start] = remainder
+            else:
+                body_start += 1
+
+    body = "\n".join(lines[body_start:]).strip()
+
+    return {"title": title_clean, "body": body}
 
 
 # ---------------------------------------------------------------------------
