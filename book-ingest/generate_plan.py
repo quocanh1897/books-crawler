@@ -25,7 +25,8 @@ Usage:
     python3 generate_plan.py                                # catalog → plan + covers
     python3 generate_plan.py --refresh                      # enrich existing plan
     python3 generate_plan.py --refresh --scan               # enrich + discover missing
-    python3 generate_plan.py --refresh --scan --fix-author  # + synthetic authors
+    python3 generate_plan.py --refresh --scan               # + synthetic authors (default)
+    python3 generate_plan.py --refresh --no-fix-author      # disable synthetic authors
     python3 generate_plan.py --cover-only                   # covers only
     python3 generate_plan.py --cover-only --ids 132599 131197
     python3 generate_plan.py --cover-only --force           # re-download all
@@ -996,9 +997,19 @@ def main() -> None:
     # Filtering
     parser.add_argument(
         "--fix-author",
-        action="store_true",
+        nargs="?",
+        const=True,
+        default=True,
+        type=lambda v: v.lower() not in ("0", "false", "no", "off"),
         help="Generate synthetic authors from creators when author is "
-        "missing or a placeholder name",
+        "missing or a placeholder name (default: on). "
+        "Use --fix-author 0 or --no-fix-author to disable.",
+    )
+    parser.add_argument(
+        "--no-fix-author",
+        dest="fix_author",
+        action="store_false",
+        help="Disable synthetic author generation.",
     )
     parser.add_argument(
         "--min-chapters",

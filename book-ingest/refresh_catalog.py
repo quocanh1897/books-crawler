@@ -529,10 +529,18 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--fix-author",
-        action="store_true",
-        help="For books without an author (or with an empty author name), "
-        "generate a synthetic author from the creator (uploader): "
-        "{id: 999{creator_id}, name: creator_name}.",
+        nargs="?",
+        const=True,
+        default=True,
+        type=lambda v: v.lower() not in ("0", "false", "no", "off"),
+        help="Generate synthetic authors from creators for books without an "
+        "author (default: on). Use --fix-author 0 or --no-fix-author to disable.",
+    )
+    parser.add_argument(
+        "--no-fix-author",
+        dest="fix_author",
+        action="store_false",
+        help="Disable synthetic author generation.",
     )
     return parser.parse_args()
 
@@ -564,7 +572,7 @@ def main() -> None:
         f"Scan  : {'YES — full ID range' if args.scan else 'no (use --scan to discover missing books)'}"
     )
     print(
-        f"Fix author: {'YES' if args.fix_author else 'no (use --fix-author to generate from creator)'}"
+        f"Fix author: {'YES' if args.fix_author else 'no (disabled via --no-fix-author / --fix-author 0)'}"
     )
     if args.dry_run:
         print("DRY RUN — will not write output")
