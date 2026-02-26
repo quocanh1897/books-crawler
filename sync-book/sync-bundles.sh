@@ -276,11 +276,7 @@ print_plan() {
         fi
         local h_dst; h_dst=$(human_size "$dst_size")
         local h_src; h_src=$(human_size "$src_size")
-        if [[ "$DIRECTION" == "upload" ]]; then
-          printf "│      %-60s│\n" "$(printf '%-30s %8s → %8s' "$fname" "$h_dst" "$h_src")"
-        else
-          printf "│      %-60s│\n" "$(printf '%-30s %8s → %8s' "$fname" "$h_dst" "$h_src")"
-        fi
+        printf "│      %-60s│\n" "$(printf '%-30s %8s → %8s' "$fname" "$h_dst" "$h_src")"
         shown=$((shown + 1))
       done < "${PLAN_DIR}/${label}_replaces"
     else

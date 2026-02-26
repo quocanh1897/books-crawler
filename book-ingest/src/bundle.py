@@ -354,6 +354,7 @@ def write_bundle(
     os.makedirs(bundle_dir, exist_ok=True)
 
     fd, tmp_path = tempfile.mkstemp(dir=bundle_dir, suffix=".tmp")
+    os.fchmod(fd, 0o644)
     try:
         with os.fdopen(fd, "wb") as f:
             f.write(header)

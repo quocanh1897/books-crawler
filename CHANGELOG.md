@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.3.1] - 2026-02-26
+
+### Fixed
+
+- **Empty chapter body in Docker reader** — bundle files were created with `600` permissions (owner-only) by both `writeBookBundleRaw` (Node.js) and `write_bundle` (Python `tempfile.mkstemp`). The Docker container ran as `nextjs` (UID 1001) while files were owned by the host user (UID 1000), causing `readBundleIndex` to silently return `null` on EACCES. Bundles are now written with `644` permissions in both writers.
+- **Docker container UID mismatch** — removed the `nextjs` user from the Dockerfile; container now runs as root to avoid permission issues with host-mounted volumes regardless of host UID. Added native build deps (`python3 make g++`) to the `deps` stage for `zstd-napi` compilation.
+- **`import.ts` cascade-deleting chapters** — `INSERT OR REPLACE INTO books` triggered `ON DELETE CASCADE` on the chapters table, wiping all chapter rows whenever a book was re-imported. Changed to `INSERT ... ON CONFLICT(id) DO UPDATE SET` (matching `book-ingest/src/db.py`) to preserve existing chapters.
+- **`import.ts` skip logic ignoring bundle-only books** — when `crawler/output/{id}/` existed with `metadata.json` but no `.txt` files (common for books ingested via `book-ingest`), the skip condition `txtOnDisk > 0` was always false, forcing unnecessary re-imports. Now checks `listCompressedChapters()` to also account for chapters in bundles.
+
 ## [0.3.0] - 2026-02-25
 
 ### Added
@@ -178,6 +187,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `PARALLEL_DOWNLOAD.md` — dual-emulator setup and usage
   - `crawler/CONTEXT.md` — crawler architecture and flow notes
 
+[0.3.1]: https://github.com/quocanh1897/mtc-crawler/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.3...v0.2.4
 [0.2.3]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.2...v0.2.3

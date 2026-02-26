@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { ChapterListModal } from "./ChapterListModal";
-import { ReaderSettingsButton, useReaderConfig, getTheme, getFontFamily } from "./ReaderSettings";
+import {
+  ReaderSettingsButton,
+  useReaderConfig,
+  getTheme,
+  getFontFamily,
+} from "./ReaderSettings";
 
 interface Chapter {
   title: string;
@@ -53,7 +58,10 @@ export function ChapterReader({
       className="min-h-screen transition-colors duration-300"
       style={{ backgroundColor: theme.bg, color: theme.text }}
     >
-      <div className="mx-auto px-4 py-6 transition-all duration-300" style={{ maxWidth: config.maxWidth }}>
+      <div
+        className="mx-auto px-4 py-6 transition-all duration-300"
+        style={{ maxWidth: config.maxWidth }}
+      >
         {/* Top nav */}
         <div className="flex items-center justify-between mb-4 text-sm">
           <Link
@@ -61,8 +69,18 @@ export function ChapterReader({
             className="hover:underline flex items-center gap-1 transition-colors"
             style={{ color: "#c9302c" }}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
             {bookName}
           </Link>
@@ -90,7 +108,11 @@ export function ChapterReader({
         >
           <h1
             className="font-bold text-center mb-6 transition-all"
-            style={{ fontFamily, fontSize: config.fontSize + 2, color: theme.text }}
+            style={{
+              fontFamily,
+              fontSize: config.fontSize + 2,
+              color: theme.text,
+            }}
           >
             {chapter.title}
           </h1>
