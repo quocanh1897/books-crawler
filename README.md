@@ -1,6 +1,6 @@
 # MTC
 
-A Vietnamese web novel platform: API decryption, compression, and self-hosted reading. Downloads books from [metruyencv.com](https://metruyencv.com), converts them to EPUB, and serves them through a web reader at [lib.binscode.site](https://lib.binscode.site).
+A Vietnamese web novel platform: multi-source ingestion, compression, and self-hosted reading. Downloads books from [metruyencv.com](https://metruyencv.com) (encrypted API) and [truyen.tangthuvien.vn](https://truyen.tangthuvien.vn) (HTML scraping), converts them to EPUB, and serves them through a web reader at [lib.binscode.site](https://lib.binscode.site).
 
 ## Architecture
 
@@ -8,12 +8,12 @@ A Vietnamese web novel platform: API decryption, compression, and self-hosted re
 graph LR
     subgraph SOURCE["🌐 Source Data"]
         MTC_SRC["metruyencv.com<br/><i>encrypted mobile API</i>"]
-        TTV_SRC["truyen.tangthuvien.vn<br/><i>public HTML (dormant)</i>"]
+        TTV_SRC["truyen.tangthuvien.vn<br/><i>public HTML scraping</i>"]
     end
 
     subgraph INGEST["⛏️ Ingest Layer"]
-        GP["<b>generate_plan.py</b><br/>catalog + covers + plan file"]
-        BI["<b>ingest.py</b><br/>API → decrypt → compress → DB"]
+        GP["<b>generate_plan.py</b><br/>--source mtc|ttv<br/>catalog + covers + plan file"]
+        BI["<b>ingest.py</b><br/>--source mtc|ttv<br/>fetch → compress → bundle + DB"]
     end
 
     subgraph STORAGE["🗄️ Storage Layer"]
@@ -34,7 +34,8 @@ graph LR
 
     MTC_SRC -->|"AES-128-CBC"| GP
     MTC_SRC -->|"AES-128-CBC"| BI
-    TTV_SRC -.->|"HTML (dormant)"| STORAGE
+    TTV_SRC -->|"HTML scraping"| GP
+    TTV_SRC -->|"HTML scraping"| BI
 
     GP -->|"plan file"| BI
     GP -->|"poster URLs"| COVERS
@@ -62,9 +63,9 @@ graph LR
 
 ### Layer details
 
-**Source data** — MTC exposes an Android mobile API that returns AES-128-CBC encrypted chapter text (key embedded at positions `[17:33]` in the response). TTV support is dormant (`crawler-tangthuvien/` is kept but inactive).
+**Source data** — MTC exposes an Android mobile API that returns AES-128-CBC encrypted chapter text (key embedded at positions `[17:33]` in the response). TTV serves plain HTML pages that are scraped and parsed (no authentication or decryption required).
 
-**Ingest layer** — `generate_plan.py` paginates the API catalog, cross-references with local bundles, writes a download plan, and pulls missing cover images. `ingest.py` reads the plan and runs the full pipeline: fetch → decrypt → compress (zstd + global dictionary) → write BLIB v2 bundles + SQLite, with parallel workers and checkpoint flushing. `generate_plan.py --refresh --scan` enriches the plan with full per-book metadata and discovers books invisible to the catalog listing endpoint.
+**Ingest layer** — Both `generate_plan.py` and `ingest.py` accept `--source mtc|ttv` to select the data source. `generate_plan.py` discovers books (MTC: API catalog pagination; TTV: HTML listing-page scraping), cross-references with local bundles, writes a download plan (`data/books_plan_mtc.json` or `data/books_plan_ttv.json`), and pulls missing cover images. `ingest.py` reads the plan and runs the full pipeline: fetch → compress (zstd + global dictionary) → write BLIB v2 bundles + SQLite, with parallel workers and checkpoint flushing. MTC chapters are decrypted (AES-128-CBC); TTV chapters are parsed from HTML. `generate_plan.py --refresh --scan` (MTC only) enriches the plan with full per-book metadata and discovers books invisible to the catalog listing endpoint.
 
 **Storage layer** — Chapter bodies are stored in per-book `.bundle` files (BLIB v2 format with inline metadata). The SQLite database holds book/author/genre/tag metadata and chapter index rows (no bodies). Cover images are served as static files. EPUBs are cached with chapter-count-aware filenames for automatic invalidation.
 
@@ -76,9 +77,9 @@ graph LR
 
 | Directory              | Layer      | Language   | Purpose                                                |
 | ---------------------- | ---------- | ---------- | ------------------------------------------------------ |
-| `book-ingest/`         | Ingest     | Python 3.9+| Plan generation, API → decrypt → compress → bundle + DB |
+| `book-ingest/`         | Ingest     | Python 3.9+| Multi-source plan generation + fetch → compress → bundle + DB |
 | `meta-puller/`         | Ingest     | Python 3.9+| Cover images + catalog metadata (legacy, see `generate_plan.py`) |
-| `crawler-tangthuvien/` | Ingest     | Python 3.9+| HTML scraper for TTV (dormant)                         |
+| `crawler-tangthuvien/` | Ingest     | Python 3.9+| Standalone TTV HTML scraper (legacy, now integrated into `book-ingest`) |
 | `epub-converter/`      | Conversion | Python 3.12| Bundle → EPUB 3.0 with chapter-count caching           |
 | `binslib/`             | UI         | TypeScript | Next.js web reader, catalog, search, EPUB downloads    |
 | `sync-book/`           | Ops        | Bash       | Rsync bundles + covers + DB between machines            |
@@ -92,6 +93,7 @@ graph LR
 cd book-ingest/
 pip install -r requirements.txt
 
+# ── MTC (default) ────────────────────────────────────────
 # Paginate API catalog, cross-ref with local bundles, pull missing covers
 python3 generate_plan.py
 
@@ -100,11 +102,22 @@ python3 generate_plan.py --refresh --scan --fix-author
 
 # Only pull missing covers
 python3 generate_plan.py --cover-only
+
+# ── TTV ──────────────────────────────────────────────────
+# Scrape TTV listing pages, cross-ref with local bundles, pull covers
+python3 generate_plan.py --source ttv
+
+# Refresh TTV plan with latest metadata
+python3 generate_plan.py --source ttv --refresh
+
+# TTV covers only
+python3 generate_plan.py --source ttv --cover-only
 ```
 
 ### 2. Ingest books
 
 ```bash
+# ── MTC (default) ────────────────────────────────────────
 # Ingest from plan file with 5 parallel workers
 python3 ingest.py -w 5
 
@@ -116,9 +129,16 @@ python3 ingest.py --audit-only
 
 # Update metadata only (no chapter downloads)
 python3 ingest.py --update-meta-only
+
+# ── TTV ──────────────────────────────────────────────────
+# Ingest TTV books from plan
+python3 ingest.py --source ttv -w 3
+
+# Specific TTV book ID
+python3 ingest.py --source ttv 10000001
 ```
 
-Goes directly from API → decrypt → compress → bundle + DB with no intermediate files.
+Both sources go directly from fetch → compress → bundle + DB with no intermediate files.
 
 ### 3. Generate EPUBs (optional)
 
@@ -174,6 +194,20 @@ See `book-ingest/README.md` for the complete binary layout and read paths.
 ### Storage layout
 
 ```
+book-ingest/
+├── data/
+│   ├── books_plan_mtc.json     # MTC download plan (generated by generate_plan.py)
+│   ├── books_plan_ttv.json     # TTV download plan (generated by generate_plan.py --source ttv)
+│   ├── book_registry_ttv.json  # TTV slug → numeric ID mapping (10M+ offset)
+│   └── catalog_audit.json      # MTC catalog audit summary
+├── src/
+│   ├── sources/                # Source abstraction layer
+│   │   ├── base.py             # BookSource ABC + ChapterData
+│   │   ├── mtc.py              # MTC: API client, AES decrypt, linked-list walk
+│   │   └── ttv.py              # TTV: HTML client, parsers, sequential walk
+│   └── ...                     # bundle, compress, db, etc.
+└── ...
+
 binslib/
 ├── data/
 │   ├── binslib.db              # SQLite — metadata, chapter index, users, FTS5
@@ -200,7 +234,7 @@ binslib/
 
 - `book-ingest/` — cross-platform (Python 3.9+)
 - `epub-converter/` — cross-platform (Python 3.12)
-- `crawler-tangthuvien/` — cross-platform (dormant)
+- `crawler-tangthuvien/` — cross-platform (legacy, now integrated into `book-ingest`)
 - `binslib/` — cross-platform (Docker or Node.js)
 - `sync-book/` — macOS / Linux (bash + rsync + ssh)
 - `vbook-extension/` — Android (vBook app)

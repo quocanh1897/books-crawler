@@ -64,7 +64,7 @@ BINSLIB_DIR = SCRIPT_DIR.parent / "binslib"
 COMPRESSED_DIR = BINSLIB_DIR / "data" / "compressed"
 COVERS_DIR = BINSLIB_DIR / "public" / "covers"
 PLAN_DIR = SCRIPT_DIR.parent / "book-ingest" / "data"
-PLAN_FILE = PLAN_DIR / "fresh_books_download.json"
+PLAN_FILE = PLAN_DIR / "books_plan_mtc.json"
 
 console = Console()
 
@@ -494,7 +494,7 @@ def main():
     parser.add_argument(
         "--meta-only",
         action="store_true",
-        help="Only update the download plan (fresh_books_download.json)",
+        help="Only update the download plan (books_plan_mtc.json)",
     )
     parser.add_argument(
         "--cover-only",

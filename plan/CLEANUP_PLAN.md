@@ -8,7 +8,7 @@ All phases executed on the `cleanup` branch. The project has been streamlined fr
 |------|------|-------|
 | Generate plan + pull covers | `book-ingest/generate_plan.py` | Catalog pagination, bundle cross-ref, per-book enrichment, ID-range scan, cover download |
 | Refresh plan with full metadata | `book-ingest/generate_plan.py --refresh` | Async batch fetch (150 workers), `--scan` for discovery, `--fix-author` |
-| Download + decrypt + compress + DB | `book-ingest/ingest.py` | Reads plan from `data/fresh_books_download.json` |
+| Download + decrypt + compress + DB | `book-ingest/ingest.py` | Reads plan from `data/books_plan_mtc.json` (or `books_plan_ttv.json`) |
 | Update metadata only | `book-ingest/ingest.py --update-meta-only` | Refresh DB metadata without downloading chapters |
 | EPUB generation | `epub-converter/convert.py` | Reads bundles + DB, caches in `binslib/data/epub/{id}_{count}.epub` |
 | Sync files across machines | `sync-book/sync-bundles.sh` | Bundles + covers + DB via rsync (`--db-only`, `--cover-only`, `--bundle-only`) |
@@ -24,7 +24,7 @@ All phases executed on the `cleanup` branch. The project has been streamlined fr
 |--------|---------|
 | ✅ `meta-puller/pull_metadata.py` refactored | Removed `crawler/output/` dependency. Discovers from bundles. `--meta-only` generates plan. `--cover-only` pulls covers. Inlined API config. |
 | ✅ `epub-converter/` refactored | Reads from BLIB bundles (zstd decompression) + SQLite DB. Caches EPUBs as `{id}_{count}.epub`. Removed AUDIT.md, meta-puller subprocess, all crawler/output refs. Replaced `httpx` with `pyzstd`. |
-| ✅ `book-ingest/ingest.py` DEFAULT_PLAN updated | Path changed to `book-ingest/data/fresh_books_download.json` |
+| ✅ `book-ingest/ingest.py` DEFAULT_PLAN updated | Path changed to `book-ingest/data/books_plan_mtc.json` (originally `fresh_books_download.json`) |
 | ✅ binslib API routes updated | `EPUB_OUTPUT_DIR` → `EPUB_CACHE_DIR`. `findEpub()` → `findCachedEpub()` with `{id}_{count}.epub` pattern. Cache freshness via chapter count comparison. |
 | ✅ `book-ingest/generate_plan.py` created | Merged `meta-puller --meta-only` + `refresh_catalog.py` into one tool with all features: catalog pagination, async per-book enrichment, `--scan`, `--fix-author`, `--cover-only`, `--min-chapters` |
 
@@ -81,7 +81,8 @@ book-ingest/                    ← primary MTC pipeline
   ├── repair_titles.py          ← fix chapter titles from API
   ├── migrate_v2.py             ← bundle v1→v2 migration
   ├── data/
-  │   └── fresh_books_download.json
+  │   ├── books_plan_mtc.json   (renamed from fresh_books_download.json)
+  │   └── books_plan_ttv.json
   └── src/
       ├── api.py                ← async client (own config + rate limiting)
       ├── decrypt.py            ← AES-128-CBC decryption (real file, was symlink)
@@ -138,7 +139,7 @@ vbook-extension/                ← vBook Android app extension
 | Scripts deleted | 6 (`import.ts`, `pre-compress.ts`, `audit.ts`, `is-safe-to-delete.ts`, `pull-covers.ts`, `test-export-book.ts`) |
 | Total files removed | ~100 |
 | Total lines removed | ~1.6M (mostly the enriched plan JSON in crawler-descryptor) |
-| Files migrated | `decrypt.py` (symlink → real), `utils.py` (cleaned), `fresh_books_download.json` (enriched copy), 5 docs archived |
+| Files migrated | `decrypt.py` (symlink → real), `utils.py` (cleaned), `books_plan_mtc.json` (enriched copy, renamed from `fresh_books_download.json`), 5 docs archived |
 | New files created | `generate_plan.py` (~1100 lines, merges 2 tools) |
 | npm deps removed | 3 (`chalk`, `cli-progress`, `@types/cli-progress`) |
 | npm scripts removed | 4 (`import`, `import:full`, `import:cron`, `pre-compress`) |

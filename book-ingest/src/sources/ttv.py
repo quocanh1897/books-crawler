@@ -56,7 +56,7 @@ ID_OFFSET = 10_000_000
 _INGEST_DIR = Path(__file__).resolve().parent.parent.parent  # book-ingest/
 DATA_DIR = _INGEST_DIR / "data"
 REGISTRY_PATH = DATA_DIR / "book_registry_ttv.json"
-TTV_PLAN_FILE = DATA_DIR / "ttv_books_download.json"
+TTV_PLAN_FILE = DATA_DIR / "books_plan_ttv.json"
 BINSLIB_DB_PATH = _INGEST_DIR.parent / "binslib" / "data" / "binslib.db"
 
 

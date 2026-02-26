@@ -187,7 +187,7 @@ TTV plan entries include `"source": "ttv"` so `ingest.py` can auto-detect the so
 }
 ```
 
-The default plan file for TTV is stored separately: `data/ttv_books_download.json`.
+The default plan file for TTV is stored separately: `data/books_plan_ttv.json`.
 
 ---
 
@@ -232,11 +232,11 @@ Includes:
 
 ```
 MTC path:
-  generate_plan.py --source mtc  →  data/fresh_books_download.json
+  generate_plan.py --source mtc  →  data/books_plan_mtc.json
   ingest.py --source mtc         →  API → decrypt → compress → bundle + DB
 
 TTV path:
-  generate_plan.py --source ttv  →  data/ttv_books_download.json
+  generate_plan.py --source ttv  →  data/books_plan_ttv.json
   ingest.py --source ttv         →  HTML → parse → compress → bundle + DB
 
 Both produce:
@@ -404,7 +404,7 @@ python3 generate_plan.py --source ttv --dry-run
 
 # Generate a small plan (5 pages ≈ 100 books)
 python3 generate_plan.py --source ttv --pages 5
-# Verify: data/ttv_books_download.json exists, entries have source/slug/chapter_count
+# Verify: data/books_plan_ttv.json exists, entries have source/slug/chapter_count
 ```
 
 #### 3.2 TTV ingest smoke — single book
@@ -430,7 +430,7 @@ python3 ingest.py --source ttv 10000001 -w 1
 
 ```bash
 # Ingest first 5 books from the TTV plan
-python3 ingest.py --source ttv --plan data/ttv_books_download.json --limit 5 -w 2
+python3 ingest.py --source ttv --plan data/books_plan_ttv.json --limit 5 -w 2
 # Verify: 5 bundle files, 5 book rows with source='ttv'
 ```
 

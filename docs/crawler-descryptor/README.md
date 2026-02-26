@@ -358,7 +358,7 @@ python3 fetch_catalog.py --skip-fetch   # reuse existing full_catalog.json, just
 ### Download the full catalog (all missing books)
 
 ```bash
-python3 download_topN.py -w 200 --plan fresh_books_download.json    # 24,235 books (≥80 chapters)
+python3 download_topN.py -w 200 --plan books_plan_mtc.json          # 24,235 books (≥80 chapters)
 python3 download_topN.py -w 200 --plan new_books_download.json      # 24,440 new books
 python3 download_topN.py -w 200 --plan partial_books_download.json  # 357 partial books
 ```
@@ -390,7 +390,7 @@ binslib website will then read chapters from the database.
 | File                          | Books  | Description                                                             |
 | ----------------------------- | ------ | ----------------------------------------------------------------------- |
 | `full_catalog.json`           | 30,486 | Complete platform catalog from API                                      |
-| `fresh_books_download.json`   | 24,235 | Filtered list (≥80 chapters), sorted by chapter count                   |
+| `books_plan_mtc.json`         | 24,235 | Filtered list (≥80 chapters), sorted by chapter count (renamed from `fresh_books_download.json`) |
 | `new_books_download.json`     | 24,440 | Books not yet in local database                                         |
 | `partial_books_download.json` | 357    | Books with incomplete downloads (has `db_chapters` and `gap` fields)    |
 | `audit_result.json`           | —      | Latest audit comparing local DB vs API (complete/partial/missing stats) |
@@ -438,7 +438,7 @@ crawler-descryptor/
 │   └── utils.py                   # Output formatting, file helpers, bundle-aware chapter counting
 │
 ├── full_catalog.json              # Complete platform catalog: 30,486 books
-├── fresh_books_download.json      # 24,235 books to download (≥80 chapters)
+├── books_plan_mtc.json            # 24,235 books to download (≥80 chapters, renamed from fresh_books_download.json)
 ├── new_books_download.json        # 24,440 new books not yet downloaded
 ├── partial_books_download.json    # 357 partially downloaded books
 ├── audit_result.json              # Latest audit results vs local DB

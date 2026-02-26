@@ -80,8 +80,8 @@ BINSLIB_DIR = SCRIPT_DIR.parent / "binslib"
 COMPRESSED_DIR = BINSLIB_DIR / "data" / "compressed"
 COVERS_DIR = BINSLIB_DIR / "public" / "covers"
 PLAN_DIR = SCRIPT_DIR / "data"
-PLAN_FILE = PLAN_DIR / "fresh_books_download.json"
-TTV_PLAN_FILE = PLAN_DIR / "ttv_books_download.json"
+PLAN_FILE = PLAN_DIR / "books_plan_mtc.json"
+TTV_PLAN_FILE = PLAN_DIR / "books_plan_ttv.json"
 AUDIT_FILE = PLAN_DIR / "catalog_audit.json"
 
 # ── Scan config ─────────────────────────────────────────────────────────────
@@ -972,7 +972,7 @@ def run_generate_ttv(
 
     This is the TTV equivalent of :func:`run_generate`.  It scrapes the
     ``/tong-hop`` filter pages on truyen.tangthuvien.vn, assigns 10M+
-    offset IDs, and writes a plan file at ``data/ttv_books_download.json``.
+    offset IDs, and writes a plan file at ``data/books_plan_ttv.json``.
     """
     from src.sources.ttv import (
         TTV_BASE_URL,

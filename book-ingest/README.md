@@ -1,11 +1,16 @@
 # book-ingest
 
-Unified crawl-decrypt-compress-import pipeline for metruyencv (MTC).
+Unified crawl-compress-import pipeline supporting multiple data sources.
 
-Two main tools:
+Two main tools, both accepting `--source mtc|ttv`:
 
-- **`generate_plan.py`** — discover books from the API catalog, enrich with full metadata, download covers, and write a plan file.
-- **`ingest.py`** — read the plan file, fetch chapters from the API, decrypt, compress, and write to bundles + SQLite.
+- **`generate_plan.py`** — discover books from the source catalog, enrich with full metadata, download covers, and write a plan file (`data/books_plan_mtc.json` or `data/books_plan_ttv.json`).
+- **`ingest.py`** — read the plan file, fetch chapters from the source, compress, and write to bundles + SQLite.
+
+| Source | Site | Content | Chapter walk |
+|--------|------|---------|--------------|
+| `mtc` (default) | metruyencv.com | AES-128-CBC encrypted mobile API | Linked-list (`next.id` chaining) |
+| `ttv` | truyen.tangthuvien.vn | Plain HTML (public, no auth) | Sequential URLs (`chuong-1` … `chuong-N`) |
 
 ## Quick Start
 
@@ -13,24 +18,36 @@ Two main tools:
 pip install -r requirements.txt
 
 # ── Step 1: Generate the plan ────────────────────────────────
-# Paginate API catalog, cross-ref with local bundles, pull covers
+
+# MTC (default): paginate API catalog, cross-ref with bundles, pull covers
 python3 generate_plan.py
 
-# Enrich the plan with full per-book metadata (author, genres, etc.)
-python3 generate_plan.py --refresh
-
-# Enrich + discover books invisible to the catalog endpoint
+# MTC: enrich plan with full per-book metadata + discover hidden books
 python3 generate_plan.py --refresh --scan --fix-author
 
-# Only pull missing covers
+# TTV: scrape listing pages, cross-ref with bundles, pull covers
+python3 generate_plan.py --source ttv
+
+# TTV: refresh existing plan with latest metadata
+python3 generate_plan.py --source ttv --refresh
+
+# Only pull missing covers (either source)
 python3 generate_plan.py --cover-only
+python3 generate_plan.py --source ttv --cover-only
 
 # ── Step 2: Ingest chapters ─────────────────────────────────
-# Ingest specific books
+
+# MTC: ingest specific books
 python3 ingest.py 100358 100441
 
-# Ingest from plan file with 5 workers
+# MTC: ingest from plan file with 5 workers
 python3 ingest.py -w 5
+
+# TTV: ingest from TTV plan with 3 workers
+python3 ingest.py --source ttv -w 3
+
+# TTV: specific book ID
+python3 ingest.py --source ttv 10000001
 
 # Audit mode — report gaps without downloading
 python3 ingest.py --audit-only
@@ -45,6 +62,7 @@ python3 ingest.py --dry-run
 python3 ingest.py [BOOK_IDS...] [OPTIONS]
 
 Options:
+  --source {mtc,ttv}    Data source (default: mtc)
   -w, --workers N       Parallel workers (default: 5)
   --plan PATH           Custom plan JSON file
   --flush-every N       Checkpoint interval in chapters (default: 100)
@@ -356,22 +374,26 @@ Source: `generate_plan.py`
 
 | Mode | Command | What it does |
 |------|---------|--------------|
-| **Generate** (default) | `python3 generate_plan.py` | Paginate `/api/books` catalog, cross-ref with local bundles, write a fresh plan, pull missing covers |
-| **Refresh** | `python3 generate_plan.py --refresh` | Read existing plan, fetch full per-book metadata (author, genres, tags, synopsis, poster, stats), write enriched plan |
-| **Refresh + scan** | `python3 generate_plan.py --refresh --scan` | Same as refresh, plus probe every ID in the MTC range (100003–153500+) to discover books invisible to the catalog listing endpoint |
+| **Generate MTC** (default) | `python3 generate_plan.py` | Paginate `/api/books` catalog, cross-ref with local bundles, write `data/books_plan_mtc.json`, pull missing covers |
+| **Refresh MTC** | `python3 generate_plan.py --refresh` | Read existing MTC plan, fetch full per-book metadata, write enriched plan |
+| **Refresh + scan MTC** | `python3 generate_plan.py --refresh --scan` | Same as refresh, plus probe every ID in the MTC range (100003–153500+) to discover books invisible to the catalog listing endpoint |
+| **Generate TTV** | `python3 generate_plan.py --source ttv` | Scrape TTV listing pages, cross-ref with local bundles, write `data/books_plan_ttv.json`, pull missing covers |
+| **Refresh TTV** | `python3 generate_plan.py --source ttv --refresh` | Read existing TTV plan, re-fetch metadata from HTML detail pages, write enriched plan |
 | **Cover only** | `python3 generate_plan.py --cover-only` | Only download missing cover images to `binslib/public/covers/`; skip plan generation |
 
 ### Options
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--refresh` | off | Enrich existing plan with full per-book API metadata |
-| `--scan` | off | (With `--refresh`) Scan full MTC ID range for undiscovered books |
+| `--source {mtc,ttv}` | `mtc` | Data source to operate on |
+| `--refresh` | off | Enrich existing plan with full per-book metadata |
+| `--scan` | off | (With `--refresh`, MTC only) Scan full MTC ID range for undiscovered books |
 | `--cover-only` | off | Only download covers; skip plan |
-| `--fix-author` | off | Generate synthetic author from creator when author is missing or placeholder (id = `999{creator_id}`) |
+| `--pages N` | 50 | (TTV only) Number of listing pages to scrape (~20 books/page) |
+| `--fix-author` | on | Generate synthetic author from creator when author is missing or placeholder (id = `999{creator_id}`) |
 | `--min-chapters N` | 100 | Exclude books with fewer than N chapters |
-| `--workers N` | 150 | Max concurrent API requests for `--refresh` |
-| `--delay N` | 0.015 | Seconds between API requests |
+| `--workers N` | 150 | Max concurrent requests for `--refresh` |
+| `--delay N` | 0.015 (MTC) / 0.3 (TTV) | Seconds between requests |
 | `--ids N...` | all | Specific book IDs for `--cover-only` |
 | `--force` | off | Re-download covers even if they exist |
 | `--dry-run` | off | Preview without writing any files |
@@ -379,6 +401,7 @@ Source: `generate_plan.py`
 ### Typical workflow
 
 ```bash
+# ── MTC ──────────────────────────────────────────────────
 # First time: generate initial plan from catalog
 python3 generate_plan.py
 
@@ -393,6 +416,19 @@ python3 generate_plan.py --refresh
 
 # Pull covers for newly ingested books
 python3 generate_plan.py --cover-only
+
+# ── TTV ──────────────────────────────────────────────────
+# First time: scrape listing pages → plan
+python3 generate_plan.py --source ttv
+
+# Ingest TTV books
+python3 ingest.py --source ttv -w 3
+
+# Later: refresh TTV plan
+python3 generate_plan.py --source ttv --refresh
+
+# Pull TTV covers
+python3 generate_plan.py --source ttv --cover-only
 ```
 
 ### Generate mode internals
@@ -400,13 +436,13 @@ python3 generate_plan.py --cover-only
 1. Paginate `/api/books` (lightweight entries: id, name, chapter_count, first_chapter)
 2. Scan `binslib/data/compressed/*.bundle` to get local chapter counts
 3. Classify each book: complete (local ≥ API), partial (local < API), or missing
-4. Write the plan as a flat JSON array to `data/fresh_books_download.json`
+4. Write the plan as a flat JSON array to `data/books_plan_mtc.json`
 5. Write an audit summary to `data/catalog_audit.json`
 6. Pull missing cover images
 
 ### Refresh mode internals
 
-1. Read existing `data/fresh_books_download.json`
+1. Read existing `data/books_plan_mtc.json`
 2. For each book ID, fetch full metadata via `GET /api/books/{id}?include=author,creator,genres`  (150 concurrent requests by default)
 3. Detect changes: new chapters, removed books (404), name changes
 4. Apply `--fix-author`: generate `{id: 999{creator_id}, name: creator_name}` for books without authors
@@ -420,7 +456,7 @@ python3 generate_plan.py --cover-only
 
 Source: `ingest.py` — `load_plan()`
 
-The plan file (`data/fresh_books_download.json`) tells the ingest pipeline which books to process. It is generated by `generate_plan.py`.
+The plan file (`data/books_plan_mtc.json` for MTC, `data/books_plan_ttv.json` for TTV) tells the ingest pipeline which books to process. It is generated by `generate_plan.py`.
 
 ### Flat array format (preferred)
 
@@ -466,7 +502,9 @@ When book IDs are passed on the command line instead of a plan file, each entry 
 | SQLite DB | `binslib/data/binslib.db` |
 | Zstd dictionary | `binslib/data/global.dict` |
 | Cover images | `binslib/public/covers/{book_id}.jpg` |
-| Plan file | `book-ingest/data/fresh_books_download.json` |
+| MTC plan file | `book-ingest/data/books_plan_mtc.json` |
+| TTV plan file | `book-ingest/data/books_plan_ttv.json` |
+| TTV ID registry | `book-ingest/data/book_registry_ttv.json` |
 | Catalog audit | `book-ingest/data/catalog_audit.json` |
 | Detail log | `book-ingest/data/ingest-detail.log` |
 | Summary log | `book-ingest/data/ingest-log.txt` |
@@ -476,23 +514,29 @@ When book IDs are passed on the command line instead of a plan file, each entry 
 
 | File | Purpose |
 |---|---|
-| `generate_plan.py` | Plan generation: catalog pagination, per-book refresh, ID-range scan, cover download |
-| `ingest.py` | Chapter ingest: worker pool, per-book fetch → decrypt → compress → bundle + DB |
+| `generate_plan.py` | Plan generation: catalog pagination, per-book refresh, ID-range scan, cover download (MTC + TTV) |
+| `ingest.py` | Chapter ingest: worker pool, per-book fetch → compress → bundle + DB (MTC + TTV) |
 | `refresh_catalog.py` | (Legacy) Predecessor to `generate_plan.py --refresh`; kept for reference |
 | `repair_titles.py` | Fix chapter titles in DB from bundle metadata or API |
 | `migrate_v2.py` | Convert v1 bundles to v2 with metadata from DB or `--refetch` from API |
+| `src/sources/base.py` | `BookSource` ABC and `ChapterData` NamedTuple — shared source interface |
+| `src/sources/mtc.py` | MTC source: API client, AES-128-CBC decrypt, linked-list chapter walk |
+| `src/sources/ttv.py` | TTV source: async HTTP client, HTML parsers, sequential chapter walk, ID registry |
+| `src/sources/__init__.py` | Source factory: `create_source("mtc")` / `create_source("ttv")` |
 | `src/api.py` | Async HTTP client (`AsyncBookClient`), rate limiting, `decrypt_chapter()` |
 | `src/decrypt.py` | AES-128-CBC decryption: key extraction, envelope parsing, plaintext recovery |
 | `src/compress.py` | Zstd compression with global dictionary |
 | `src/bundle.py` | BLIB v1/v2 bundle reader and v2 writer (read/write indices, raw data, metadata) |
-| `src/cover.py` | Async cover image download with size-variant fallback |
+| `src/cover.py` | Async cover image download with size-variant fallback (MTC) |
 | `src/db.py` | SQLite operations: upsert book/author/genres/tags, insert chapters, change detection |
 
 ## Dependencies
 
 | Package | Purpose |
 |---|---|
-| `httpx` | Async HTTP client for API requests |
-| `pycryptodome` | AES-128-CBC decryption (PyCrypto-compatible) |
+| `httpx` | Async HTTP client for API requests and HTML fetching |
+| `pycryptodome` | AES-128-CBC decryption (PyCrypto-compatible, MTC only) |
 | `pyzstd` | Zstd compression/decompression with dictionary support |
 | `rich` | Terminal progress bars, tables, and styled console output |
+| `beautifulsoup4` | HTML parsing for TTV pages |
+| `lxml` | Fast HTML parser backend for BeautifulSoup (TTV only) |

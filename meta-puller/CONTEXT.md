@@ -8,7 +8,7 @@ Pulls cover images for books in the MTC platform. Discovers books from binslib b
 
 Two independent operations that can be combined:
 
-1. **`--meta-only`** — Paginates the API catalog (`GET /api/books`), cross-references with local bundle chapter counts, and writes a download plan to `book-ingest/data/fresh_books_download.json`. This is a lightweight version of `generate_plan.py`'s default mode.
+1. **`--meta-only`** — Paginates the API catalog (`GET /api/books`), cross-references with local bundle chapter counts, and writes a download plan to `book-ingest/data/books_plan_mtc.json`. This is a lightweight version of `generate_plan.py`'s default mode.
 
 2. **`--cover-only`** — Downloads missing cover images from the API directly to `binslib/public/covers/{book_id}.jpg`. Discovers book IDs by scanning `binslib/data/compressed/*.bundle`.
 
@@ -20,7 +20,7 @@ Running without flags performs both operations.
 |------|--------|------|
 | Book discovery | BLIB bundle files | `binslib/data/compressed/*.bundle` |
 | Cover images (output) | API poster URLs | `binslib/public/covers/{book_id}.jpg` |
-| Plan file (output) | API catalog + bundle cross-ref | `book-ingest/data/fresh_books_download.json` |
+| Plan file (output) | API catalog + bundle cross-ref | `book-ingest/data/books_plan_mtc.json` |
 
 No dependency on `crawler/output/`. No dependency on external config files — API credentials are inlined.
 

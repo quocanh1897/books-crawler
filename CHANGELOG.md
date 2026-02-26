@@ -37,8 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Cache freshness: compares embedded chapter count vs DB chapter count
   - `download-status` response now includes `epub_chapter_count` and `db_chapter_count`
 - **`binslib/docker-compose.yml`** — removed stale `crawler/output`, `crawler-tangthuvien/output`, `meta-puller` volume mounts and `CRAWLER_OUTPUT_DIR`, `TTV_CRAWLER_OUTPUT_DIR`, `META_PULLER_DIR`, `EPUB_OUTPUT_DIR` env vars; added `ZSTD_DICT_PATH`, `EPUB_CACHE_DIR`
-- **`book-ingest/ingest.py`** — `DEFAULT_PLAN` path changed to `book-ingest/data/fresh_books_download.json`
-- **`book-ingest/refresh_catalog.py`** — `DEFAULT_INPUT`/`DEFAULT_OUTPUT` updated to `book-ingest/data/`; `--fix-author` now defaults to true (disable with `--no-fix-author` or `--fix-author 0`)
+- **`book-ingest/ingest.py`** — `DEFAULT_PLAN` path changed to `book-ingest/data/books_plan_mtc.json`
+- **`book-ingest/refresh_catalog.py`** — `DEFAULT_INPUT`/`DEFAULT_OUTPUT` updated to `book-ingest/data/books_plan_mtc.json`; `--fix-author` now defaults to true (disable with `--no-fix-author` or `--fix-author 0`)
 - **`book-ingest/src/utils.py`** — removed `CRAWLER_OUTPUT` path and legacy `.txt` functions (`get_output_dir`, `save_chapter`, `save_metadata`); `count_existing_chapters()` now reads from bundles only
 - **`book-ingest/src/decrypt.py`** — converted from symlink to real file (was `-> ../../crawler-descryptor/src/decrypt.py`)
 - **`README.md`** — rewrote architecture diagram, subprojects table (9 → 6 active), quick start (5-step workflow), technical details, storage layout, platform compatibility

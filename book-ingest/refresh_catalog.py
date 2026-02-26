@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Refresh fresh_books_download.json with latest metadata from the API.
+"""Refresh books_plan_mtc.json with latest metadata from the API.
 
 Reads the existing plan file, fetches current metadata for every book ID
 via GET /api/books/{id}, and writes an updated plan with the latest
@@ -54,7 +54,7 @@ HEADERS = {
 }
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_INPUT = os.path.join(SCRIPT_DIR, "data", "fresh_books_download.json")
+DEFAULT_INPUT = os.path.join(SCRIPT_DIR, "data", "books_plan_mtc.json")
 DEFAULT_OUTPUT = DEFAULT_INPUT  # overwrite in place
 
 # Books with fewer chapters than this are excluded from the output.
@@ -483,7 +483,7 @@ def print_report(stats: Stats, old_count: int, new_count: int, elapsed: float) -
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Refresh fresh_books_download.json with latest API metadata",
+        description="Refresh books_plan_mtc.json with latest API metadata",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
