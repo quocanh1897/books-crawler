@@ -2,3 +2,5 @@ data/*.log
 data/*.txt
 __pycache__/
 *.pyc
+fresh_books_download.json
+updated.json
