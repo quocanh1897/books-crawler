@@ -1,14 +1,9 @@
-"""Shared utilities for crawler-descryptor."""
+"""Shared utilities for book-ingest (bundle and chapter helpers)."""
 
 from __future__ import annotations
 
-import json
 import os
 import struct
-
-CRAWLER_OUTPUT = os.path.join(
-    os.path.dirname(__file__), "..", "..", "crawler", "output"
-)
 
 BINSLIB_COMPRESSED_DIR = os.path.join(
     os.path.dirname(__file__), "..", "..", "binslib", "data", "compressed"
@@ -23,36 +18,6 @@ _BUNDLE_HEADER_SIZE_V2 = (
 )
 _BUNDLE_ENTRY_SIZE = 16  # indexNum(4) + offset(4) + compLen(4) + rawLen(4)
 _BUNDLE_SUPPORTED_VERSIONS = (1, 2)
-
-
-def get_output_dir(book_id: int) -> str:
-    """Return the crawler output directory for a book, creating it if needed."""
-    path = os.path.join(CRAWLER_OUTPUT, str(book_id))
-    os.makedirs(path, exist_ok=True)
-    return path
-
-
-def save_chapter(book_id: int, index: int, slug: str, name: str, content: str) -> str:
-    """Save a decrypted chapter in the standard crawler output format.
-
-    Format: {index:04d}_{slug}.txt with content "{name}\\n\\n{body}"
-    Returns the saved file path.
-    """
-    out_dir = get_output_dir(book_id)
-    filename = f"{index:04d}_{slug}.txt"
-    filepath = os.path.join(out_dir, filename)
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(f"{name}\n\n{content}")
-    return filepath
-
-
-def save_metadata(book_id: int, metadata: dict) -> str:
-    """Save book metadata JSON (matching the format from the API)."""
-    out_dir = get_output_dir(book_id)
-    filepath = os.path.join(out_dir, "metadata.json")
-    with open(filepath, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=2, ensure_ascii=False)
-    return filepath
 
 
 def read_bundle_indices(book_id: int) -> set[int]:
@@ -109,28 +74,8 @@ def read_bundle_indices(book_id: int) -> set[int]:
 
 
 def count_existing_chapters(book_id: int) -> set[int]:
-    """Return set of chapter indices that are already available.
+    """Return set of chapter indices stored in the BLIB bundle.
 
-    Merges two sources:
-      1. ``.txt`` files on disk in ``crawler/output/{book_id}/``
-      2. Chapters stored in the BLIB bundle at
-         ``binslib/data/compressed/{book_id}.bundle``
-
-    A chapter that exists in *either* source is considered done and will
-    be skipped during download.
+    Reads from ``binslib/data/compressed/{book_id}.bundle``.
     """
-    # Source 1: .txt chapter files in crawler output
-    indices: set[int] = set()
-    out_dir = os.path.join(CRAWLER_OUTPUT, str(book_id))
-    if os.path.isdir(out_dir):
-        for fname in os.listdir(out_dir):
-            if fname.endswith(".txt") and fname[0].isdigit():
-                try:
-                    indices.add(int(fname.split("_", 1)[0]))
-                except ValueError:
-                    pass
-
-    # Source 2: BLIB bundle
-    indices |= read_bundle_indices(book_id)
-
-    return indices
+    return read_bundle_indices(book_id)
