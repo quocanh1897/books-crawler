@@ -4,6 +4,60 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [0.4.0] - 2026-02-26
+
+### Added
+
+- **`generate_plan.py`** (`book-ingest/`) — unified plan generation tool merging `meta-puller --meta-only` and `refresh_catalog.py` into one file
+  - Default mode: paginate API catalog, cross-reference with local bundles, write plan, pull missing covers
+  - `--refresh`: read existing plan, fetch full per-book metadata (author, genres, tags, synopsis, poster, stats) via async batch fetch (150 concurrent workers)
+  - `--scan` (with `--refresh`): probe every ID in the MTC range (100003–153500+) to discover books invisible to the catalog listing endpoint
+  - `--cover-only`: download missing cover images to `binslib/public/covers/`
+  - `--fix-author`: generate synthetic authors from creators (now default: on; disable with `--no-fix-author`)
+  - `--min-chapters`, `--workers`, `--delay`, `--force`, `--dry-run`
+- **`plan/CLEANUP_PLAN.md`** — completed cleanup plan documenting the full dependency audit, 4-phase execution, and final architecture
+
+### Changed
+
+- **`epub-converter/`** — reads from BLIB bundles + SQLite DB instead of `crawler/output/` `.txt` files
+  - `BundleReader` class in `epub_builder.py`: parses BLIB v1/v2, decompresses with zstd + global dictionary
+  - Metadata from `binslib/data/binslib.db` (SQLite) instead of `metadata.json` files
+  - Covers from `binslib/public/covers/{book_id}.jpg` instead of `crawler/output/{book_id}/cover.jpg`
+  - EPUB cache: `binslib/data/epub/{book_id}_{chapter_count}.epub` — skips conversion when cached chapter count matches bundle, auto-cleans stale entries
+  - Removed: AUDIT.md integration, meta-puller subprocess invocation, `--no-audit` flag
+  - Replaced `httpx` dependency with `pyzstd`
+- **`meta-puller/pull_metadata.py`** — removed all `crawler/output/` dependency
+  - Discovers books from `binslib/data/compressed/*.bundle` instead of `crawler/output/`
+  - Inlined API config (fixed the broken `sys.path` import from `../crawler`)
+  - `--meta-only` generates download plan to `book-ingest/data/`
+  - `--cover-only` pulls covers directly to `binslib/public/covers/`
+- **binslib EPUB API routes** (`download/`, `download-status/`, `epub/`)
+  - `EPUB_OUTPUT_DIR` (subdirectory per book) → `EPUB_CACHE_DIR` (flat `data/epub/`)
+  - `findEpub()` → `findCachedEpub()` with `{book_id}_{chapter_count}.epub` filename pattern
+  - Cache freshness: compares embedded chapter count vs DB chapter count
+  - `download-status` response now includes `epub_chapter_count` and `db_chapter_count`
+- **`binslib/docker-compose.yml`** — removed stale `crawler/output`, `crawler-tangthuvien/output`, `meta-puller` volume mounts and `CRAWLER_OUTPUT_DIR`, `TTV_CRAWLER_OUTPUT_DIR`, `META_PULLER_DIR`, `EPUB_OUTPUT_DIR` env vars; added `ZSTD_DICT_PATH`, `EPUB_CACHE_DIR`
+- **`book-ingest/ingest.py`** — `DEFAULT_PLAN` path changed to `book-ingest/data/fresh_books_download.json`
+- **`book-ingest/refresh_catalog.py`** — `DEFAULT_INPUT`/`DEFAULT_OUTPUT` updated to `book-ingest/data/`; `--fix-author` now defaults to true (disable with `--no-fix-author` or `--fix-author 0`)
+- **`book-ingest/src/utils.py`** — removed `CRAWLER_OUTPUT` path and legacy `.txt` functions (`get_output_dir`, `save_chapter`, `save_metadata`); `count_existing_chapters()` now reads from bundles only
+- **`book-ingest/src/decrypt.py`** — converted from symlink to real file (was `-> ../../crawler-descryptor/src/decrypt.py`)
+- **`README.md`** — rewrote architecture diagram, subprojects table (9 → 6 active), quick start (5-step workflow), technical details, storage layout, platform compatibility
+- **`binslib/README.md`** — removed ~300 lines of import/pre-compress/audit documentation; rewrote data pipeline diagram, setup, npm scripts, env vars, Docker section; added EPUB Generation section
+
+### Removed
+
+- **`crawler-emulator/`** — deprecated emulator-based crawler (11 files). Zero dependencies. Marked `[DEPRECATED]` since v0.2.0.
+- **`crawler-descryptor/`** — direct API decryption scripts, Frida hooks, tests, samples (37 files, ~1.6M lines). All functionality absorbed into `book-ingest/`. Docs archived to `plan/archive/crawler-descryptor/`.
+- **`crawler/zstd-benchmark/`** — standalone compression benchmark (10 files). Unreferenced.
+- **`binslib/scripts/import.ts`** — superseded by `book-ingest/ingest.py`
+- **`binslib/scripts/pre-compress.ts`** — superseded (book-ingest compresses inline)
+- **`binslib/scripts/audit.ts`** — superseded by `book-ingest --audit-only` and `generate_plan.py`
+- **`binslib/scripts/is-safe-to-delete.ts`** — coupled to deleted import.ts workflow
+- **`binslib/scripts/pull-covers.ts`** — superseded by `generate_plan.py --cover-only`
+- **`binslib/scripts/test-export-book.ts`** — one-time test script
+- **binslib npm scripts**: `import`, `import:full`, `import:cron`, `pre-compress`
+- **binslib dependencies**: `chalk`, `cli-progress`, `@types/cli-progress`
+
 ## [0.3.1] - 2026-02-26
 
 ### Fixed
@@ -187,6 +241,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `PARALLEL_DOWNLOAD.md` — dual-emulator setup and usage
   - `crawler/CONTEXT.md` — crawler architecture and flow notes
 
+[0.4.0]: https://github.com/quocanh1897/mtc-crawler/compare/v0.3.1...v0.4.0
 [0.3.1]: https://github.com/quocanh1897/mtc-crawler/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.4...v0.3.0
 [0.2.4]: https://github.com/quocanh1897/mtc-crawler/compare/v0.2.3...v0.2.4
