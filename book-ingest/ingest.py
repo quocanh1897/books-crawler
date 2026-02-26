@@ -679,6 +679,7 @@ async def run_ingest(
         f"{' [yellow](dry run)[/yellow]' if dry_run else ''}\n"
         f"  DB:      {DB_PATH}\n"
         f"  Bundles: {COMPRESSED_DIR}\n"
+        f"  Plan: {DEFAULT_PLAN}\n"
         f"  Covers:  {COVERS_DIR}\n"
         f"  Log:     {DETAIL_LOG}\n"
     )
