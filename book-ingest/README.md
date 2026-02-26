@@ -2,21 +2,35 @@
 
 Unified crawl-decrypt-compress-import pipeline for metruyencv (MTC).
 
-Replaces the 3-step pipeline (crawl → pre-compress → import) with a single tool that goes **API → decrypt → compress → bundle + DB** directly, with zero intermediate `.txt` files.
+Two main tools:
+
+- **`generate_plan.py`** — discover books from the API catalog, enrich with full metadata, download covers, and write a plan file.
+- **`ingest.py`** — read the plan file, fetch chapters from the API, decrypt, compress, and write to bundles + SQLite.
 
 ## Quick Start
 
 ```bash
 pip install -r requirements.txt
 
+# ── Step 1: Generate the plan ────────────────────────────────
+# Paginate API catalog, cross-ref with local bundles, pull covers
+python3 generate_plan.py
+
+# Enrich the plan with full per-book metadata (author, genres, etc.)
+python3 generate_plan.py --refresh
+
+# Enrich + discover books invisible to the catalog endpoint
+python3 generate_plan.py --refresh --scan --fix-author
+
+# Only pull missing covers
+python3 generate_plan.py --cover-only
+
+# ── Step 2: Ingest chapters ─────────────────────────────────
 # Ingest specific books
 python3 ingest.py 100358 100441
 
 # Ingest from plan file with 5 workers
 python3 ingest.py -w 5
-
-# Custom plan file
-python3 ingest.py --plan path/to/plan.json
 
 # Audit mode — report gaps without downloading
 python3 ingest.py --audit-only
@@ -332,11 +346,81 @@ If the stored `chapter_id` returns 404 (stale data — the API reassigned IDs), 
 
 ---
 
+## Plan Generation
+
+Source: `generate_plan.py`
+
+`generate_plan.py` is the single tool for building and maintaining the download plan. It merges the functionality of the old `meta-puller --meta-only` (catalog pagination) and `refresh_catalog.py` (per-book enrichment) into one file.
+
+### Modes
+
+| Mode | Command | What it does |
+|------|---------|--------------|
+| **Generate** (default) | `python3 generate_plan.py` | Paginate `/api/books` catalog, cross-ref with local bundles, write a fresh plan, pull missing covers |
+| **Refresh** | `python3 generate_plan.py --refresh` | Read existing plan, fetch full per-book metadata (author, genres, tags, synopsis, poster, stats), write enriched plan |
+| **Refresh + scan** | `python3 generate_plan.py --refresh --scan` | Same as refresh, plus probe every ID in the MTC range (100003–153500+) to discover books invisible to the catalog listing endpoint |
+| **Cover only** | `python3 generate_plan.py --cover-only` | Only download missing cover images to `binslib/public/covers/`; skip plan generation |
+
+### Options
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--refresh` | off | Enrich existing plan with full per-book API metadata |
+| `--scan` | off | (With `--refresh`) Scan full MTC ID range for undiscovered books |
+| `--cover-only` | off | Only download covers; skip plan |
+| `--fix-author` | off | Generate synthetic author from creator when author is missing or placeholder (id = `999{creator_id}`) |
+| `--min-chapters N` | 100 | Exclude books with fewer than N chapters |
+| `--workers N` | 150 | Max concurrent API requests for `--refresh` |
+| `--delay N` | 0.015 | Seconds between API requests |
+| `--ids N...` | all | Specific book IDs for `--cover-only` |
+| `--force` | off | Re-download covers even if they exist |
+| `--dry-run` | off | Preview without writing any files |
+
+### Typical workflow
+
+```bash
+# First time: generate initial plan from catalog
+python3 generate_plan.py
+
+# Enrich with full metadata + discover missing books
+python3 generate_plan.py --refresh --scan --fix-author
+
+# Ingest the books
+python3 ingest.py -w 5
+
+# Later: refresh metadata for changed chapter counts
+python3 generate_plan.py --refresh
+
+# Pull covers for newly ingested books
+python3 generate_plan.py --cover-only
+```
+
+### Generate mode internals
+
+1. Paginate `/api/books` (lightweight entries: id, name, chapter_count, first_chapter)
+2. Scan `binslib/data/compressed/*.bundle` to get local chapter counts
+3. Classify each book: complete (local ≥ API), partial (local < API), or missing
+4. Write the plan as a flat JSON array to `data/fresh_books_download.json`
+5. Write an audit summary to `data/catalog_audit.json`
+6. Pull missing cover images
+
+### Refresh mode internals
+
+1. Read existing `data/fresh_books_download.json`
+2. For each book ID, fetch full metadata via `GET /api/books/{id}?include=author,creator,genres`  (150 concurrent requests by default)
+3. Detect changes: new chapters, removed books (404), name changes
+4. Apply `--fix-author`: generate `{id: 999{creator_id}, name: creator_name}` for books without authors
+5. Apply `--min-chapters`: filter out small books
+6. Optionally `--scan`: probe every unknown ID in the 100003–153500 range
+7. Write enriched plan back, sorted by chapter_count descending
+
+---
+
 ## Plan File Format
 
 Source: `ingest.py` — `load_plan()`
 
-The plan file (`data/fresh_books_download.json`) tells the ingest pipeline which books to process. It is generated by `meta-puller/pull_metadata.py --meta-only`.
+The plan file (`data/fresh_books_download.json`) tells the ingest pipeline which books to process. It is generated by `generate_plan.py`.
 
 ### Flat array format (preferred)
 
@@ -392,15 +476,17 @@ When book IDs are passed on the command line instead of a plan file, each entry 
 
 | File | Purpose |
 |---|---|
-| `ingest.py` | CLI entry point, worker pool, per-book pipeline orchestration |
+| `generate_plan.py` | Plan generation: catalog pagination, per-book refresh, ID-range scan, cover download |
+| `ingest.py` | Chapter ingest: worker pool, per-book fetch → decrypt → compress → bundle + DB |
+| `refresh_catalog.py` | (Legacy) Predecessor to `generate_plan.py --refresh`; kept for reference |
+| `repair_titles.py` | Fix chapter titles in DB from bundle metadata or API |
+| `migrate_v2.py` | Convert v1 bundles to v2 with metadata from DB or `--refetch` from API |
 | `src/api.py` | Async HTTP client (`AsyncBookClient`), rate limiting, `decrypt_chapter()` |
 | `src/decrypt.py` | AES-128-CBC decryption: key extraction, envelope parsing, plaintext recovery |
 | `src/compress.py` | Zstd compression with global dictionary |
 | `src/bundle.py` | BLIB v1/v2 bundle reader and v2 writer (read/write indices, raw data, metadata) |
 | `src/cover.py` | Async cover image download with size-variant fallback |
 | `src/db.py` | SQLite operations: upsert book/author/genres/tags, insert chapters, change detection |
-| `fetch_catalog.py` | Paginate API catalog, cross-reference local data, generate plan (archival) |
-| `migrate_v2.py` | Convert v1 bundles to v2 with metadata from DB or `--refetch` from API |
 
 ## Dependencies
 
