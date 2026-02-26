@@ -1,38 +1,30 @@
 # MTC
 
-A multi-source Vietnamese web novel platform: crawling, decryption, conversion, and self-hosted reading. Downloads books from [metruyencv.com](https://metruyencv.com) and [truyen.tangthuvien.vn](https://truyen.tangthuvien.vn), converts them to EPUB, and serves them through a web reader at [lib.binscode.site](https://lib.binscode.site).
+A Vietnamese web novel platform: API decryption, compression, and self-hosted reading. Downloads books from [metruyencv.com](https://metruyencv.com), converts them to EPUB, and serves them through a web reader at [lib.binscode.site](https://lib.binscode.site).
 
 ## Architecture
-
-The system is organized into four layers, each feeding into the next:
 
 ```mermaid
 graph LR
     subgraph SOURCE["🌐 Source Data"]
         MTC_SRC["metruyencv.com<br/><i>encrypted mobile API</i>"]
-        TTV_SRC["truyen.tangthuvien.vn<br/><i>public HTML</i>"]
+        TTV_SRC["truyen.tangthuvien.vn<br/><i>public HTML (dormant)</i>"]
     end
 
-    subgraph CRAWL["⛏️ Crawler Layer"]
-        direction TB
-        subgraph CORE["Core Crawlers"]
-            C1["<b>crawler/</b><br/>emulator-based grabber"]
-            C2["<b>crawler-descryptor/</b><br/>direct API decryption"]
-            C3["<b>crawler-tangthuvien/</b><br/>HTML scraper"]
-        end
-        subgraph UNIFIED["Unified Pipeline"]
-            BI["<b>book-ingest/</b><br/>API → decrypt → compress → DB"]
-        end
-        subgraph UTIL["Utilities"]
-            U1["<b>meta-puller/</b><br/>metadata + covers"]
-            U3["<b>progress-checking/</b><br/>TUI dashboard"]
-        end
+    subgraph INGEST["⛏️ Ingest Layer"]
+        GP["<b>generate_plan.py</b><br/>catalog + covers + plan file"]
+        BI["<b>ingest.py</b><br/>API → decrypt → compress → DB"]
     end
 
-    subgraph MAP["🗄️ Data Mapping Layer"]
-        IMP["<b>binslib/scripts/import.ts</b><br/>.txt + .json + .jpg → SQLite + FTS5"]
-        epub-cvt["<b>epub-converter/</b><br/>EPUB 3.0 generation"]
+    subgraph STORAGE["🗄️ Storage Layer"]
+        BUNDLE["{book_id}.bundle<br/>BLIB v2 binary format"]
+        DB["binslib.db<br/>SQLite + FTS5"]
+        COVERS["covers/{book_id}.jpg"]
+        EPUB_CACHE["epub/{book_id}_{count}.epub"]
+    end
 
+    subgraph CONVERT["📦 Conversion"]
+        EPUB["<b>epub-converter/</b><br/>bundle → EPUB 3.0"]
     end
 
     subgraph UI["📖 Presentation Layer"]
@@ -40,111 +32,120 @@ graph LR
         EXT["<b>vbook-extension/</b><br/>vBook Android app"]
     end
 
-    MTC_SRC -->|"AES-128-CBC"| C1
-    MTC_SRC -->|"AES-128-CBC"| C2
+    MTC_SRC -->|"AES-128-CBC"| GP
     MTC_SRC -->|"AES-128-CBC"| BI
-    TTV_SRC -->|"HTML"| C3
+    TTV_SRC -.->|"HTML (dormant)"| STORAGE
 
-    C1 -->|".txt chapters"| IMP
-    C2 -->|".txt chapters"| IMP
-    BI -->|"bundles + SQLite"| WEB
-    C3 -->|".txt chapters"| IMP
-    U1 -->|".json metadata<br/>.jpg covers"| IMP
+    GP -->|"plan file"| BI
+    GP -->|"poster URLs"| COVERS
+    BI -->|"zstd compressed"| BUNDLE
+    BI -->|"metadata + chapters"| DB
+    BI -->|"poster download"| COVERS
 
-    IMP -->|"SQLite DB"| WEB
+    BUNDLE --> EPUB
+    DB --> EPUB
+    COVERS --> EPUB
+    EPUB --> EPUB_CACHE
+
+    BUNDLE -->|"readChapterBody()"| WEB
+    DB --> WEB
+    COVERS --> WEB
+    EPUB_CACHE --> WEB
     WEB -->|"JSON API"| EXT
-    epub-cvt -->|"EPUB files"| WEB
 
     style SOURCE fill:#fef3c7,stroke:#f59e0b,color:#000
-    style CRAWL fill:#dbeafe,stroke:#3b82f6,color:#000
-    style MAP fill:#d1fae5,stroke:#10b981,color:#000
+    style INGEST fill:#dbeafe,stroke:#3b82f6,color:#000
+    style STORAGE fill:#d1fae5,stroke:#10b981,color:#000
+    style CONVERT fill:#fce7f3,stroke:#ec4899,color:#000
     style UI fill:#ede9fe,stroke:#8b5cf6,color:#000
 ```
 
 ### Layer details
 
-**Source data** — Two upstream sites provide the raw content. MTC exposes an Android mobile API that returns AES-128-CBC encrypted chapter text (key embedded at `[17:33]` in the response). TTV serves public HTML pages.
+**Source data** — MTC exposes an Android mobile API that returns AES-128-CBC encrypted chapter text (key embedded at positions `[17:33]` in the response). TTV support is dormant (`crawler-tangthuvien/` is kept but inactive).
 
-**Crawler layer** — Three crawlers produce the same output format: plain `.txt` chapter files under `output/{book_id}/`. `crawler/` automates an Android emulator to bypass MTC encryption. `crawler-descryptor/` decrypts the MTC API directly. `crawler-tangthuvien/` scrapes TTV HTML. `book-ingest/` is the preferred unified pipeline for MTC: it fetches, decrypts, compresses, and writes directly to bundles + SQLite with no intermediate `.txt` files. Supporting utilities: `meta-puller/` fetches book metadata and cover images as `.json`/`.jpg`, and `progress-checking/` provides a real-time TUI dashboard.
+**Ingest layer** — `generate_plan.py` paginates the API catalog, cross-references with local bundles, writes a download plan, and pulls missing cover images. `ingest.py` reads the plan and runs the full pipeline: fetch → decrypt → compress (zstd + global dictionary) → write BLIB v2 bundles + SQLite, with parallel workers and checkpoint flushing. `generate_plan.py --refresh --scan` enriches the plan with full per-book metadata and discovers books invisible to the catalog listing endpoint.
 
-**Data mapping layer** — `binslib/scripts/import.ts` scans all crawler output directories, reads `.txt` chapters, `.json` metadata, and `.jpg` covers, then inserts everything into a SQLite database with FTS5 full-text search indexes. Each book is tagged with a `source` column (`mtc` or `ttv`). `epub-converter/` also operates at this layer, generating EPUB 3.0 files from the stored chapter data for download through binslib.
+**Storage layer** — Chapter bodies are stored in per-book `.bundle` files (BLIB v2 format with inline metadata). The SQLite database holds book/author/genre/tag metadata and chapter index rows (no bodies). Cover images are served as static files. EPUBs are cached with chapter-count-aware filenames for automatic invalidation.
 
-**Presentation layer** — `binslib/` is a Next.js web app serving the catalog, reader, search, rankings, and on-demand EPUB downloads. `vbook-extension/` is a JavaScript extension for the vbook Android reading app that communicates with binslib via JSON APIs.
+**Conversion** — `epub-converter/` reads chapters from bundles (zstd decompression), metadata from SQLite, and covers from disk. EPUBs are cached at `binslib/data/epub/{book_id}_{chapter_count}.epub` and regenerated only when the chapter count increases.
+
+**Presentation layer** — `binslib/` is a Next.js web app serving the catalog, reader, search, rankings, and on-demand EPUB downloads. `vbook-extension/` is a JavaScript extension for the vBook Android reading app.
 
 ## Subprojects
 
-| Directory              | Layer        | Language    | Purpose                                |
-| ---------------------- | ------------ | ----------- | -------------------------------------- |
-| `crawler/`             | Crawler      | Python 3.9+ | Emulator-based book grabber (MTC)      |
-| `crawler-descryptor/`  | Crawler      | Python 3.9+ | Direct API decryption (MTC)             |
-| `book-ingest/`         | Unified      | Python 3.9+ | API → decrypt → compress → DB (MTC, preferred) |
-| `crawler-tangthuvien/` | Crawler      | Python 3.9+ | HTML scraper (TTV)                     |
-| `meta-puller/`         | Crawler util | Python 3.9+ | Book metadata + cover images           |
-| `progress-checking/`   | Crawler util | Python 3.9+ | Real-time TUI dashboard (rich)         |
-| `epub-converter/`      | Mapping      | Python 3.12 | .txt → EPUB 3.0 conversion (Docker)    |
-| `binslib/`             | Mapping + UI | TypeScript  | Importer, Next.js web reader, catalog  |
-| `vbook-extension/`     | UI           | JavaScript  | vBook Android app extension            |
+| Directory              | Layer      | Language   | Purpose                                                |
+| ---------------------- | ---------- | ---------- | ------------------------------------------------------ |
+| `book-ingest/`         | Ingest     | Python 3.9+| Plan generation, API → decrypt → compress → bundle + DB |
+| `meta-puller/`         | Ingest     | Python 3.9+| Cover images + catalog metadata (legacy, see `generate_plan.py`) |
+| `crawler-tangthuvien/` | Ingest     | Python 3.9+| HTML scraper for TTV (dormant)                         |
+| `epub-converter/`      | Conversion | Python 3.12| Bundle → EPUB 3.0 with chapter-count caching           |
+| `binslib/`             | UI         | TypeScript | Next.js web reader, catalog, search, EPUB downloads    |
+| `sync-book/`           | Ops        | Bash       | Rsync bundles + covers + DB between machines            |
+| `vbook-extension/`     | UI         | JavaScript | vBook Android app extension                            |
 
 ## Quick Start
 
-### Ingest books (unified pipeline, preferred)
+### 1. Generate the download plan
 
 ```bash
 cd book-ingest/
 pip install -r requirements.txt
-python3 ingest.py 100358 100441             # specific book IDs
-python3 ingest.py -w 5                      # from plan file, 5 workers
-python3 ingest.py --audit-only              # report gaps without downloading
+
+# Paginate API catalog, cross-ref with local bundles, pull missing covers
+python3 generate_plan.py
+
+# Enrich plan with full per-book metadata + discover hidden books
+python3 generate_plan.py --refresh --scan --fix-author
+
+# Only pull missing covers
+python3 generate_plan.py --cover-only
+```
+
+### 2. Ingest books
+
+```bash
+# Ingest from plan file with 5 parallel workers
+python3 ingest.py -w 5
+
+# Specific book IDs (bypasses plan file)
+python3 ingest.py 100358 100441
+
+# Audit mode — report gaps without downloading
+python3 ingest.py --audit-only
+
+# Update metadata only (no chapter downloads)
+python3 ingest.py --update-meta-only
 ```
 
 Goes directly from API → decrypt → compress → bundle + DB with no intermediate files.
 
-### Download books (API-based, crawl only)
+### 3. Generate EPUBs (optional)
 
 ```bash
-cd crawler-descryptor/
+cd epub-converter/
 pip install -r requirements.txt
-python3 main.py fetch-book <book_id>        # single book
-python3 download_batch.py                    # batch download
-python3 download_topN.py 1000 -w 100         # top ranked books, 100 workers
+python3 convert.py                          # convert all eligible books
+python3 convert.py --ids 100358 128390      # specific books
+python3 convert.py --status completed       # only completed books
 ```
 
-### [DEPRECATED] Download books (emulator-based, macOS only)
-
-```bash
-cd crawler/
-./start_emulators.sh
-python3 grab_book.py "book name"             # single book end-to-end
-python3 parallel_grab.py                     # dual-emulator parallel download
-```
-
-### Download books (tangthuvien)
-
-```bash
-cd crawler-tangthuvien/
-pip install -r requirements.txt
-python3 discover.py --pages 50               # scrape book listings
-python3 batch_download.py -w 3               # download discovered books
-```
-
-### Enrich metadata + generate EPUBs
-
-```bash
-cd meta-puller/
-python3 pull_metadata.py                     # fetch covers, authors, genres
-
-cd ../epub-converter/
-docker compose run --rm epub-converter       # convert all books to EPUB
-```
-
-### Run the web reader
+### 4. Run the web reader
 
 ```bash
 cd binslib/
 npm install
-npm run db:migrate
-npm run import:full                          # import all crawler output
-npm run dev                                  # http://localhost:3000
+npm run db:migrate                          # create tables + FTS5
+npm run dev                                 # http://localhost:3000
+```
+
+### 5. Sync to remote server
+
+```bash
+cd sync-book/
+./sync-bundles.sh upload                    # bundles + covers + DB
+./sync-bundles.sh upload --cover-only       # covers only
+./sync-bundles.sh upload --db-only          # database only
 ```
 
 ### Docker deployment
@@ -152,41 +153,54 @@ npm run dev                                  # http://localhost:3000
 ```bash
 cd binslib/
 docker compose up -d
-docker compose logs -f binslib-importer
 ```
 
 ## Technical Details
 
-### Crawler output format (shared)
-
-```
-{crawler}/output/{book_id}/
-├── metadata.json       # book metadata (from API / meta-puller)
-├── cover.jpg           # cover image (from meta-puller)
-├── 0001_slug.txt       # individual chapters
-└── Book Name.txt       # combined full book
-```
-
-TTV books use a 10M+ ID offset to avoid collision with MTC book IDs. The `source` column in the database (`mtc` or `ttv`) provides explicit source tracking.
-
 ### MTC encryption
 
-The mobile API returns AES-128-CBC encrypted content in a Laravel envelope. The key is embedded at positions `[17:33]` within the encrypted response itself. See `crawler-descryptor/src/decrypt.py`.
+The mobile API returns AES-128-CBC encrypted content in a Laravel envelope. The key is embedded at positions `[17:33]` within the encrypted response itself — 16 characters whose byte values form the AES-128 key. Removing those characters yields clean base64 that decodes to a JSON envelope with `iv`, `value`, and `mac` fields. See `book-ingest/src/decrypt.py` and `book-ingest/README.md` for the full walkthrough.
+
+### Bundle format (BLIB v2)
+
+All chapter data for a book is stored in a single `.bundle` file. The BLIB v2 format stores a 256-byte metadata prefix (chapter_id, title, slug, word_count) before each compressed chapter block, enabling:
+
+- **O(1) random access** to any chapter via the binary index
+- **DB recovery** from bundles alone (no decompression needed for metadata)
+- **O(missing) resume** via stored `chapter_id` instead of O(total) linked-list traversal
+
+See `book-ingest/README.md` for the complete binary layout and read paths.
+
+### Storage layout
+
+```
+binslib/
+├── data/
+│   ├── binslib.db              # SQLite — metadata, chapter index, users, FTS5
+│   ├── compressed/
+│   │   └── {book_id}.bundle    # per-book BLIB v2 bundles (zstd + global dict)
+│   ├── epub/
+│   │   └── {id}_{count}.epub   # cached EPUBs (chapter-count-aware names)
+│   └── global.dict             # zstd dictionary for compression
+├── public/
+│   └── covers/
+│       └── {book_id}.jpg       # cover images
+└── src/                        # Next.js web reader
+```
 
 ### Binslib stack
 
-- Next.js 15 App Router with SSR and Turbopack
+- Next.js 16 App Router with SSR and Turbopack
 - SQLite + Drizzle ORM + FTS5 full-text search
 - NextAuth.js v5 (credentials auth)
 - Tailwind CSS 4
-- On-demand EPUB generation from stored chapters
-- Global MTC/TTV source toggle (cookie-persisted)
+- On-demand EPUB generation from bundles (chapter-count cache)
 
 ## Platform Compatibility
 
-- `crawler/` — macOS only (hardcoded ADB paths, `sips`, fork-based multiprocessing)
-- `crawler-descryptor/` — cross-platform
-- `book-ingest/` — cross-platform
-- `crawler-tangthuvien/` — cross-platform
+- `book-ingest/` — cross-platform (Python 3.9+)
+- `epub-converter/` — cross-platform (Python 3.12)
+- `crawler-tangthuvien/` — cross-platform (dormant)
 - `binslib/` — cross-platform (Docker or Node.js)
+- `sync-book/` — macOS / Linux (bash + rsync + ssh)
 - `vbook-extension/` — Android (vBook app)

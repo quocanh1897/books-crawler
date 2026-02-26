@@ -1,58 +1,69 @@
 # Meta Puller
 
-Pulls rich metadata and cover images for books already crawled by `crawler/`.
+Pulls cover images for books in the MTC platform. Discovers books from binslib bundle files (not crawler/output).
+
+> **Note**: `book-ingest/generate_plan.py` is the recommended replacement for this tool. It combines catalog discovery, per-book metadata enrichment, ID-range scanning, and cover downloading into a single file. `pull_metadata.py` is kept for backward compatibility but may be removed in a future cleanup.
 
 ## What It Does
 
-Scans `crawler/output/{book_id}/` directories and for each:
-1. Calls the API (`GET /api/books/{id}?include=author,creator,genres`) to fetch full metadata
-2. Saves everything as `metadata.json` in the book's directory
-3. Downloads the largest available cover image as `cover.jpg`
+Two independent operations that can be combined:
 
-## Output
+1. **`--meta-only`** — Paginates the API catalog (`GET /api/books`), cross-references with local bundle chapter counts, and writes a download plan to `book-ingest/data/fresh_books_download.json`. This is a lightweight version of `generate_plan.py`'s default mode.
 
-After running, each book directory gains two new files:
+2. **`--cover-only`** — Downloads missing cover images from the API directly to `binslib/public/covers/{book_id}.jpg`. Discovers book IDs by scanning `binslib/data/compressed/*.bundle`.
 
-```
-crawler/output/{book_id}/
-├── metadata.json     # full API response: all fields
-├── cover.jpg         # poster image
-├── 0001_*.txt        # chapter files
-└── ...
-```
+Running without flags performs both operations.
 
-### metadata.json Fields
+## Data Sources
 
-All properties returned by the API, including:
-- `id`, `name`, `slug`, `kind`, `sex`, `state`, `status`
-- `link` (web URL)
-- `poster` (cover image URLs at multiple sizes)
-- `synopsis` (description)
-- `chapter_count`, `word_count`, `vote_count`, `review_score`, `bookmark_count`
-- `first_chapter`, `latest_chapter`, `latest_index`
-- `author` (`id`, `name`, `local_name`)
-- `creator` (`id`, `name`)
-- `genres` (array of `{id, name}`)
+| Data | Source | Path |
+|------|--------|------|
+| Book discovery | BLIB bundle files | `binslib/data/compressed/*.bundle` |
+| Cover images (output) | API poster URLs | `binslib/public/covers/{book_id}.jpg` |
+| Plan file (output) | API catalog + bundle cross-ref | `book-ingest/data/fresh_books_download.json` |
+
+No dependency on `crawler/output/`. No dependency on external config files — API credentials are inlined.
 
 ## Usage
 
 ```bash
 cd meta-puller
 
-# Pull metadata for all books missing it
+# Default: generate plan + pull covers
 python3 pull_metadata.py
 
-# Re-pull everything (overwrite existing)
-python3 pull_metadata.py --force
+# Only update the download plan
+python3 pull_metadata.py --meta-only
 
-# Specific books only
-python3 pull_metadata.py --ids 147360 116007
+# Only pull missing covers
+python3 pull_metadata.py --cover-only
 
-# Preview what would be fetched
+# Specific book covers
+python3 pull_metadata.py --cover-only --ids 132599 131197
+
+# Re-download all covers
+python3 pull_metadata.py --cover-only --force
+
+# Preview
 python3 pull_metadata.py --dry-run
+```
+
+## Recommended Alternative
+
+For production use, prefer `book-ingest/generate_plan.py` which provides all of the above plus:
+
+- `--refresh` — enrich the plan with full per-book metadata (author, genres, tags, synopsis, poster, stats) via async batch fetching (150 concurrent requests)
+- `--scan` — probe the full MTC ID range (100003–153500+) to discover books invisible to the catalog listing endpoint
+- `--fix-author` — generate synthetic authors from creators when the author field is missing or a placeholder
+
+```bash
+cd book-ingest
+python3 generate_plan.py                                # catalog → plan + covers
+python3 generate_plan.py --refresh --scan --fix-author  # full enrichment
+python3 generate_plan.py --cover-only --ids 132599      # specific covers
 ```
 
 ## Dependencies
 
-- `httpx` (shared with crawler)
-- Imports `config.py` from `../crawler/`
+- `httpx` — HTTP client for API requests and cover downloads
+- `rich` — progress bars, tables, and styled console output
