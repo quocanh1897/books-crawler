@@ -964,7 +964,7 @@ def run_refresh(
 
 
 def run_generate_ttv(
-    max_pages: int = 50,
+    max_pages: int = 0,
     min_chapters: int = MIN_CHAPTER_COUNT,
     dry_run: bool = False,
 ) -> list[dict]:
@@ -998,7 +998,12 @@ def run_generate_ttv(
     skipped_mtc = 0
 
     with httpx.Client(headers=TTV_HEADERS, timeout=30, follow_redirects=True) as client:
-        for page in range(1, max_pages + 1):
+        page = 0
+        # 0 = scrape all available pages; positive = cap at that number
+        page_limit = max_pages if max_pages > 0 else 10_000
+
+        while page < page_limit:
+            page += 1
             try:
                 r = client.get(
                     f"{TTV_BASE_URL}/tong-hop",
@@ -1016,10 +1021,9 @@ def run_generate_ttv(
 
             if page == 1:
                 total_pages = parse_listing_total_pages(html)
-                effective_max = min(max_pages, total_pages)
+                page_limit = min(page_limit, total_pages)
                 console.print(
-                    f"  Total pages available: {total_pages}, "
-                    f"will scrape: {effective_max}"
+                    f"  Total pages available: {total_pages}, will scrape: {page_limit}"
                 )
 
             new_on_page = 0
@@ -1036,9 +1040,9 @@ def run_generate_ttv(
                 all_books.append(book)
                 new_on_page += 1
 
-            if page % 10 == 0 or page == 1:
+            if page % 50 == 0 or page == 1:
                 console.print(
-                    f"  Page {page}/{max_pages}: {len(books)} found, "
+                    f"  Page {page}/{page_limit}: {len(books)} found, "
                     f"{new_on_page} new, total: {len(all_books)}"
                 )
 
@@ -1477,8 +1481,8 @@ def main() -> None:
     parser.add_argument(
         "--pages",
         type=int,
-        default=50,
-        help="(TTV only) Number of listing pages to scrape (default: 50, ~20 books/page)",
+        default=0,
+        help="(TTV only) Number of listing pages to scrape (default: 0 = all, ~20 books/page)",
     )
 
     # Filtering

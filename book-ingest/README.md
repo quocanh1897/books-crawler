@@ -389,7 +389,7 @@ Source: `generate_plan.py`
 | `--refresh` | off | Enrich existing plan with full per-book metadata |
 | `--scan` | off | (With `--refresh`, MTC only) Scan full MTC ID range for undiscovered books |
 | `--cover-only` | off | Only download covers; skip plan |
-| `--pages N` | 50 | (TTV only) Number of listing pages to scrape (~20 books/page) |
+| `--pages N` | 0 (all) | (TTV only) Number of listing pages to scrape (~20 books/page). 0 = scrape all available pages. |
 | `--fix-author` | on | Generate synthetic author from creator when author is missing or placeholder (id = `999{creator_id}`) |
 | `--min-chapters N` | 100 | Exclude books with fewer than N chapters |
 | `--workers N` | 150 | Max concurrent requests for `--refresh` |
