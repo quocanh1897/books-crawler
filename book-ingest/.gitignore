@@ -1,5 +1,8 @@
 data/*.log
 data/*.txt
+data/books_plan_*.json
+data/book_registry_*.json
+data/catalog_audit.json
 __pycache__/
 *.pyc
 updated.json

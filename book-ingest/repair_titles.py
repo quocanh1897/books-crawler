@@ -551,6 +551,8 @@ async def run_repair_ttv(
     start_time = time.time()
 
     sem = asyncio.Semaphore(workers)
+    # Track per-book chapter fetch progress for live output
+    fetch_progress = {"done": 0, "total": 0}
 
     async with httpx.AsyncClient(
         headers=TTV_HEADERS,
@@ -579,30 +581,49 @@ async def run_repair_ttv(
 
             # Fetch titles from TTV chapter pages in parallel
             fetched: dict[int, str] = {}
+            fetch_progress["done"] = 0
+            fetch_progress["total"] = len(db_rows)
+            book_start = time.time()
+
+            print(
+                f"  [{book_i + 1}/{len(books)}] {bid} "
+                f'"{bname[:40]}" — fetching {len(db_rows)} chapters...',
+                end="",
+                flush=True,
+            )
 
             async def _fetch_title(ch_idx: int, _slug: str = slug) -> None:
                 url = f"{TTV_BASE_URL}/doc-truyen/{_slug}/chuong-{ch_idx}"
                 for attempt in range(3):
+                    # Sleep OUTSIDE the semaphore to avoid holding a slot idle
+                    await asyncio.sleep(request_delay)
                     async with sem:
-                        await asyncio.sleep(request_delay)
                         try:
                             r = await client.get(url)
                         except httpx.TransportError:
                             if attempt < 2:
                                 await asyncio.sleep(2 ** (attempt + 1))
                                 continue
-                            return
+                            break
                     if r.status_code == 404:
-                        return
+                        break
                     if r.status_code != 200:
                         if attempt < 2:
                             await asyncio.sleep(2 ** (attempt + 1))
                             continue
-                        return
+                        break
                     parsed = parse_chapter(r.text)
                     if parsed:
                         fetched[ch_idx] = parsed["title"]
-                    return
+                    break
+
+                fetch_progress["done"] += 1
+                done = fetch_progress["done"]
+                total = fetch_progress["total"]
+                # Print inline progress every 100 chapters
+                if done % 100 == 0 and done < total:
+                    pct = done * 100 // total
+                    print(f" {pct}%", end="", flush=True)
 
             tasks = [_fetch_title(idx) for idx in sorted(db_rows)]
             await asyncio.gather(*tasks)
@@ -638,12 +659,14 @@ async def run_repair_ttv(
             elapsed = time.time() - start_time
             rate = (book_i + 1) / elapsed if elapsed > 0 else 0
             eta = (len(books) - book_i - 1) / rate if rate > 0 else 0
+            book_elapsed = time.time() - book_start
             marker = "✓" if updates else "—"
             print(
-                f"  [{book_i + 1}/{len(books)}] {marker} {bid} "
-                f'"{bname[:40]}" — +{len(updates)} titles, '
+                f" {marker} +{len(updates)} titles, "
                 f"{len(fetched)}/{len(db_rows)} fetched "
-                f"[{rate:.1f} books/s, ETA {eta:.0f}s]"
+                f"({book_elapsed:.0f}s) "
+                f"[{rate:.1f} books/s, ETA {eta:.0f}s]",
+                flush=True,
             )
 
     elapsed = time.time() - start_time
