@@ -1,9 +1,5 @@
 import { db, sqlite } from "@/db";
-import {
-  books,
-  authors,
-  chapters,
-} from "@/db/schema";
+import { books, authors, chapters } from "@/db/schema";
 import { eq, asc, and } from "drizzle-orm";
 import { readChapterBody } from "./chapter-storage";
 import type {
@@ -56,8 +52,15 @@ function rowToBookWithAuthor(r: Record<string, unknown>): BookWithAuthor {
 // ─── Books ───────────────────────────────────────────────────────────────────
 
 const VALID_SORT = new Set([
-  "view_count", "comment_count", "bookmark_count", "vote_count",
-  "review_score", "chapter_count", "updated_at", "created_at", "word_count",
+  "view_count",
+  "comment_count",
+  "bookmark_count",
+  "vote_count",
+  "review_score",
+  "chapter_count",
+  "updated_at",
+  "created_at",
+  "word_count",
 ]);
 
 export type BookSource = "mtc" | "ttv";
@@ -114,7 +117,8 @@ export async function getBooks(params: {
     condParams.push(source);
   }
 
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const joinClause = genre
     ? `INNER JOIN book_genres ON books.id = book_genres.book_id
        INNER JOIN genres ON book_genres.genre_id = genres.id`
@@ -140,8 +144,12 @@ export async function getBooks(params: {
     ${whereClause}
   `;
 
-  const rows = sqlite.prepare(dataSql).all(...condParams, safeLimit, offset) as Record<string, unknown>[];
-  const countRow = sqlite.prepare(countSql).get(...condParams) as { cnt: number };
+  const rows = sqlite
+    .prepare(dataSql)
+    .all(...condParams, safeLimit, offset) as Record<string, unknown>[];
+  const countRow = sqlite.prepare(countSql).get(...condParams) as {
+    cnt: number;
+  };
   const total = countRow?.cnt ?? 0;
 
   return {
@@ -175,18 +183,28 @@ function rowToBookWithDetails(r: Record<string, unknown>): BookWithDetails {
 
   let parsedGenres: { id: number; name: string; slug: string }[] = [];
   if (r.genres_json && r.genres_json !== "[null]") {
-    try { parsedGenres = JSON.parse(r.genres_json as string); } catch { /* empty */ }
+    try {
+      parsedGenres = JSON.parse(r.genres_json as string);
+    } catch {
+      /* empty */
+    }
   }
 
   let parsedTags: { id: number; name: string; typeId: number | null }[] = [];
   if (r.tags_json && r.tags_json !== "[null]") {
-    try { parsedTags = JSON.parse(r.tags_json as string); } catch { /* empty */ }
+    try {
+      parsedTags = JSON.parse(r.tags_json as string);
+    } catch {
+      /* empty */
+    }
   }
 
   return { ...base, genres: parsedGenres, tags: parsedTags };
 }
 
-export async function getBookBySlug(slug: string): Promise<BookWithDetails | null> {
+export async function getBookBySlug(
+  slug: string,
+): Promise<BookWithDetails | null> {
   const row = sqlite
     .prepare(`${bookDetailSql} WHERE b.slug = ? LIMIT 1`)
     .get(slug) as Record<string, unknown> | undefined;
@@ -210,9 +228,17 @@ export async function getRankedBooks(
   genreSlug?: string,
   status?: number,
   includeVietnamese: boolean = true,
-  source?: BookSource
+  source?: BookSource,
 ): Promise<BookWithAuthor[]> {
-  const result = await getRankedBooksPaginated(metric, 1, limit, genreSlug, status, includeVietnamese, source);
+  const result = await getRankedBooksPaginated(
+    metric,
+    1,
+    limit,
+    genreSlug,
+    status,
+    includeVietnamese,
+    source,
+  );
   return result.data;
 }
 
@@ -223,7 +249,7 @@ export async function getRankedBooksPaginated(
   genreSlug?: string,
   status?: number,
   vietnameseOnly?: boolean,
-  source?: BookSource
+  source?: BookSource,
 ): Promise<PaginatedResponse<BookWithAuthor>> {
   const safeMetric = VALID_SORT.has(metric) ? metric : "view_count";
   const safePage = Math.max(1, page);
@@ -248,7 +274,8 @@ export async function getRankedBooksPaginated(
     condParams.push(source);
   }
 
-  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+  const whereClause =
+    conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
   const joinClause = genreSlug
     ? `INNER JOIN book_genres ON books.id = book_genres.book_id
        INNER JOIN genres ON book_genres.genre_id = genres.id`
@@ -261,7 +288,9 @@ export async function getRankedBooksPaginated(
     ${joinClause}
     ${whereClause}
   `;
-  const countRow = sqlite.prepare(countSql).get(...condParams) as { cnt: number };
+  const countRow = sqlite.prepare(countSql).get(...condParams) as {
+    cnt: number;
+  };
   const total = countRow?.cnt ?? 0;
 
   const dataSql = `
@@ -277,7 +306,9 @@ export async function getRankedBooksPaginated(
     LIMIT ? OFFSET ?
   `;
 
-  const rows = sqlite.prepare(dataSql).all(...condParams, limit, offset) as Record<string, unknown>[];
+  const rows = sqlite
+    .prepare(dataSql)
+    .all(...condParams, limit, offset) as Record<string, unknown>[];
   return {
     data: rows.map(rowToBookWithAuthor),
     total,
@@ -290,7 +321,7 @@ export async function getRankedBooksPaginated(
 // ─── Genres ──────────────────────────────────────────────────────────────────
 
 export async function getGenresWithCounts(
-  source?: BookSource
+  source?: BookSource,
 ): Promise<GenreWithCount[]> {
   const sourceJoin = source ? "AND b.source = ?" : "";
   const params = source ? [source] : [];
@@ -303,9 +334,14 @@ export async function getGenresWithCounts(
        LEFT JOIN books b ON bg.book_id = b.id ${sourceJoin}
        GROUP BY g.id
        HAVING book_count > 0
-       ORDER BY book_count DESC`
+       ORDER BY book_count DESC`,
     )
-    .all(...params) as { id: number; name: string; slug: string; book_count: number }[];
+    .all(...params) as {
+    id: number;
+    name: string;
+    slug: string;
+    book_count: number;
+  }[];
 
   return rows.map((r) => ({
     id: r.id,
@@ -318,18 +354,27 @@ export async function getGenresWithCounts(
 // ─── Chapters ────────────────────────────────────────────────────────────────
 
 export function getAllChapterTitles(
-  bookId: number
+  bookId: number,
 ): { indexNum: number; title: string }[] {
   return sqlite
-    .prepare("SELECT index_num AS indexNum, title FROM chapters WHERE book_id = ? ORDER BY index_num ASC")
+    .prepare(
+      "SELECT index_num AS indexNum, title FROM chapters WHERE book_id = ? ORDER BY index_num ASC",
+    )
     .all(bookId) as { indexNum: number; title: string }[];
 }
 
 export async function getChaptersByBookId(
   bookId: number,
   page: number = 1,
-  limit: number = 50
-): Promise<PaginatedResponse<{ id: number; indexNum: number; title: string; slug: string | null }>> {
+  limit: number = 50,
+): Promise<
+  PaginatedResponse<{
+    id: number;
+    indexNum: number;
+    title: string;
+    slug: string | null;
+  }>
+> {
   const offset = (Math.max(1, page) - 1) * limit;
 
   const rows = await db
@@ -359,10 +404,7 @@ export async function getChaptersByBookId(
   };
 }
 
-export async function getChapter(
-  bookId: number,
-  indexNum: number
-) {
+export async function getChapter(bookId: number, indexNum: number) {
   const row = await db
     .select()
     .from(chapters)
@@ -383,7 +425,7 @@ export function searchBooks(
   query: string,
   limit: number = 20,
   offset: number = 0,
-  source?: BookSource
+  source?: BookSource,
 ) {
   const sourceCond = source ? "AND books.source = ?" : "";
   const params: unknown[] = [query];
@@ -391,8 +433,7 @@ export function searchBooks(
   params.push(limit, offset);
 
   const stmt = sqlite.prepare(`
-    SELECT books.*, highlight(books_fts, 0, '<mark>', '</mark>') as hl_name,
-           highlight(books_fts, 1, '<mark>', '</mark>') as hl_synopsis
+    SELECT books.*, highlight(books_fts, 0, '<mark>', '</mark>') as hl_name
     FROM books_fts
     JOIN books ON books.id = books_fts.rowid
     WHERE books_fts MATCH ? ${sourceCond}
@@ -401,15 +442,13 @@ export function searchBooks(
   `);
   return stmt.all(...params) as (Record<string, unknown> & {
     hl_name: string;
-    hl_synopsis: string;
   })[];
 }
-
 
 // ─── Library Stats ───────────────────────────────────────────────────────────
 
 export async function getLibraryStats(
-  source?: BookSource
+  source?: BookSource,
 ): Promise<LibraryStats> {
   const sourceWhere = source ? "WHERE source = ?" : "";
   const sourceParams = source ? [source] : [];
@@ -421,7 +460,7 @@ export async function getLibraryStats(
         SUM(chapters_saved) as total_chapters,
         SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as completed_books,
         SUM(word_count) as total_words
-      FROM books ${sourceWhere}`
+      FROM books ${sourceWhere}`,
     )
     .get(...sourceParams) as {
     total_books: number;
@@ -438,7 +477,9 @@ export async function getLibraryStats(
   } else {
     genreCountSql = "SELECT COUNT(*) as cnt FROM genres";
   }
-  const genreCount = sqlite.prepare(genreCountSql).get(...genreCountParams) as { cnt: number };
+  const genreCount = sqlite.prepare(genreCountSql).get(...genreCountParams) as {
+    cnt: number;
+  };
 
   return {
     totalBooks: stats.total_books ?? 0,
@@ -452,7 +493,7 @@ export async function getLibraryStats(
 // ─── Book Primary Genre ─────────────────────────────────────────────────────
 
 export function getBookPrimaryGenres(
-  bookIds: number[]
+  bookIds: number[],
 ): Record<number, { id: number; name: string; slug: string }> {
   if (bookIds.length === 0) return {};
   const placeholders = bookIds.map(() => "?").join(",");
@@ -462,9 +503,14 @@ export function getBookPrimaryGenres(
        FROM book_genres bg
        JOIN genres g ON bg.genre_id = g.id
        WHERE bg.book_id IN (${placeholders})
-       GROUP BY bg.book_id`
+       GROUP BY bg.book_id`,
     )
-    .all(...bookIds) as { book_id: number; id: number; name: string; slug: string }[];
+    .all(...bookIds) as {
+    book_id: number;
+    id: number;
+    name: string;
+    slug: string;
+  }[];
 
   const map: Record<number, { id: number; name: string; slug: string }> = {};
   for (const r of rows) {
@@ -492,7 +538,10 @@ export interface AuthorStats {
   totalChapters: number;
 }
 
-export function getAuthorStats(authorId: number, source?: BookSource): AuthorStats {
+export function getAuthorStats(
+  authorId: number,
+  source?: BookSource,
+): AuthorStats {
   const sourceCond = source ? "AND source = ?" : "";
   const params: unknown[] = [authorId];
   if (source) params.push(source);
@@ -502,9 +551,11 @@ export function getAuthorStats(authorId: number, source?: BookSource): AuthorSta
       `SELECT COUNT(*) as total_books,
               COALESCE(SUM(word_count), 0) as total_words,
               COALESCE(SUM(chapter_count), 0) as total_chapters
-       FROM books WHERE author_id = ? ${sourceCond}`
+       FROM books WHERE author_id = ? ${sourceCond}`,
     )
-    .get(...params) as { total_books: number; total_words: number; total_chapters: number } | undefined;
+    .get(...params) as
+    | { total_books: number; total_words: number; total_chapters: number }
+    | undefined;
 
   return {
     totalBooks: row?.total_books ?? 0,
@@ -517,7 +568,7 @@ export function getLatestChaptersByAuthor(
   authorId: number,
   bookLimit: number = 5,
   chaptersPerBook: number = 3,
-  source?: BookSource
+  source?: BookSource,
 ): Array<{
   bookId: number;
   bookName: string;
@@ -537,20 +588,28 @@ export function getLatestChaptersByAuthor(
     .prepare(
       `SELECT id, name, slug, cover_url, chapter_count, status, synopsis
        FROM books WHERE author_id = ? ${sourceCond}
-       ORDER BY updated_at DESC LIMIT ?`
+       ORDER BY updated_at DESC LIMIT ?`,
     )
     .all(...params) as Array<{
-      id: number; name: string; slug: string; cover_url: string | null;
-      chapter_count: number; status: number; synopsis: string | null;
-    }>;
+    id: number;
+    name: string;
+    slug: string;
+    cover_url: string | null;
+    chapter_count: number;
+    status: number;
+    synopsis: string | null;
+  }>;
 
   return booksRows.map((b) => {
     const chaps = sqlite
       .prepare(
         `SELECT index_num, title FROM chapters
-         WHERE book_id = ? ORDER BY index_num DESC LIMIT ?`
+         WHERE book_id = ? ORDER BY index_num DESC LIMIT ?`,
       )
-      .all(b.id, chaptersPerBook) as Array<{ index_num: number; title: string }>;
+      .all(b.id, chaptersPerBook) as Array<{
+      index_num: number;
+      title: string;
+    }>;
 
     return {
       bookId: b.id,
@@ -572,7 +631,7 @@ export async function getBooksByAuthorId(
   authorId: number,
   page: number = 1,
   limit: number = 20,
-  source?: BookSource
+  source?: BookSource,
 ): Promise<PaginatedResponse<BookWithAuthor>> {
   const offset = (Math.max(1, page) - 1) * limit;
 
@@ -599,8 +658,13 @@ export async function getBooksByAuthorId(
   const countParams: unknown[] = [authorId];
   if (source) countParams.push(source);
 
-  const rows = sqlite.prepare(dataSql).all(...dataParams) as Record<string, unknown>[];
-  const countRow = sqlite.prepare(countSql).get(...countParams) as { cnt: number };
+  const rows = sqlite.prepare(dataSql).all(...dataParams) as Record<
+    string,
+    unknown
+  >[];
+  const countRow = sqlite.prepare(countSql).get(...countParams) as {
+    cnt: number;
+  };
   const total = countRow?.cnt ?? 0;
 
   return {
@@ -630,7 +694,7 @@ export function getAuthorsWithBookCounts(
   limit: number = 60,
   search?: string,
   sort: AuthorSortField = "book_count",
-  source?: BookSource
+  source?: BookSource,
 ): PaginatedResponse<AuthorWithBookCount> {
   const offset = (Math.max(1, page) - 1) * limit;
 
@@ -641,9 +705,10 @@ export function getAuthorsWithBookCounts(
     : "";
   const searchParams = search ? [`%${search}%`, `%${search}%`] : [];
 
-  const orderBy = sort === "word_count"
-    ? "totalWordCount DESC, a.name ASC"
-    : "bookCount DESC, a.name ASC";
+  const orderBy =
+    sort === "word_count"
+      ? "totalWordCount DESC, a.name ASC"
+      : "bookCount DESC, a.name ASC";
 
   const dataSql = `
     SELECT a.id, a.name, a.local_name AS localName, a.avatar,
@@ -662,7 +727,12 @@ export function getAuthorsWithBookCounts(
 
   const rows = sqlite
     .prepare(dataSql)
-    .all(...sourceParams, ...searchParams, limit, offset) as (AuthorWithBookCount & { totalWordCount: number })[];
+    .all(
+      ...sourceParams,
+      ...searchParams,
+      limit,
+      offset,
+    ) as (AuthorWithBookCount & { totalWordCount: number })[];
 
   const countSql = `
     SELECT COUNT(*) as cnt FROM (
@@ -674,7 +744,9 @@ export function getAuthorsWithBookCounts(
       HAVING COUNT(b.id) > 0
     )
   `;
-  const countRow = sqlite.prepare(countSql).get(...sourceParams, ...searchParams) as { cnt: number };
+  const countRow = sqlite
+    .prepare(countSql)
+    .get(...sourceParams, ...searchParams) as { cnt: number };
   const total = countRow?.cnt ?? 0;
 
   return {
@@ -697,7 +769,7 @@ export function searchAuthors(query: string, limit: number = 20) {
        WHERE a.name LIKE ? OR a.local_name LIKE ?
        GROUP BY a.id
        ORDER BY book_count DESC
-       LIMIT ?`
+       LIMIT ?`,
     )
     .all(`%${query}%`, `%${query}%`, limit) as {
     id: number;

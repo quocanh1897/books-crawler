@@ -80,13 +80,12 @@ function createDb(removeDiacritics: number): Database.Database {
   db.exec(`
     CREATE VIRTUAL TABLE books_fts USING fts5(
       name,
-      synopsis,
       content='books',
       content_rowid='id',
       tokenize='unicode61 remove_diacritics ${removeDiacritics}'
     );
-    INSERT INTO books_fts(rowid, name, synopsis)
-      SELECT id, name, synopsis FROM books;
+    INSERT INTO books_fts(rowid, name)
+      SELECT id, name FROM books;
   `);
 
   return db;
@@ -290,36 +289,33 @@ function testCaseInsensitiveVietnamese() {
   db.close();
 }
 
-function testSynopsisSearch() {
-  console.log("\n── Synopsis search (diacritics preserved) ──");
+function testSynopsisNotIndexed() {
+  console.log("\n── Synopsis is NOT indexed (title-only search) ──");
   const db = createDb(0);
 
-  // Search term that appears only in synopsis
+  // "tiên hiệp" only appears in synopsis, not in any book name
   const q1 = buildFtsQuery("tiên hiệp");
   const r1 = search(db, q1);
   assert(
-    r1.length >= 1,
-    `"tiên hiệp" finds book via synopsis (got ${r1.length})`,
-  );
-  assert(
-    r1[0]?.id === 4,
-    `Result is id=4 "Đấu La Đại Lục" (synopsis mentions tiên hiệp)`,
+    r1.length === 0,
+    `"tiên hiệp" (synopsis-only term) returns 0 results (got ${r1.length})`,
   );
 
-  // "tiên hiệp" should NOT match "tiên hiêp" (different diacritics)
-  // — but both words must be present, so a partial check suffices
-  const q2 = buildFtsQuery("tiên hiêp");
+  // But a term that IS in a book name should still work
+  const q2 = buildFtsQuery("Đấu La");
   const r2 = search(db, q2);
   assert(
-    r2.length === 0,
-    `"tiên hiêp" (wrong diacritic on hiêp) returns 0 results`,
+    r2.length >= 1,
+    `"Đấu La" (in book name) still works (got ${r2.length})`,
   );
 
   db.close();
 }
 
 function testHighlightFunction() {
-  console.log("\n── highlight() works with preserved diacritics ──");
+  console.log(
+    "\n── highlight() works with preserved diacritics (name only) ──",
+  );
   const db = createDb(0);
 
   const q = buildFtsQuery("Quỷ Bí");
@@ -356,7 +352,7 @@ testDiacriticsPreserved();
 testDiacriticsRemoved_showsBug();
 testFtsQuerySanitization();
 testCaseInsensitiveVietnamese();
-testSynopsisSearch();
+testSynopsisNotIndexed();
 testHighlightFunction();
 
 console.log(`\n${"─".repeat(50)}`);

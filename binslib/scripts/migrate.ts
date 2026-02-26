@@ -40,26 +40,25 @@ sqlite.exec(`
   -- Recreate with diacritics preserved (critical for Vietnamese search)
   CREATE VIRTUAL TABLE books_fts USING fts5(
     name,
-    synopsis,
     content='books',
     content_rowid='id',
     tokenize='unicode61 remove_diacritics 0'
   );
 
   -- Repopulate from existing book rows
-  INSERT INTO books_fts(rowid, name, synopsis)
-    SELECT id, name, synopsis FROM books;
+  INSERT INTO books_fts(rowid, name)
+    SELECT id, name FROM books;
 
   -- Triggers to keep books FTS in sync
   CREATE TRIGGER books_ai AFTER INSERT ON books BEGIN
-    INSERT INTO books_fts(rowid, name, synopsis) VALUES (new.id, new.name, new.synopsis);
+    INSERT INTO books_fts(rowid, name) VALUES (new.id, new.name);
   END;
   CREATE TRIGGER books_ad AFTER DELETE ON books BEGIN
-    INSERT INTO books_fts(books_fts, rowid, name, synopsis) VALUES('delete', old.id, old.name, old.synopsis);
+    INSERT INTO books_fts(books_fts, rowid, name) VALUES('delete', old.id, old.name);
   END;
   CREATE TRIGGER books_au AFTER UPDATE ON books BEGIN
-    INSERT INTO books_fts(books_fts, rowid, name, synopsis) VALUES('delete', old.id, old.name, old.synopsis);
-    INSERT INTO books_fts(rowid, name, synopsis) VALUES (new.id, new.name, new.synopsis);
+    INSERT INTO books_fts(books_fts, rowid, name) VALUES('delete', old.id, old.name);
+    INSERT INTO books_fts(rowid, name) VALUES (new.id, new.name);
   END;
 
   -- Clean up chapter FTS (bodies now stored on disk, not in DB)

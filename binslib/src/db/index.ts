@@ -41,7 +41,11 @@ function ensureFts() {
     )
     .get() as { sql: string } | undefined;
 
-  if (ftsRow && ftsRow.sql.includes("remove_diacritics 0")) {
+  if (
+    ftsRow &&
+    ftsRow.sql.includes("remove_diacritics 0") &&
+    !ftsRow.sql.includes("synopsis")
+  ) {
     // Already correct — nothing to do.
     return;
   }
@@ -56,30 +60,29 @@ function ensureFts() {
 
     CREATE VIRTUAL TABLE books_fts USING fts5(
       name,
-      synopsis,
       content='books',
       content_rowid='id',
       tokenize='${CORRECT_TOKENIZER}'
     );
 
-    INSERT INTO books_fts(rowid, name, synopsis)
-      SELECT id, name, synopsis FROM books;
+    INSERT INTO books_fts(rowid, name)
+      SELECT id, name FROM books;
 
     CREATE TRIGGER books_ai AFTER INSERT ON books BEGIN
-      INSERT INTO books_fts(rowid, name, synopsis)
-        VALUES (new.id, new.name, new.synopsis);
+      INSERT INTO books_fts(rowid, name)
+        VALUES (new.id, new.name);
     END;
 
     CREATE TRIGGER books_ad AFTER DELETE ON books BEGIN
-      INSERT INTO books_fts(books_fts, rowid, name, synopsis)
-        VALUES ('delete', old.id, old.name, old.synopsis);
+      INSERT INTO books_fts(books_fts, rowid, name)
+        VALUES ('delete', old.id, old.name);
     END;
 
     CREATE TRIGGER books_au AFTER UPDATE ON books BEGIN
-      INSERT INTO books_fts(books_fts, rowid, name, synopsis)
-        VALUES ('delete', old.id, old.name, old.synopsis);
-      INSERT INTO books_fts(rowid, name, synopsis)
-        VALUES (new.id, new.name, new.synopsis);
+      INSERT INTO books_fts(books_fts, rowid, name)
+        VALUES ('delete', old.id, old.name);
+      INSERT INTO books_fts(rowid, name)
+        VALUES (new.id, new.name);
     END;
   `);
 }

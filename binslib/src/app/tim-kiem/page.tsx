@@ -79,7 +79,6 @@ export default async function SearchPage({ searchParams }: Props) {
               (
                 row: Record<string, unknown> & {
                   hl_name: string;
-                  hl_synopsis: string;
                 },
               ) => (
                 <Link
@@ -102,12 +101,6 @@ export default async function SearchPage({ searchParams }: Props) {
                       &middot; {formatNumber(row.bookmark_count as number)} yêu
                       thích
                     </div>
-                    {row.hl_synopsis && (
-                      <p
-                        className="text-xs text-[var(--color-text-secondary)] mt-1 line-clamp-2"
-                        dangerouslySetInnerHTML={{ __html: row.hl_synopsis }}
-                      />
-                    )}
                   </div>
                 </Link>
               ),
