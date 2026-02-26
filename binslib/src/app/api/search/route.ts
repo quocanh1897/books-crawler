@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { searchBooks, searchAuthors } from "@/lib/queries";
+import type { BookSource } from "@/lib/queries";
 import { getSource } from "@/lib/source";
 
 /**
@@ -20,6 +21,29 @@ function buildFtsQuery(q: string): string {
     .join(" ");
 }
 
+/**
+ * Resolve the source filter from the request.
+ *
+ * Priority:
+ *   1. Explicit `source` query parameter (`mtc`, `ttv`, `all`)
+ *   2. `book_source` cookie (used by the web UI)
+ *
+ * `all` (or any unrecognised value) disables the source filter so results
+ * span every source — this is what the vbook-extension uses.
+ */
+async function resolveSource(
+  searchParams: URLSearchParams,
+): Promise<BookSource | undefined> {
+  const explicit = searchParams.get("source");
+  if (explicit) {
+    if (explicit === "mtc" || explicit === "ttv") return explicit;
+    // "all" or anything else → no filter
+    return undefined;
+  }
+  // No explicit param — fall back to cookie (web UI behaviour)
+  return await getSource();
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") || "").trim();
@@ -30,7 +54,7 @@ export async function GET(request: NextRequest) {
   );
   const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10) || 1);
   const offset = (page - 1) * limit;
-  const source = await getSource();
+  const source = await resolveSource(searchParams);
 
   if (q.length < 2) {
     return NextResponse.json({ results: [] });

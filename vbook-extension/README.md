@@ -38,7 +38,7 @@ The extension is entirely API-driven — no HTML scraping. It communicates with 
 | `genre.js`        | `GET /api/genres`                            | Genre list with counts |
 | `genrecontent.js` | `GET /api/rankings?genre=...`                | Books by genre         |
 | `detail.js`       | `GET /api/books/by-slug/{slug}`              | Book metadata          |
-| `search.js`       | `GET /api/search?scope=books&q=...`          | Full-text search       |
+| `search.js`       | `GET /api/search?scope=books&source=all&q=...` | Full-text search (all sources) |
 | `toc.js`          | `GET /api/books/by-slug/{slug}/chapters`     | Chapter titles         |
 | `chap.js`         | `GET /api/books/by-slug/{slug}/chapters/{n}` | Chapter body           |
 
@@ -62,9 +62,9 @@ var API_URL = BASE_URL + "/api";
 
 This extension requires the binslib backend (`binslib/`) to have the following API routes deployed:
 
-- `GET /api/rankings` — existing
-- `GET /api/genres` — existing
-- `GET /api/search` — existing
+- `GET /api/rankings` — existing (no source filter — returns all sources)
+- `GET /api/genres` — existing (no source filter — returns all sources)
+- `GET /api/search` — existing; pass `source=all` to search across all sources (MTC + TTV). Without this param the backend falls back to a cookie-based source which defaults to MTC only.
 - `GET /api/books/by-slug/[slug]` — added for this extension
 - `GET /api/books/by-slug/[slug]/chapters` — added for this extension
 - `GET /api/books/by-slug/[slug]/chapters/[indexNum]` — added for this extension
