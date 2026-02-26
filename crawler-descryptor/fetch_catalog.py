@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """
+DEPRECATED!
 Fetch the complete book catalog from the mobile API.
 
 Paginates through /api/books to collect all books on the platform,
