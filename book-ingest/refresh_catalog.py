@@ -157,11 +157,23 @@ def _parse_poster(raw: dict | None) -> dict | None:
     }
 
 
+def _author_needs_fix(author: dict | None) -> bool:
+    """Return True if the author is missing or has an empty/whitespace name."""
+    if not author:
+        return True
+    name = author.get("name")
+    if not name or not str(name).strip():
+        return True
+    return False
+
+
 def generate_author_from_creator(creator: dict | None) -> dict | None:
     """Create a synthetic author entry from a creator (uploader).
 
     ID is prefixed with 999 to avoid collisions with real author IDs.
     E.g. creator id=1000043 → author id=9991000043.
+
+    Used when the book has no author or the author name is empty.
     """
     if not creator or not creator.get("id"):
         return None
@@ -178,7 +190,8 @@ def parse_book(data: dict, fix_author: bool = False) -> dict | None:
 
     Includes author, creator, genres, tags, synopsis, poster, and all
     stats fields.  When *fix_author* is True and the book has no author
-    but has a creator, a synthetic author is generated.
+    (or the author name is empty/whitespace) but has a creator, a
+    synthetic author is generated from the creator.
     """
     book = _unwrap_book(data)
     if not isinstance(book, dict) or "id" not in book:
@@ -193,7 +206,7 @@ def parse_book(data: dict, fix_author: bool = False) -> dict | None:
 
     # Generate a synthetic author from the creator if requested
     author_generated = False
-    if fix_author and not author and creator:
+    if fix_author and _author_needs_fix(author) and creator:
         author = generate_author_from_creator(creator)
         author_generated = True
 
@@ -513,8 +526,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--fix-author",
         action="store_true",
-        help="For books without an author, generate a synthetic author from "
-        "the creator (uploader): {id: 999{creator_id}, name: creator_name}.",
+        help="For books without an author (or with an empty author name), "
+        "generate a synthetic author from the creator (uploader): "
+        "{id: 999{creator_id}, name: creator_name}.",
     )
     return parser.parse_args()
 

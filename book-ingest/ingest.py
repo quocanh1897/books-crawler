@@ -979,9 +979,13 @@ def _plan_entry_to_meta(entry: dict) -> dict:
     }
 
     # Author — apply fix-author logic: generate from creator if missing
+    # or if the author name is empty/whitespace
     author = entry.get("author")
     creator = entry.get("creator")
-    if not author and creator and creator.get("id"):
+    author_needs_fix = (
+        not author or not author.get("name") or not str(author.get("name", "")).strip()
+    )
+    if author_needs_fix and creator and creator.get("id"):
         author = {
             "id": int(f"999{creator['id']}"),
             "name": creator.get("name", ""),
@@ -1048,7 +1052,12 @@ def run_update_meta(entries: list[dict]) -> None:
             # Check if author was generated from creator
             original_author = entry.get("author")
             creator = entry.get("creator")
-            if not original_author and creator and creator.get("id"):
+            author_was_fixed = (
+                not original_author
+                or not original_author.get("name")
+                or not str(original_author.get("name", "")).strip()
+            )
+            if author_was_fixed and creator and creator.get("id"):
                 authors_generated += 1
 
             # Preserve existing cover_url and chapters_saved
