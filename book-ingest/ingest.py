@@ -395,7 +395,7 @@ async def ingest_book(
                 if missing_in_db:
                     bundle_ch_meta = read_bundle_meta(bundle_path)
                     recover = {
-                        idx: (m.title, m.slug, m.word_count)
+                        idx: (m.title, m.slug, m.word_count, m.chapter_id)
                         for idx, m in bundle_ch_meta.items()
                         if idx in missing_in_db and m.title
                     }
@@ -560,10 +560,10 @@ async def _flush_checkpoint(
 
     DB transaction commits first; bundle flush follows.
     """
-    # Prepare chapter metadata for DB (title, slug, word_count tuples)
-    ch_db_meta: dict[int, tuple[str, str, int]] = {}
-    for idx, (_, _, title, slug, wc, _) in pending.items():
-        ch_db_meta[idx] = (title, slug, wc)
+    # Prepare chapter metadata for DB (title, slug, word_count, chapter_id)
+    ch_db_meta: dict[int, tuple[str, str, int, int]] = {}
+    for idx, (_, _, title, slug, wc, ch_id) in pending.items():
+        ch_db_meta[idx] = (title, slug, wc, ch_id)
 
     # Prepare compressed data + inline metadata for v2 bundle
     ch_data: dict[int, tuple[bytes, int]] = {}

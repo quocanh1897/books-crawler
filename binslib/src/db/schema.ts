@@ -45,7 +45,7 @@ export const books = sqliteTable(
     index("idx_books_updated_at").on(table.updatedAt),
     index("idx_books_status").on(table.status),
     index("idx_books_source").on(table.source),
-  ]
+  ],
 );
 
 // ─── Authors ─────────────────────────────────────────────────────────────────
@@ -69,7 +69,7 @@ export const genres = sqliteTable(
   (table) => [
     uniqueIndex("idx_genres_name").on(table.name),
     uniqueIndex("idx_genres_slug").on(table.slug),
-  ]
+  ],
 );
 
 // ─── Book-Genre Junction ─────────────────────────────────────────────────────
@@ -87,7 +87,7 @@ export const bookGenres = sqliteTable(
   (table) => [
     primaryKey({ columns: [table.bookId, table.genreId] }),
     index("idx_book_genres_genre").on(table.genreId),
-  ]
+  ],
 );
 
 // ─── Tags ────────────────────────────────────────────────────────────────────
@@ -110,7 +110,7 @@ export const bookTags = sqliteTable(
       .notNull()
       .references(() => tags.id, { onDelete: "cascade" }),
   },
-  (table) => [primaryKey({ columns: [table.bookId, table.tagId] })]
+  (table) => [primaryKey({ columns: [table.bookId, table.tagId] })],
 );
 
 // ─── Chapters ────────────────────────────────────────────────────────────────
@@ -126,11 +126,12 @@ export const chapters = sqliteTable(
     title: text("title").notNull(),
     slug: text("slug"),
     wordCount: integer("word_count").default(0),
+    chapterId: integer("chapter_id").default(0),
   },
   (table) => [
     uniqueIndex("idx_chapters_book_index").on(table.bookId, table.indexNum),
     index("idx_chapters_book").on(table.bookId),
-  ]
+  ],
 );
 
 // ─── Users (auth) ────────────────────────────────────────────────────────────
@@ -153,7 +154,7 @@ export const users = sqliteTable(
   (table) => [
     uniqueIndex("idx_users_email").on(table.email),
     uniqueIndex("idx_users_username").on(table.username),
-  ]
+  ],
 );
 
 // ─── User Bookmarks ──────────────────────────────────────────────────────────
@@ -171,7 +172,7 @@ export const userBookmarks = sqliteTable(
       .notNull()
       .$defaultFn(() => new Date().toISOString()),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.bookId] })]
+  (table) => [primaryKey({ columns: [table.userId, table.bookId] })],
 );
 
 // ─── Reading Progress ────────────────────────────────────────────────────────
@@ -191,7 +192,7 @@ export const readingProgress = sqliteTable(
       .notNull()
       .$defaultFn(() => new Date().toISOString()),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.bookId] })]
+  (table) => [primaryKey({ columns: [table.userId, table.bookId] })],
 );
 
 // ─── Reading History ─────────────────────────────────────────────────────────
@@ -211,7 +212,5 @@ export const readingHistory = sqliteTable(
       .notNull()
       .$defaultFn(() => new Date().toISOString()),
   },
-  (table) => [
-    index("idx_reading_history_user").on(table.userId, table.readAt),
-  ]
+  (table) => [index("idx_reading_history_user").on(table.userId, table.readAt)],
 );

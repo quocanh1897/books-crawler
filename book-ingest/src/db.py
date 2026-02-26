@@ -3,6 +3,7 @@
 Opens with journal_mode=WAL and foreign_keys=ON to match binslib/src/db/index.ts.
 All mutations use explicit transactions for atomicity.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -33,6 +34,7 @@ def slugify(text: str) -> str:
     for i, c in enumerate(fr):
         slug = slug.replace(c, to[i])
     import re
+
     slug = re.sub(r"[^a-z0-9\s-]", "", slug)
     slug = re.sub(r"[\s-]+", "-", slug)
     slug = slug.strip("-")
@@ -54,17 +56,13 @@ def parse_author_id(raw: Any) -> int | None:
 
 def get_chapter_indices(conn: sqlite3.Connection, book_id: int) -> set[int]:
     """Get set of chapter index_num values for a book from the DB."""
-    cur = conn.execute(
-        "SELECT index_num FROM chapters WHERE book_id = ?", (book_id,)
-    )
+    cur = conn.execute("SELECT index_num FROM chapters WHERE book_id = ?", (book_id,))
     return {row[0] for row in cur}
 
 
 def get_book_meta_hash(conn: sqlite3.Connection, book_id: int) -> str | None:
     """Get the stored meta_hash for a book, or None if not in DB."""
-    cur = conn.execute(
-        "SELECT meta_hash FROM books WHERE id = ?", (book_id,)
-    )
+    cur = conn.execute("SELECT meta_hash FROM books WHERE id = ?", (book_id,))
     row = cur.fetchone()
     return row[0] if row else None
 
@@ -212,17 +210,26 @@ def upsert_book_metadata(
 def insert_chapters(
     conn: sqlite3.Connection,
     book_id: int,
-    chapters: dict[int, tuple[str, str, int]],
+    chapters: dict[int, tuple[str, str, int] | tuple[str, str, int, int]],
 ) -> None:
     """Insert chapter metadata rows.
 
     Args:
-        chapters: dict mapping index_num -> (title, slug, word_count).
+        chapters: dict mapping index_num -> (title, slug, word_count)
+                  or (title, slug, word_count, chapter_id).
+                  When chapter_id is omitted it defaults to 0.
     """
-    for index_num, (title, slug, word_count) in chapters.items():
+    for index_num, vals in chapters.items():
+        if len(vals) == 4:
+            title, slug, word_count, chapter_id = vals
+        else:
+            title, slug, word_count = vals  # type: ignore[misc]
+            chapter_id = 0
         conn.execute(
-            "INSERT OR REPLACE INTO chapters (book_id, index_num, title, slug, word_count) VALUES (?, ?, ?, ?, ?)",
-            (book_id, index_num, title, slug, word_count),
+            "INSERT OR REPLACE INTO chapters "
+            "(book_id, index_num, title, slug, word_count, chapter_id) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            (book_id, index_num, title, slug, word_count, chapter_id),
         )
 
 

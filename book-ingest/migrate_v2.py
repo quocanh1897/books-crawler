@@ -295,8 +295,8 @@ def _migrate_local(
 
     insert_stmt = (
         "INSERT OR IGNORE INTO chapters "
-        "(book_id, index_num, title, slug, word_count) "
-        "VALUES (?, ?, ?, ?, ?)"
+        "(book_id, index_num, title, slug, word_count, chapter_id) "
+        "VALUES (?, ?, ?, ?, ?, ?)"
     )
 
     with Progress(
@@ -406,6 +406,7 @@ def _process_one_local(
                             m.title,
                             m.slug or slugify_index(idx),
                             m.word_count,
+                            m.chapter_id,
                         ),
                     )
                 from_meta += 1
@@ -424,7 +425,7 @@ def _process_one_local(
                 if body:
                     title, slug, wc = extract_chapter_meta(body, idx)
                     if not dry_run:
-                        conn.execute(insert_stmt, (book_id, idx, title, slug, wc))
+                        conn.execute(insert_stmt, (book_id, idx, title, slug, wc, 0))
                     db_rows_added += 1
                     from_decompress += 1
 
@@ -527,8 +528,8 @@ async def _migrate_refetch(
 
     insert_stmt = (
         "INSERT OR IGNORE INTO chapters "
-        "(book_id, index_num, title, slug, word_count) "
-        "VALUES (?, ?, ?, ?, ?)"
+        "(book_id, index_num, title, slug, word_count, chapter_id) "
+        "VALUES (?, ?, ?, ?, ?, ?)"
     )
 
     sem = asyncio.Semaphore(workers)
@@ -660,6 +661,7 @@ async def _process_one_refetch(
                             m.title,
                             m.slug or slugify_index(idx),
                             m.word_count,
+                            m.chapter_id,
                         ),
                     )
                 db_rows_added += 1
@@ -672,7 +674,7 @@ async def _process_one_refetch(
                 if body:
                     title, slug, wc = extract_chapter_meta(body, idx)
                     if not dry_run:
-                        conn.execute(insert_stmt, (book_id, idx, title, slug, wc))
+                        conn.execute(insert_stmt, (book_id, idx, title, slug, wc, 0))
                     db_rows_added += 1
 
         if not dry_run:
