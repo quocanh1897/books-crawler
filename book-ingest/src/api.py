@@ -1,14 +1,13 @@
 """Async API client for metruyencv mobile API.
 
-Adapted from crawler-descryptor/src/downloader.py with the same
-semaphore-based rate limiting and retry logic.
+Semaphore-based rate limiting and retry logic for concurrent chapter fetching.
 """
 
 from __future__ import annotations
 
 import asyncio
 
-# API configuration (same as crawler-descryptor/config.py)
+# API configuration
 import os
 from typing import Optional
 

@@ -54,9 +54,7 @@ HEADERS = {
 }
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_INPUT = os.path.join(
-    SCRIPT_DIR, "..", "crawler-descryptor", "fresh_books_download.json"
-)
+DEFAULT_INPUT = os.path.join(SCRIPT_DIR, "data", "fresh_books_download.json")
 DEFAULT_OUTPUT = DEFAULT_INPUT  # overwrite in place
 
 # Books with fewer chapters than this are excluded from the output.

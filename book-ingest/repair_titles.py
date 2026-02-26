@@ -32,7 +32,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import httpx
 
-# ── API config (same as book-ingest / crawler-descryptor) ─────────────────────
+# ── API config ────────────────────────────────────────────────────────────────
 
 BASE_URL = "https://android.lonoapp.net"
 BEARER_TOKEN = os.environ.get(
