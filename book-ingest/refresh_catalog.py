@@ -157,12 +157,18 @@ def _parse_poster(raw: dict | None) -> dict | None:
     }
 
 
+# Author names that are placeholders, not real names.
+_PLACEHOLDER_AUTHOR_NAMES = {"đang cập nhật"}
+
+
 def _author_needs_fix(author: dict | None) -> bool:
-    """Return True if the author is missing or has an empty/whitespace name."""
+    """Return True if the author is missing, has an empty name, or a placeholder name."""
     if not author:
         return True
     name = author.get("name")
     if not name or not str(name).strip():
+        return True
+    if str(name).strip().lower() in _PLACEHOLDER_AUTHOR_NAMES:
         return True
     return False
 

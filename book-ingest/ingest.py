@@ -978,12 +978,13 @@ def _plan_entry_to_meta(entry: dict) -> dict:
         "new_chap_at": entry.get("new_chap_at"),
     }
 
-    # Author — apply fix-author logic: generate from creator if missing
-    # or if the author name is empty/whitespace
+    # Author — apply fix-author logic: generate from creator if missing,
+    # empty/whitespace, or a placeholder like "Đang cập nhật"
     author = entry.get("author")
     creator = entry.get("creator")
+    _author_name = str(author.get("name", "")).strip() if author else ""
     author_needs_fix = (
-        not author or not author.get("name") or not str(author.get("name", "")).strip()
+        not author or not _author_name or _author_name.lower() == "đang cập nhật"
     )
     if author_needs_fix and creator and creator.get("id"):
         author = {
@@ -1052,10 +1053,13 @@ def run_update_meta(entries: list[dict]) -> None:
             # Check if author was generated from creator
             original_author = entry.get("author")
             creator = entry.get("creator")
+            _orig_name = (
+                str(original_author.get("name", "")).strip() if original_author else ""
+            )
             author_was_fixed = (
                 not original_author
-                or not original_author.get("name")
-                or not str(original_author.get("name", "")).strip()
+                or not _orig_name
+                or _orig_name.lower() == "đang cập nhật"
             )
             if author_was_fixed and creator and creator.get("id"):
                 authors_generated += 1
