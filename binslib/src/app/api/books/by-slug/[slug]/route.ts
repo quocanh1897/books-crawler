@@ -1,16 +1,25 @@
 import { NextResponse } from "next/server";
 import { getBookBySlug } from "@/lib/queries";
+import { logApi } from "@/lib/api-logger";
 
 export async function GET(
   _request: Request,
-  { params }: { params: Promise<{ slug: string }> }
+  { params }: { params: Promise<{ slug: string }> },
 ) {
+  const t0 = performance.now();
   const { slug } = await params;
 
   const book = await getBookBySlug(slug);
   if (!book) {
+    logApi(_request, 404, performance.now() - t0, { slug });
     return NextResponse.json({ error: "Book not found" }, { status: 404 });
   }
+
+  logApi(_request, 200, performance.now() - t0, {
+    slug,
+    bookId: book.id,
+    name: book.name,
+  });
 
   return NextResponse.json({
     id: book.id,
@@ -33,7 +42,11 @@ export async function GET(
     chaptersSaved: book.chaptersSaved,
     source: book.source,
     author: book.author
-      ? { id: book.author.id, name: book.author.name, localName: book.author.localName }
+      ? {
+          id: book.author.id,
+          name: book.author.name,
+          localName: book.author.localName,
+        }
       : null,
     genres: book.genres.map((g) => ({ id: g.id, name: g.name, slug: g.slug })),
     tags: book.tags.map((t) => ({ id: t.id, name: t.name })),

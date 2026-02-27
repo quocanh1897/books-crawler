@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { searchBooks, searchAuthors } from "@/lib/queries";
 import type { BookSource } from "@/lib/queries";
 import { getSource } from "@/lib/source";
+import { logApi } from "@/lib/api-logger";
 
 /**
  * Sanitize user input into a valid FTS5 query.
@@ -54,6 +55,7 @@ async function resolveSource(
 }
 
 export async function GET(request: NextRequest) {
+  const t0 = performance.now();
   const { searchParams } = new URL(request.url);
   const q = (searchParams.get("q") || "").trim();
   const scope = searchParams.get("scope") || "books";
@@ -66,14 +68,29 @@ export async function GET(request: NextRequest) {
   const source = await resolveSource(searchParams);
 
   if (q.length < 2) {
+    logApi(request, 200, performance.now() - t0, {
+      q,
+      results: 0,
+      reason: "too short",
+    });
     return NextResponse.json({ results: [] });
   }
 
   if (scope === "authors") {
     try {
       const results = searchAuthors(q, limit);
+      logApi(request, 200, performance.now() - t0, {
+        q,
+        scope,
+        results: results.length,
+      });
       return NextResponse.json({ results });
     } catch {
+      logApi(request, 200, performance.now() - t0, {
+        q,
+        scope,
+        error: "Author search failed",
+      });
       return NextResponse.json({ results: [], error: "Author search failed" });
     }
   }
@@ -81,13 +98,29 @@ export async function GET(request: NextRequest) {
   // Default: scope === "books"
   const ftsQuery = buildFtsQuery(q);
   if (!ftsQuery) {
+    logApi(request, 200, performance.now() - t0, {
+      q,
+      results: 0,
+      reason: "empty fts query",
+    });
     return NextResponse.json({ results: [] });
   }
 
   try {
     const results = searchBooks(ftsQuery, limit, offset, source);
+    logApi(request, 200, performance.now() - t0, {
+      q,
+      ftsQuery,
+      source: source ?? "all",
+      results: results.length,
+    });
     return NextResponse.json({ results });
-  } catch {
+  } catch (err) {
+    logApi(request, 200, performance.now() - t0, {
+      q,
+      ftsQuery,
+      error: err instanceof Error ? err.message : "Search failed",
+    });
     return NextResponse.json({ results: [], error: "Search failed" });
   }
 }
