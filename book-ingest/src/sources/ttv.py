@@ -51,6 +51,10 @@ TTV_DEFAULT_MAX_CONCURRENT = 20
 # TTV book IDs start at 10M to avoid collision with MTC IDs (< 1M).
 ID_OFFSET = 10_000_000
 
+# TTV author IDs start at 20M to avoid collision with MTC author IDs.
+# MTC authors use native API IDs (< 1M) plus synthetic 999xxx IDs.
+AUTHOR_ID_OFFSET = 20_000_000
+
 # ── Paths ───────────────────────────────────────────────────────────────────
 
 _INGEST_DIR = Path(__file__).resolve().parent.parent.parent  # book-ingest/
@@ -482,8 +486,15 @@ def _extract_slug(url: str) -> str:
 
 
 def _extract_author_id(url: str) -> int | None:
+    """Extract author ID from a TTV URL and apply the 20M offset.
+
+    The offset prevents collision with MTC author IDs which share
+    the same ``authors`` table.  E.g. TTV author 357 becomes 20000357.
+    """
     m = re.search(r"author=(\d+)", url)
-    return int(m.group(1)) if m else None
+    if not m:
+        return None
+    return int(m.group(1)) + AUTHOR_ID_OFFSET
 
 
 def _extract_chapter_index(url: str) -> int:
