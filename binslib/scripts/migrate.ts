@@ -19,6 +19,7 @@ const db = drizzle(sqlite);
 
 console.log("Running migrations...");
 migrate(db, { migrationsFolder: "./src/db/migrations" });
+console.log("Drizzle migrations applied.");
 
 // Create FTS5 virtual tables (not handled by Drizzle)
 //
@@ -83,6 +84,42 @@ sqlite.exec(`
   DROP TRIGGER IF EXISTS chapters_au;
   DROP TABLE IF EXISTS chapters_fts;
 `);
+
+// Verify the FTS index was rebuilt correctly with đ→d normalization.
+// If the REPLACE didn't take effect, "đồ" would still match (wrong)
+// and "dồ" would return 0 (wrong).  This catches silent failures in
+// the exec block above.
+const verifyOld = sqlite
+  .prepare(`SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"đồ"'`)
+  .get() as { n: number };
+const verifyNew = sqlite
+  .prepare(`SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"dồ"'`)
+  .get() as { n: number };
+const totalBooks = sqlite.prepare(`SELECT COUNT(*) as n FROM books`).get() as {
+  n: number;
+};
+
+if (verifyOld.n > 0 && verifyNew.n === 0) {
+  // FTS index still has raw đ — the rebuild didn't work.  Force it.
+  console.warn(
+    `FTS verification FAILED: "đồ" matched ${verifyOld.n} rows, "dồ" matched 0.` +
+      " Forcing FTS rebuild...",
+  );
+  sqlite.exec(`
+    DELETE FROM books_fts;
+    INSERT INTO books_fts(rowid, name)
+      SELECT id, REPLACE(REPLACE(name, 'đ', 'd'), 'Đ', 'D') FROM books;
+  `);
+  const recheck = sqlite
+    .prepare(`SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"dồ"'`)
+    .get() as { n: number };
+  console.log(`  FTS re-rebuilt: "dồ" now matches ${recheck.n} rows.`);
+} else {
+  console.log(
+    `FTS verified: ${totalBooks.n} books indexed, ` +
+      `đ→d normalization OK (đồ=${verifyOld.n}, dồ=${verifyNew.n}).`,
+  );
+}
 
 console.log("Migrations complete.");
 sqlite.close();
