@@ -9,9 +9,10 @@ Add [truyenfull.vision](https://truyenfull.vision) as a third data source (`tf`)
 ### Listing page — "Truyện Hot hoàn (full)"
 
 ```
-URL:  https://truyenfull.vision/danh-sach/truyen-hot/
-Tab:  "Truyện Hot hoàn (full)"  ← only this tab, not ongoing
-Pages: ~11 pages, ~27 books/page ≈ 300 books
+URL:  https://truyenfull.vision/danh-sach/truyen-hot/trang-{N}/
+From: https://truyenfull.vision/danh-sach/truyen-hot/trang-1/
+To:   https://truyenfull.vision/danh-sach/truyen-hot/trang-1384/
+Pages: 1,384 pages, ~27 books/page ≈ 37,000 completed hot books
 ```
 
 Each book entry on the listing page:
@@ -23,7 +24,7 @@ Each book entry on the listing page:
 | Chapter count | "Chương 5357" text | 5357 |
 | Book URL | `<a href>` | `/than-dao-dan-ton-6060282/` |
 
-Pagination: `?page=2`, `?page=3`, …; "Cuối »" link gives last page.
+Pagination: `/trang-1/`, `/trang-2/`, …, `/trang-1384/`; "Cuối »" link gives last page number.
 
 ### Book detail page
 
@@ -213,9 +214,11 @@ Nav:            "Chương trước" / "Chương tiếp" links
 
 ### Estimated scale
 
-- ~300 hot completed books on the listing
-- After dedup with MTC (~30K books) + TTV (~10K books): probably ~50-150 unique books
-- Average ~2000 chapters per book → ~100K-300K chapters total
+- ~37,000 completed hot books across 1,384 listing pages
+- After filtering ≥100 chapters: TBD (likely most qualify since these are completed novels)
+- After dedup with MTC (~30K books) + TTV (~10K books): probably several thousand unique books
+- Average ~500-2000 chapters per book → significant chapter volume
+- Discovery is the slow part: 1,384 pages at 0.3s delay ≈ 7 minutes to scrape all listings
 
 ---
 
