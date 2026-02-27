@@ -29,10 +29,12 @@ Usage:
     python3 ingest.py --min-chapters 200        # skip books with < 200 chapters
     python3 ingest.py --flush-every 50          # checkpoint every 50 chapters
     python3 ingest.py --dry-run                 # simulate without writing
+    python3 ingest.py --force 100358 100441     # re-download from scratch (prompts)
 
     # ── Ingest (TTV) ─────────────────────────────────────────
     python3 ingest.py --source ttv              # ingest from TTV plan file
     python3 ingest.py --source ttv 10000001     # specific TTV book ID
+    python3 ingest.py --source ttv --force 10000001  # re-download TTV book
     python3 ingest.py --source ttv -w 3         # TTV with 3 workers
 
     # ── Audit ─────────────────────────────────────────────────
@@ -55,6 +57,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import sys
 import time
 from datetime import datetime
@@ -845,6 +848,12 @@ def parse_args() -> argparse.Namespace:
         "synthetic author is generated from the creator (id=999{creator_id}).  "
         "Only processes books that already exist in the DB.",
     )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Delete existing bundle + DB chapters and re-download from scratch. "
+        "Requires explicit book IDs (not a plan file). Prompts for confirmation.",
+    )
     return parser.parse_args()
 
 
@@ -893,6 +902,77 @@ def main():
     if not entries:
         console.print("[yellow]No entries to process.[/yellow]")
         sys.exit(0)
+
+    # ── --force: delete existing data and re-download ───────────────────
+    if args.force:
+        if not args.book_ids:
+            console.print(
+                "[red]Error:[/red] --force requires explicit book IDs.\n"
+                "  Example: python3 ingest.py --force 100358 100441\n"
+                "  Using --force with a plan file is not supported (too dangerous)."
+            )
+            sys.exit(1)
+
+        if args.dry_run or args.audit_only or args.update_meta_only:
+            console.print(
+                "[red]Error:[/red] --force cannot be combined with "
+                "--dry-run, --audit-only, or --update-meta-only."
+            )
+            sys.exit(1)
+
+        # Show what will be deleted
+        db = open_db(str(DB_PATH))
+        console.print(
+            f"\n[bold red]⚠ FORCE RE-DOWNLOAD[/bold red] — "
+            f"the following {len(entries)} book(s) will have their "
+            f"bundle files and DB chapter rows [bold]deleted[/bold]:\n"
+        )
+        for e in entries:
+            bid = e["id"]
+            bpath = COMPRESSED_DIR / f"{bid}.bundle"
+            bundle_exists = bpath.exists()
+            bundle_size = bpath.stat().st_size if bundle_exists else 0
+            ch_count = db.execute(
+                "SELECT COUNT(*) FROM chapters WHERE book_id = ?", (bid,)
+            ).fetchone()[0]
+            name_row = db.execute(
+                "SELECT name FROM books WHERE id = ?", (bid,)
+            ).fetchone()
+            name = name_row[0] if name_row else "?"
+            console.print(
+                f"  {bid}  {name[:50]}"
+                f"  — bundle {'%.1fMB' % (bundle_size / 1048576) if bundle_exists else '[dim]none[/dim]'}"
+                f", {ch_count:,} chapter rows"
+            )
+        db.close()
+
+        console.print()
+        try:
+            answer = input("Type 'y' to confirm deletion and re-download: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            console.print("\n[yellow]Aborted.[/yellow]")
+            sys.exit(0)
+
+        if answer.lower() != "y":
+            console.print("[yellow]Aborted.[/yellow]")
+            sys.exit(0)
+
+        # Delete bundle files and DB chapter rows
+        db = open_db(str(DB_PATH))
+        for e in entries:
+            bid = e["id"]
+            bpath = COMPRESSED_DIR / f"{bid}.bundle"
+            if bpath.exists():
+                os.remove(bpath)
+            db.execute("DELETE FROM chapters WHERE book_id = ?", (bid,))
+            # Reset chapters_saved so metadata reflects the wipe
+            db.execute("UPDATE books SET chapters_saved = 0 WHERE id = ?", (bid,))
+        db.commit()
+        db.close()
+        console.print(
+            f"[green]Deleted data for {len(entries)} book(s). "
+            f"Starting re-download...[/green]\n"
+        )
 
     if args.update_meta_only:
         # Bare book IDs (no plan metadata) would produce garbage in
