@@ -28,6 +28,9 @@ export default async function SearchPage({ searchParams }: Props) {
   // then wrap each word in double quotes for exact-token matching.
   const ftsQuery = q
     .replace(/[\u201C\u201D\u2018\u2019"'()*^:]/g, "")
+    // Normalize đ/Đ → d/D to match the FTS index (see migrate.ts)
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
     .split(/\s+/)
     .filter((w) => w.length > 0)
     .map((w) => `"${w}"`)

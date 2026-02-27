@@ -13,12 +13,21 @@ import { getSource } from "@/lib/source";
  * Must stay in sync with the search page (tim-kiem/page.tsx).
  */
 function buildFtsQuery(q: string): string {
-  return q
-    .replace(/[\u201C\u201D\u2018\u2019"'()*^:]/g, "")
-    .split(/\s+/)
-    .filter((w) => w.length > 0)
-    .map((w) => `"${w}"`)
-    .join(" ");
+  return (
+    q
+      // Strip FTS5 operator characters
+      .replace(/[\u201C\u201D\u2018\u2019"'()*^:]/g, "")
+      // Normalize đ/Đ → d/D to match the FTS index which applies the
+      // same substitution.  The unicode61 tokenizer's remove_diacritics
+      // does NOT handle the Vietnamese đ (d-with-stroke) because the
+      // stroke is a letter variant, not a combining diacritic mark.
+      .replace(/đ/g, "d")
+      .replace(/Đ/g, "D")
+      .split(/\s+/)
+      .filter((w) => w.length > 0)
+      .map((w) => `"${w}"`)
+      .join(" ")
+  );
 }
 
 /**
