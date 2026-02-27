@@ -70,3 +70,4 @@ sync-book/*.log
 .vercel
 
 nohup.out
+.zed/
