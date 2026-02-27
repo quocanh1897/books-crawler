@@ -98,6 +98,22 @@ ID_RANGE_END = 153500  # generous upper bound; --scan auto-detects the real max
 
 console = Console()
 
+
+def _flush_plan_file(path: Path, entries: list[dict], label: str = "") -> None:
+    """Write plan entries to a JSON file (periodic checkpoint during discovery).
+
+    Called every ``flush_every`` new books during scraping so progress is
+    saved and not lost if the process is interrupted.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2, ensure_ascii=False)
+    if label:
+        console.print(
+            f"  [dim]Checkpoint: flushed {len(entries)} entries ({label})[/dim]"
+        )
+
+
 # ── Bundle helpers (minimal BLIB reader) ────────────────────────────────────
 
 BUNDLE_MAGIC = b"BLIB"
@@ -967,6 +983,7 @@ def run_refresh(
 def run_generate_ttv(
     max_pages: int = 0,
     min_chapters: int = MIN_CHAPTER_COUNT,
+    flush_every: int = 100,
     dry_run: bool = False,
 ) -> list[dict]:
     """Scrape TTV listing pages, cross-ref with bundles, write plan.
@@ -997,6 +1014,7 @@ def run_generate_ttv(
     all_books: list[dict] = []
     seen_slugs: set[str] = set()
     skipped_mtc = 0
+    books_since_flush = 0
 
     with httpx.Client(headers=TTV_HEADERS, timeout=30, follow_redirects=True) as client:
         page = 0
@@ -1039,8 +1057,19 @@ def run_generate_ttv(
                     skipped_mtc += 1
                     continue
 
+                # Assign ID early so periodic flushes produce usable plan files
+                book["id"] = get_or_create_book_id(
+                    book.get("ttv_slug", book["slug"]), registry
+                )
+                book["source"] = "ttv"
                 all_books.append(book)
                 new_on_page += 1
+
+            # Periodic flush — save progress so it survives interruption
+            books_since_flush += new_on_page
+            if books_since_flush >= flush_every and not dry_run and all_books:
+                _flush_plan_file(TTV_PLAN_FILE, all_books, f"page {page}/{page_limit}")
+                books_since_flush = 0
 
             if page % 50 == 0 or page == 1:
                 console.print(
@@ -1445,6 +1474,7 @@ def run_cover_pull_ttv(
 def run_generate_tf(
     max_pages: int = 0,
     min_chapters: int = MIN_CHAPTER_COUNT,
+    flush_every: int = 100,
     dry_run: bool = False,
 ) -> list[dict]:
     """Scrape TF hot completed listing, cross-ref with bundles, write plan.
@@ -1475,6 +1505,7 @@ def run_generate_tf(
     all_books: list[dict] = []
     seen_slugs: set[str] = set()
     skipped_dup = 0
+    books_since_flush = 0
 
     with httpx.Client(headers=TF_HEADERS, timeout=30, follow_redirects=True) as client:
         page = 0
@@ -1515,8 +1546,19 @@ def run_generate_tf(
                     skipped_dup += 1
                     continue
 
+                # Assign ID early so periodic flushes produce usable plan files
+                book["id"] = get_or_create_book_id(
+                    book.get("tf_slug", book["slug"]), registry
+                )
+                book["source"] = "tf"
                 all_books.append(book)
                 new_on_page += 1
+
+            # Periodic flush — save progress so it survives interruption
+            books_since_flush += new_on_page
+            if books_since_flush >= flush_every and not dry_run and all_books:
+                _flush_plan_file(TF_PLAN_FILE, all_books, f"page {page}/{page_limit}")
+                books_since_flush = 0
 
             if page % 50 == 0 or page == 1:
                 console.print(
@@ -1955,7 +1997,14 @@ def main() -> None:
         "--pages",
         type=int,
         default=0,
-        help="(TTV only) Number of listing pages to scrape (default: 0 = all, ~20 books/page)",
+        help="(TTV/TF only) Number of listing pages to scrape (default: 0 = all)",
+    )
+    parser.add_argument(
+        "--flush-plan-every",
+        type=int,
+        default=100,
+        help="(TTV/TF only) Flush plan file every N new books during discovery "
+        "(default: 100). Saves progress so interrupted scrapes are not lost.",
     )
 
     # Filtering
@@ -2084,6 +2133,7 @@ def main() -> None:
                 run_generate_tf(
                     max_pages=args.pages,
                     min_chapters=args.min_chapters,
+                    flush_every=args.flush_plan_every,
                     dry_run=args.dry_run,
                 )
         elif is_ttv:
@@ -2098,6 +2148,7 @@ def main() -> None:
                 run_generate_ttv(
                     max_pages=args.pages,
                     min_chapters=args.min_chapters,
+                    flush_every=args.flush_plan_every,
                     dry_run=args.dry_run,
                 )
         else:
