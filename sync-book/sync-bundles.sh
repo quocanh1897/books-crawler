@@ -69,6 +69,7 @@ fi
 
 REMOTE_USER="alex"
 REMOTE_HOST="central7567.binscode.site"
+REMOTE_DOCKER_COMPOSE_DIR="/data/mtc/binslib"
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BATCH_SIZE=500
@@ -412,5 +413,39 @@ fi
 for label in "${PLAN_LABELS[@]}"; do
   transfer_dir "$label"
 done
+
+# ── Phase 4: Restart container after DB upload ──────────────────────────────
+# When the DB is uploaded, the remote binslib container must be restarted so
+# the startup migration rebuilds the FTS5 index (remove_diacritics 2, đ→d
+# normalization).  Without this, the uploaded DB has a stale FTS index and
+# search for diacritics-stripped queries (from vbook) returns 0 results.
+
+DB_WAS_SYNCED=false
+if $DB_ONLY; then
+  DB_WAS_SYNCED=true
+elif ! $COVER_ONLY && ! $BUNDLE_ONLY; then
+  # Full sync includes DB
+  DB_WAS_SYNCED=true
+fi
+
+if $DB_WAS_SYNCED && [[ "$DIRECTION" == "upload" ]]; then
+  log "Restarting binslib container to apply DB migrations (FTS rebuild)..."
+  if ssh "${REMOTE_USER}@${REMOTE_HOST}" \
+       "cd ${REMOTE_DOCKER_COMPOSE_DIR} && docker compose restart binslib" 2>> "$LOG_FILE"; then
+    # Wait for startup and check migration output
+    sleep 3
+    MIGRATE_LOG=$(ssh "${REMOTE_USER}@${REMOTE_HOST}" "docker logs --tail 5 binslib 2>&1" || true)
+    if echo "$MIGRATE_LOG" | grep -q "Migrations complete"; then
+      log "Container restarted. Migration applied successfully."
+      echo "$MIGRATE_LOG" | grep -E "FTS|Migrations" | while read -r line; do
+        log "  $line"
+      done
+    else
+      log "WARNING: Container restarted but migration status unclear. Check: docker logs binslib"
+    fi
+  else
+    log "WARNING: Failed to restart container. Run manually: docker compose restart binslib"
+  fi
+fi
 
 log "=== Sync ${DIRECTION} finished ==="

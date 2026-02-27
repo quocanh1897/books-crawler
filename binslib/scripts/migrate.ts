@@ -37,87 +37,183 @@ console.log("Drizzle migrations applied.");
 // Because changing the tokenizer requires rebuilding the entire FTS index,
 // we unconditionally drop + recreate the table and repopulate from `books`.
 
-sqlite.exec(`
-  -- Drop old FTS infrastructure (may use the wrong tokenizer)
-  DROP TRIGGER IF EXISTS books_ai;
-  DROP TRIGGER IF EXISTS books_ad;
-  DROP TRIGGER IF EXISTS books_au;
-  DROP TABLE IF EXISTS books_fts;
+// Split into individual exec() calls — a single multi-statement exec()
+// silently fails to DROP the FTS virtual table in some environments,
+// leaving the old tokenizer (remove_diacritics 0) in place.
 
-  -- Recreate with diacritics-tolerant tokenizer (matches with or without)
+// Step 1: Drop old triggers (must happen before dropping FTS table)
+sqlite.exec(`DROP TRIGGER IF EXISTS books_ai`);
+sqlite.exec(`DROP TRIGGER IF EXISTS books_ad`);
+sqlite.exec(`DROP TRIGGER IF EXISTS books_au`);
+
+// Step 2: Drop old FTS table (may have wrong tokenizer)
+sqlite.exec(`DROP TABLE IF EXISTS books_fts`);
+
+console.log("Old FTS table dropped.");
+
+// Step 3: Recreate with diacritics-tolerant tokenizer
+sqlite.exec(`
   CREATE VIRTUAL TABLE books_fts USING fts5(
     name,
     content='books',
     content_rowid='id',
     tokenize='unicode61 remove_diacritics 2'
-  );
+  )
+`);
 
-  -- Repopulate from existing book rows.
-  -- REPLACE đ/Đ → d/D because the unicode61 tokenizer treats the stroke
-  -- as a letter variant, not a combining diacritic, so remove_diacritics
-  -- does NOT map đ→d.  Vietnamese keyboards on Android may strip đ→d in
-  -- search input, so the index must match both forms.
-  -- highlight() still reads the original name from the books table, so
-  -- displayed results keep the correct đ/Đ characters.
+console.log("New FTS table created (remove_diacritics 2).");
+
+// Step 4: Repopulate from existing book rows.
+// REPLACE đ/Đ → d/D because the unicode61 tokenizer treats the stroke
+// as a letter variant, not a combining diacritic, so remove_diacritics
+// does NOT map đ→d.  Vietnamese keyboards on Android may strip đ→d in
+// search input, so the index must match both forms.
+// highlight() still reads the original name from the books table, so
+// displayed results keep the correct đ/Đ characters.
+sqlite.exec(`
   INSERT INTO books_fts(rowid, name)
-    SELECT id, REPLACE(REPLACE(name, 'đ', 'd'), 'Đ', 'D') FROM books;
+    SELECT id, REPLACE(REPLACE(name, 'đ', 'd'), 'Đ', 'D') FROM books
+`);
 
-  -- Triggers to keep books FTS in sync (same đ→d normalization)
+console.log("FTS index populated.");
+
+// Step 5: Triggers to keep books FTS in sync (same đ→d normalization)
+sqlite.exec(`
   CREATE TRIGGER books_ai AFTER INSERT ON books BEGIN
     INSERT INTO books_fts(rowid, name)
       VALUES (new.id, REPLACE(REPLACE(new.name, 'đ', 'd'), 'Đ', 'D'));
-  END;
+  END
+`);
+sqlite.exec(`
   CREATE TRIGGER books_ad AFTER DELETE ON books BEGIN
     INSERT INTO books_fts(books_fts, rowid, name)
       VALUES('delete', old.id, REPLACE(REPLACE(old.name, 'đ', 'd'), 'Đ', 'D'));
-  END;
+  END
+`);
+sqlite.exec(`
   CREATE TRIGGER books_au AFTER UPDATE ON books BEGIN
     INSERT INTO books_fts(books_fts, rowid, name)
       VALUES('delete', old.id, REPLACE(REPLACE(old.name, 'đ', 'd'), 'Đ', 'D'));
     INSERT INTO books_fts(rowid, name)
       VALUES (new.id, REPLACE(REPLACE(new.name, 'đ', 'd'), 'Đ', 'D'));
-  END;
-
-  -- Clean up chapter FTS (bodies now stored on disk, not in DB)
-  DROP TRIGGER IF EXISTS chapters_ai;
-  DROP TRIGGER IF EXISTS chapters_ad;
-  DROP TRIGGER IF EXISTS chapters_au;
-  DROP TABLE IF EXISTS chapters_fts;
+  END
 `);
 
-// Verify the FTS index was rebuilt correctly with đ→d normalization.
-// If the REPLACE didn't take effect, "đồ" would still match (wrong)
-// and "dồ" would return 0 (wrong).  This catches silent failures in
-// the exec block above.
+console.log("FTS triggers created.");
+
+// Step 6: Clean up chapter FTS (bodies now stored on disk, not in DB)
+sqlite.exec(`DROP TRIGGER IF EXISTS chapters_ai`);
+sqlite.exec(`DROP TRIGGER IF EXISTS chapters_ad`);
+sqlite.exec(`DROP TRIGGER IF EXISTS chapters_au`);
+sqlite.exec(`DROP TABLE IF EXISTS chapters_fts`);
+
+// ── Verification ───────────────────────────────────────────────────────────
+// Three checks to catch silent failures in the exec block above:
+//   1. Tokenizer must be remove_diacritics 2 (not 0)
+//   2. đ→d normalization: "đồ" should NOT match, "dồ" SHOULD match
+//   3. Diacritics stripping: "the" should match "Thế" (via tokenizer)
+
+const totalBooks = sqlite.prepare(`SELECT COUNT(*) as n FROM books`).get() as {
+  n: number;
+};
+
+// Check 1: Tokenizer definition
+const ftsDef = sqlite
+  .prepare(`SELECT sql FROM sqlite_master WHERE name = 'books_fts'`)
+  .get() as { sql: string } | undefined;
+const hasCorrectTokenizer = ftsDef?.sql?.includes("remove_diacritics 2");
+
+if (!hasCorrectTokenizer) {
+  console.error(
+    `FATAL: FTS table has wrong tokenizer! Expected remove_diacritics 2, got:`,
+    ftsDef?.sql?.substring(0, 200),
+  );
+  console.log("Forcing complete FTS rebuild with separate statements...");
+
+  // The multi-statement exec may have failed — try individual statements
+  try {
+    sqlite.exec(`DROP TRIGGER IF EXISTS books_ai`);
+  } catch {}
+  try {
+    sqlite.exec(`DROP TRIGGER IF EXISTS books_ad`);
+  } catch {}
+  try {
+    sqlite.exec(`DROP TRIGGER IF EXISTS books_au`);
+  } catch {}
+  try {
+    sqlite.exec(`DROP TABLE IF EXISTS books_fts`);
+  } catch {}
+
+  sqlite.exec(
+    `CREATE VIRTUAL TABLE books_fts USING fts5(name, content='books', content_rowid='id', tokenize='unicode61 remove_diacritics 2')`,
+  );
+  sqlite.exec(
+    `INSERT INTO books_fts(rowid, name) SELECT id, REPLACE(REPLACE(name, 'đ', 'd'), 'Đ', 'D') FROM books`,
+  );
+
+  sqlite.exec(
+    `CREATE TRIGGER books_ai AFTER INSERT ON books BEGIN INSERT INTO books_fts(rowid, name) VALUES (new.id, REPLACE(REPLACE(new.name, 'đ', 'd'), 'Đ', 'D')); END`,
+  );
+  sqlite.exec(
+    `CREATE TRIGGER books_ad AFTER DELETE ON books BEGIN INSERT INTO books_fts(books_fts, rowid, name) VALUES('delete', old.id, REPLACE(REPLACE(old.name, 'đ', 'd'), 'Đ', 'D')); END`,
+  );
+  sqlite.exec(
+    `CREATE TRIGGER books_au AFTER UPDATE ON books BEGIN INSERT INTO books_fts(books_fts, rowid, name) VALUES('delete', old.id, REPLACE(REPLACE(old.name, 'đ', 'd'), 'Đ', 'D')); INSERT INTO books_fts(rowid, name) VALUES (new.id, REPLACE(REPLACE(new.name, 'đ', 'd'), 'Đ', 'D')); END`,
+  );
+
+  console.log("  FTS force-rebuilt with individual statements.");
+}
+
+// Check 2: đ→d normalization
 const verifyOld = sqlite
   .prepare(`SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"đồ"'`)
   .get() as { n: number };
 const verifyNew = sqlite
   .prepare(`SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"dồ"'`)
   .get() as { n: number };
-const totalBooks = sqlite.prepare(`SELECT COUNT(*) as n FROM books`).get() as {
-  n: number;
-};
 
 if (verifyOld.n > 0 && verifyNew.n === 0) {
-  // FTS index still has raw đ — the rebuild didn't work.  Force it.
   console.warn(
-    `FTS verification FAILED: "đồ" matched ${verifyOld.n} rows, "dồ" matched 0.` +
-      " Forcing FTS rebuild...",
+    `FTS đ→d check FAILED: "đồ" matched ${verifyOld.n} rows, "dồ" matched 0. Re-inserting...`,
   );
-  sqlite.exec(`
-    DELETE FROM books_fts;
-    INSERT INTO books_fts(rowid, name)
-      SELECT id, REPLACE(REPLACE(name, 'đ', 'd'), 'Đ', 'D') FROM books;
-  `);
+  sqlite.exec(`DELETE FROM books_fts`);
+  sqlite.exec(
+    `INSERT INTO books_fts(rowid, name) SELECT id, REPLACE(REPLACE(name, 'đ', 'd'), 'Đ', 'D') FROM books`,
+  );
   const recheck = sqlite
     .prepare(`SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"dồ"'`)
     .get() as { n: number };
-  console.log(`  FTS re-rebuilt: "dồ" now matches ${recheck.n} rows.`);
-} else {
-  console.log(
-    `FTS verified: ${totalBooks.n} books indexed, ` +
-      `đ→d normalization OK (đồ=${verifyOld.n}, dồ=${verifyNew.n}).`,
+  console.log(`  FTS re-populated: "dồ" now matches ${recheck.n} rows.`);
+}
+
+// Check 3: Diacritics stripping (the real user-facing test)
+const verifyStripped = sqlite
+  .prepare(
+    `SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"the" "gioi"'`,
+  )
+  .get() as { n: number };
+const verifyExact = sqlite
+  .prepare(
+    `SELECT COUNT(*) as n FROM books_fts WHERE books_fts MATCH '"thế" "giới"'`,
+  )
+  .get() as { n: number };
+
+const ftsDef2 = sqlite
+  .prepare(`SELECT sql FROM sqlite_master WHERE name = 'books_fts'`)
+  .get() as { sql: string } | undefined;
+
+console.log(
+  `FTS verified: ${totalBooks.n} books indexed, ` +
+    `tokenizer=${ftsDef2?.sql?.includes("remove_diacritics 2") ? "OK" : "WRONG"}, ` +
+    `đ→d=(đồ=${verifyOld.n}, dồ=${verifyNew.n}), ` +
+    `diacritics=(exact=${verifyExact.n}, stripped=${verifyStripped.n}).`,
+);
+
+if (verifyStripped.n === 0 && verifyExact.n > 0) {
+  console.error(
+    "WARNING: Diacritics stripping NOT working! " +
+      '"the gioi" returns 0 but "thế giới" returns results. ' +
+      "The tokenizer may not be remove_diacritics 2.",
   );
 }
 
