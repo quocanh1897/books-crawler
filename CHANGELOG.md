@@ -4,6 +4,63 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.0] - 2026-02-27
+
+Multi-source ingestion (MTC + TTV), Vietnamese diacritics-tolerant search, and production-hardened Docker deployment.
+
+### Added
+
+- **Multi-source ingest pipeline** — `ingest.py` and `generate_plan.py` now accept `--source mtc|ttv` to crawl from either metruyencv (encrypted API) or truyen.tangthuvien.vn (HTML scraping)
+- **Source abstraction layer** (`book-ingest/src/sources/`)
+  - `base.py`: `BookSource` ABC + `ChapterData` NamedTuple — shared interface for all sources
+  - `mtc.py`: `MTCSource` — wraps API client, AES-128-CBC decrypt, linked-list chapter walk (forward/reverse/resume)
+  - `ttv.py`: `TTVSource` — async HTTP client, HTML parsers (listing, detail, chapter pages), book ID registry (10M+ offset), author ID registry (20M+ offset)
+  - `__init__.py`: `create_source("mtc"|"ttv")` factory with lazy imports
+- **TTV plan generation** — `generate_plan.py --source ttv` scrapes all TTV listing pages (~494 pages, ~9800 books), cross-references with local bundles, writes `data/books_plan_ttv.json`, pulls covers
+- **TTV plan refresh** — `generate_plan.py --source ttv --refresh` re-fetches metadata from HTML detail pages
+- **TTV title repair** — `repair_titles.py --source ttv` fetches correct `<h2>` titles from TTV chapter pages with async parallel workers and live progress output
+- **`--force` flag** for `ingest.py` — deletes existing bundle + DB chapters and re-downloads from scratch; requires explicit book IDs, prompts for confirmation before deletion
+- **`chapter_id` column** in DB `chapters` table — mirrors the MTC API chapter ID stored in bundle metadata; enables future SQL-based resume walk lookups
+- **API request logging** (`binslib/src/lib/api-logger.ts`) — all vbook-extension endpoints log method, path, params, status, and duration to stdout via `process.stdout.write` (Docker-safe unbuffered)
+- **Cross-source vbook search** — `/api/search` accepts `?source=all` parameter; vbook-extension passes it to search across MTC + TTV books
+- **FTS5 Vietnamese search integration tests** (`binslib/test/test-fts-search.ts`) — 36 tests covering tokenizer config, diacritics stripping, đ→d normalization, triggers, ensureFts consistency, buildFtsQuery correctness, and source file sync checks
+- **Docker startup migration** — `migrate.cjs` (esbuild-bundled) runs at container startup against the volume-mounted production DB, not just at build time
+- **`sync-book` auto-restart** — `sync-bundles.sh` restarts the binslib container after DB upload to trigger FTS migration
+
+### Changed
+
+- **Plan file naming** — `fresh_books_download.json` → `books_plan_mtc.json`; TTV plan: `books_plan_ttv.json`
+- **FTS5 tokenizer** — `remove_diacritics 0` → `remove_diacritics 2` so searches work with and without Vietnamese diacritics (critical for vbook Android extension which may strip diacritics from user input)
+- **đ/Đ → d/D normalization** — applied in FTS index content, triggers, `buildFtsQuery()` (search API + web UI), and `ensureFts()` because the unicode61 tokenizer treats Vietnamese đ as a letter variant, not a combining diacritic
+- **`ensureFts()` in `db/index.ts`** — updated to use `remove_diacritics 2` with đ→d normalization, matching `migrate.ts`; uses separate `exec()` calls instead of multi-statement block
+- **TTV author IDs** — 20M+ offset (`AUTHOR_ID_OFFSET = 20_000_000`) to avoid namespace collision with MTC author IDs in the shared `authors` table
+- **TTV slugs** — books carry two slugs: `slug` (ASCII-clean via `slugify(name)` for DB/website routing) and `ttv_slug` (original TTV URL, may contain diacritics, for chapter fetching)
+- **`MTCSource.fetch_book_metadata()`** — applies fix-author logic (generate synthetic author from creator when API returns empty/placeholder author name)
+- **`--update-meta-only` with book IDs** — now enriches bare `{"id": N}` entries from the plan file instead of writing garbage metadata
+- **`--pages` default** for TTV — changed from 50 to 0 (all available pages) to scrape the full ~9800 book catalog
+- **`.gitignore`** — `data/books_plan_*.json`, `data/book_registry_*.json`, `data/catalog_audit.json` patterns
+- **Dockerfile** — bundles `migrate.cjs` via esbuild at build time; CMD changed to `sh -c "node migrate.cjs && node server.js"` for startup migration
+- **FTS migration** — uses separate `sqlite.exec()` calls per statement (single multi-statement exec silently failed to DROP virtual tables in Docker/esbuild environments)
+- **FTS verification** — 3-check validation after rebuild: tokenizer definition, đ→d normalization, and diacritics stripping; auto-rebuilds if any check fails
+- **`binslib/` version** — 0.3.1 → 1.0.0
+- **`README.md`** — updated architecture diagram (TTV active, not dormant), layer details, subprojects table, quick start with TTV examples, storage layout with source abstraction
+- **`book-ingest/README.md`** — multi-source description, source table, new plan file names, options table, typical workflow, file paths, source files, dependencies (added beautifulsoup4, lxml)
+- **`crawler-tangthuvien/`** — marked as legacy (functionality now integrated into `book-ingest`)
+
+### Fixed
+
+- **TTV chapter titles** — 171 books (92K chapters) had body text as titles from old import.ts pipeline; `parse_chapter()` now strips embedded `<h5>` tags and title-prefix from body; `repair_titles.py --source ttv` fixes existing data
+- **TTV non-ASCII slugs** — 213 books had Vietnamese diacritics or Chinese characters in slugs (e.g. `van-co-mạnh-nhát-tong`), causing 404 on website; slugs now generated from `slugify(name)`
+- **TTV author ID collision** — TTV author_id=357 ("Lão Lễ Phi Đao") overwrote MTC author_id=357 ("Yếm Bút Tiêu Sinh"); 3,561 MTC author names restored from API
+- **Empty-author bug** — `MTCSource` returned raw API author `{id: 3167, name: ""}` without fix-author logic; 102 books fixed
+- **`--update-meta-only` corruption** — bare book IDs produced `name="?", slug="", chapter_count=0` in DB
+- **`MTCSource` class structure** — `_plan_walk`, `_walk_forward`, `_walk_reverse`, `_decrypt` were accidentally outside the class body
+- **vbook search returning 0 results** — FTS5 used `remove_diacritics 0` (exact match only); vbook Android JS runtime strips diacritics from input
+- **FTS `exec()` silent failure** — single multi-statement `sqlite.exec()` silently failed to DROP FTS virtual tables in Docker; split into individual calls
+- **`ensureFts()` overwriting migration** — `db/index.ts` forced `remove_diacritics 0` at every server startup, undoing `migrate.ts`'s `remove_diacritics 2`
+- **Docker migration targeting throwaway DB** — `RUN npx tsx scripts/migrate.ts` in Dockerfile only touched build-time DB; production DB in volume mount was never migrated
+- **Docker log buffering** — `console.log` in API routes was buffered; switched to `process.stdout.write` for immediate output
+
 ## [0.4.0] - 2026-02-26
 
 ### Added
