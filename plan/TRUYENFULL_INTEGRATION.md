@@ -328,6 +328,117 @@ _CLASS_NAMES["tf"] = "TFSource"
 
 ---
 
+## UI Changes (binslib)
+
+### Source Switcher → Dropdown Menu
+
+The current source switcher is a binary toggle (`MTC ⬤ TTV`) that only supports two sources. With three sources it must become a **dropdown menu** styled like the existing "Danh mục" category dropdown.
+
+**Current** (`SourceToggle.tsx`):
+```
+MTC [●———] TTV          ← binary toggle, click to flip
+```
+
+**New** (`SourceSelector.tsx`):
+```
+📚 Nguồn ▾              ← dropdown trigger (icon + label + chevron)
+┌──────────────────────┐
+│  📘  MTC       ✓     │ ← active source highlighted
+│  📗  TTV              │
+│  📙  TruyenFull       │
+└──────────────────────┘
+```
+
+#### Design specs
+
+- **Trigger button**: icon + "Nguồn" (or current source name) + chevron, same styling as "Danh mục" button
+- **Dropdown panel**: absolute positioned, `z-50`, rounded shadow border — reuse the same CSS pattern as `CategoryDropdown.tsx`
+- **Each item**: source icon + source label + checkmark for active; hover highlights with source accent color
+- **Click behaviour**: sets `book_source` cookie, calls `router.refresh()`, closes dropdown (same as current `setSource()`)
+- **Close on**: click outside, Escape key (same as `CategoryDropdown`)
+- **Mobile**: include in mobile nav menu alongside the category list
+
+#### Source icons and accent colors
+
+| Source | Short name | Icon | Accent color | Description |
+|---|---|---|---|---|
+| `mtc` | MTC | 📘 or custom SVG (book with lock) | `blue-500` | metruyencv — encrypted API |
+| `ttv` | TTV | 📗 or custom SVG (book with globe) | `emerald-500` | tangthuvien — HTML scraping |
+| `tf` | TruyenFull | 📙 or custom SVG (book with star) | `amber-500` | truyenfull — hot completed books |
+
+Use inline SVG icons (not emoji) for consistency with the rest of the UI. Each icon should be a 16×16 or 20×20 SVG with `stroke="currentColor"`.
+
+#### Files to change
+
+| File | Change |
+|---|---|
+| `SourceContext.tsx` | Add `"tf"` to `BookSource` type; remove `toggle()` (no longer binary); keep `setSource()` |
+| `SourceToggle.tsx` | **Delete** — replaced by `SourceSelector.tsx` |
+| `SourceSelector.tsx` | **New** — dropdown component with source list, icons, active indicator |
+| `Header.tsx` | Replace `<SourceToggle />` with `<SourceSelector />` |
+| `layout.tsx` | Update `BookSource` type to include `"tf"`, update cookie default logic |
+| `lib/source.ts` | Update `getSource()` to handle `"tf"` cookie value |
+| `lib/queries.ts` | Update `BookSource` type to `"mtc" | "ttv" | "tf"` |
+
+#### SourceContext changes
+
+```typescript
+// Before
+export type BookSource = "mtc" | "ttv";
+const toggle = () => setSource(source === "mtc" ? "ttv" : "mtc");
+
+// After
+export type BookSource = "mtc" | "ttv" | "tf";
+// toggle() removed — dropdown calls setSource() directly
+```
+
+### "Danh mục" Genre Icons Update
+
+The `CategoryDropdown.tsx` has a `GENRE_ICONS` map with SVG path data for ~18 genres. Many genres are missing icons (they render nothing). Update to:
+
+1. **Add icons for all genres** in the DB — currently ~43 genres across all sources, only ~18 have icons
+2. **Add a fallback icon** (generic book/tag icon) for genres not in the map, so every genre row has an icon
+3. **Use consistent icon style** — all 24×24 viewBox, `strokeWidth={1.5}`, `strokeLinecap="round"`, `strokeLinejoin="round"`
+
+#### Genre icon additions needed
+
+Inspect the DB for all genre slugs and add missing icons:
+
+```typescript
+// Existing (keep)
+"tien-hiep", "huyen-huyen", "do-thi", "khoa-huyen", "vong-du",
+"dong-nhan", "da-su", "canh-ky", "kiem-hiep", ...
+
+// Missing (add)
+"ngon-tinh":      heart icon
+"dam-my":         two-people icon
+"quan-truong":    building/gavel icon
+"he-thong":       chip/cog icon
+"di-gioi":        portal/world icon
+"di-nang":        lightning/power icon
+"quan-su":        shield/military icon
+"lich-su":        clock/scroll icon
+"xuyen-khong":    time-travel/wormhole icon
+"trong-sinh":     cycle/rebirth icon
+"linh-di":        ghost/spirit icon
+"mat-the":        skull/apocalypse icon
+"truyen-teen":    user/youth icon
+"viet-nam":       flag icon
+"hai-huoc":       smile/laugh icon
+...
+
+// Fallback for any unknown genre
+DEFAULT_ICON:     generic tag/bookmark icon
+```
+
+#### Files to change
+
+| File | Change |
+|---|---|
+| `CategoryDropdown.tsx` | Expand `GENRE_ICONS` map to cover all genres; add `DEFAULT_ICON` fallback in `GenreIcon` component |
+
+---
+
 ## Implementation Order
 
 1. **`src/sources/tf.py`** — HTTP client, HTML parsers, registry, dedup, `TFSource` class
@@ -337,6 +448,10 @@ _CLASS_NAMES["tf"] = "TFSource"
 5. **Test**: `python3 generate_plan.py --source tf --dry-run`
 6. **Test**: `python3 ingest.py --source tf --dry-run`
 7. **Test**: `python3 ingest.py --source tf <book_id>` (single book, real ingest)
+8. **UI: `SourceSelector.tsx`** — New dropdown component replacing `SourceToggle.tsx`
+9. **UI: `SourceContext.tsx`** — Add `"tf"` to `BookSource` type, remove `toggle()`
+10. **UI: `CategoryDropdown.tsx`** — Expand genre icons, add fallback icon
+11. **UI: Backend types** — Update `BookSource` in `queries.ts`, `source.ts`, `layout.tsx`
 
 ---
 
@@ -439,3 +554,12 @@ python3 ingest.py --source tf --limit 5 -w 3
 - `_extract_tf_id("than-dao-dan-ton-6060282")` → `6060282`
 - Dedup logic: book exists in MTC → skipped; book exists in TTV → skipped; new book → included
 - Registry round-trip: slug → ID → same ID on second call
+
+### UI tests (manual)
+
+- Source dropdown opens/closes on click, closes on Escape and click-outside
+- Each source item shows icon + label; active source has checkmark
+- Clicking a source sets cookie, refreshes page, dropdown closes
+- Genre dropdown shows icons for all genres (no blank icon slots)
+- Genres without a specific icon show the fallback icon
+- Mobile nav includes source selector
