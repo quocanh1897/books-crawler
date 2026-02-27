@@ -63,7 +63,11 @@ export function logApi(
     line += ` {${parts}}`;
   }
 
-  console.log(line);
+  // Use process.stdout.write instead of console.log to guarantee
+  // immediate, synchronous, unbuffered output in Docker containers.
+  // console.log can be swallowed or delayed by Node.js buffering when
+  // stdout is not a TTY (which is the case inside Docker).
+  process.stdout.write(line + "\n");
 }
 
 // ── Route handler wrapper ────────────────────────────────────────────────────
@@ -89,9 +93,12 @@ export function withLogging(handler: RouteHandler): RouteHandler {
       return response;
     } catch (error) {
       const ms = performance.now() - t0;
-      const message =
-        error instanceof Error ? error.message : String(error);
+      const message = error instanceof Error ? error.message : String(error);
       logApi(request, 500, ms, { error: message });
+      // Also log the full stack trace for 500 errors
+      process.stderr.write(
+        `[API] 500 error in ${request.method} ${request.url}: ${message}\n`,
+      );
       return NextResponse.json(
         { error: "Internal server error" },
         { status: 500 },
