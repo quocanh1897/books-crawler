@@ -25,6 +25,7 @@ from pathlib import Path
 import httpx
 from bs4 import BeautifulSoup, Tag
 
+from ..db import slugify as _slugify
 from .base import BookSource, ChapterData
 
 log = logging.getLogger("book-ingest.ttv")
@@ -241,7 +242,8 @@ def _parse_listing_item(li: Tag) -> dict | None:
     ttv_book_id = detail_a.get("data-bookid") if detail_a else None
 
     return {
-        "slug": slug,
+        "slug": _slugify(unescape(name)) or slug,
+        "ttv_slug": slug,
         "name": unescape(name),
         "author_name": unescape(author_name),
         "author_id": author_id,
@@ -356,7 +358,8 @@ def parse_book_detail(html: str, slug: str) -> dict:
 
     return {
         "name": unescape(name),
-        "slug": slug,
+        "slug": _slugify(unescape(name)) or slug,
+        "ttv_slug": slug,
         "synopsis": unescape(synopsis),
         "status": status,
         "status_name": unescape(status_text),
@@ -629,21 +632,23 @@ class TTVSource(BookSource):
         *entry* must contain ``slug``; ``id`` is preserved as-is.  If ``id``
         is missing, one will be assigned from the registry.
         """
-        slug = entry.get("slug")
-        if not slug:
+        # Prefer ttv_slug (original TTV URL slug, may contain diacritics)
+        # over slug (ASCII-clean, for DB/website) for fetching from TTV.
+        ttv_slug = entry.get("ttv_slug") or entry.get("slug")
+        if not ttv_slug:
             log.warning("SKIP ttv entry without slug: %s", entry.get("id"))
             return None
 
         try:
-            html = await self._client.get_html(f"/doc-truyen/{slug}")
+            html = await self._client.get_html(f"/doc-truyen/{ttv_slug}")
         except TTVNotFound:
-            log.info("SKIP ttv %s: 404", slug)
+            log.info("SKIP ttv %s: 404", ttv_slug)
             return None
         except TTVFetchError as exc:
-            log.warning("SKIP ttv %s: %s", slug, exc)
+            log.warning("SKIP ttv %s: %s", ttv_slug, exc)
             return None
 
-        meta = parse_book_detail(html, slug)
+        meta = parse_book_detail(html, ttv_slug)
 
         # Carry over the plan-assigned ID, or create one from the registry
         if "id" in entry:
@@ -667,7 +672,9 @@ class TTVSource(BookSource):
         TTV serves chapters at predictable URLs, so the walk is a simple
         sequential loop — no linked-list traversal or resume logic needed.
         """
-        slug = meta["slug"]
+        # Use the original TTV slug for URLs (may contain diacritics);
+        # meta["slug"] is the ASCII-clean version for DB storage.
+        ttv_slug = meta.get("ttv_slug", meta["slug"])
         chapter_count = meta.get("chapter_count", 0)
         book_id = meta["id"]
 
@@ -675,7 +682,7 @@ class TTVSource(BookSource):
             if ch_idx in existing_indices:
                 continue
 
-            url = f"/doc-truyen/{slug}/chuong-{ch_idx}"
+            url = f"/doc-truyen/{ttv_slug}/chuong-{ch_idx}"
             try:
                 html = await self._client.get_html(url)
             except TTVNotFound:

@@ -510,7 +510,7 @@ async def run_repair_ttv(
     For each book, fetches all chapter pages in parallel (bounded by
     *workers*), extracts the ``<h2>`` title, and updates the DB.
     """
-    from src.sources.ttv import TTV_BASE_URL, TTV_HEADERS, parse_chapter
+    from src.sources.ttv import TTV_BASE_URL, TTV_HEADERS, load_registry, parse_chapter
 
     conn = open_db(db_path)
 
@@ -530,12 +530,23 @@ async def run_repair_ttv(
         conn.close()
         return
 
-    # Get slugs for all books
+    # Get TTV URL slugs for all books.
+    # The DB stores ASCII-clean slugs for website routing, but we need the
+    # original TTV slugs (which may contain diacritics) for fetching chapter
+    # pages.  The book registry maps ttv_slug → book_id; invert it.
+    registry = load_registry()
+    id_to_ttv_slug: dict[int, str] = {v: k for k, v in registry.items()}
+
     book_slugs: dict[int, str] = {}
     for bid, _, _ in books:
-        row = conn.execute("SELECT slug FROM books WHERE id = ?", (bid,)).fetchone()
-        if row and row[0]:
-            book_slugs[bid] = row[0]
+        # Prefer the original TTV slug from registry; fall back to DB slug
+        ttv_slug = id_to_ttv_slug.get(bid)
+        if ttv_slug:
+            book_slugs[bid] = ttv_slug
+        else:
+            row = conn.execute("SELECT slug FROM books WHERE id = ?", (bid,)).fetchone()
+            if row and row[0]:
+                book_slugs[bid] = row[0]
 
     total_chapters_in_scope = sum(c for _, _, c in books)
     print(f"Repair mode: {mode}")

@@ -1028,12 +1028,13 @@ def run_generate_ttv(
 
             new_on_page = 0
             for book in books:
-                slug = book["slug"]
-                if not slug or slug in seen_slugs:
+                ttv_slug = book.get("ttv_slug", book["slug"])
+                if not ttv_slug or ttv_slug in seen_slugs:
                     continue
-                seen_slugs.add(slug)
+                seen_slugs.add(ttv_slug)
 
-                if is_mtc_duplicate(slug, mtc_index):
+                # Dedup against MTC using the ASCII-clean slug
+                if is_mtc_duplicate(book["slug"], mtc_index):
                     skipped_mtc += 1
                     continue
 
@@ -1062,8 +1063,11 @@ def run_generate_ttv(
     need_download: list[dict] = []
 
     for book in all_books:
-        slug = book["slug"]
-        book_id = get_or_create_book_id(slug, registry)
+        # Use ttv_slug (original TTV URL slug) as the registry key
+        # for backward compatibility with existing ID assignments.
+        ttv_slug = book.get("ttv_slug", book["slug"])
+        slug = book["slug"]  # ASCII-clean for DB/website
+        book_id = get_or_create_book_id(ttv_slug, registry)
         ch_count = book.get("chapter_count", 0)
 
         if ch_count < min_chapters:
@@ -1073,6 +1077,7 @@ def run_generate_ttv(
             "id": book_id,
             "name": book["name"],
             "slug": slug,
+            "ttv_slug": ttv_slug,
             "chapter_count": ch_count,
             "status": _map_ttv_status(book.get("status_text", "")),
             "status_name": book.get("status_text", ""),
