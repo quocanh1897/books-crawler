@@ -616,7 +616,7 @@ async def run_ingest(
         f"  Source:  {source_name}\n"
         f"  DB:      {DB_PATH}\n"
         f"  Bundles: {COMPRESSED_DIR}\n"
-        f"  Plan: {PLAN_PREFIX + source_name + '.json'}  \n"
+        f"  Plan: {SCRIPT_DIR / 'data' / (PLAN_PREFIX + source_name + '.json')}  \n"
         f"  Covers:  {COVERS_DIR}\n"
         f"  Log:     {DETAIL_LOG}\n"
     )
@@ -895,6 +895,39 @@ def main():
         sys.exit(0)
 
     if args.update_meta_only:
+        # Bare book IDs (no plan metadata) would produce garbage in
+        # _plan_entry_to_meta() — name="?", slug="", chapter_count=0, no
+        # author.  Enrich from the plan file so we get full metadata.
+        if args.book_ids:
+            plan_path = args.plan or (
+                str(default_plan) if default_plan.exists() else None
+            )
+            if not plan_path:
+                console.print(
+                    "[red]Error:[/red] --update-meta-only with book IDs requires "
+                    "a plan file.\n"
+                    f"  Expected: {default_plan}\n"
+                    "  Run generate_plan.py first, or use --plan path/to/plan.json"
+                )
+                sys.exit(1)
+            plan_entries = load_plan(plan_path)
+            plan_by_id = {e["id"]: e for e in plan_entries}
+            enriched: list[dict] = []
+            for e in entries:
+                full = plan_by_id.get(e["id"])
+                if full:
+                    enriched.append(full)
+                else:
+                    console.print(
+                        f"[yellow]Warning:[/yellow] Book {e['id']} not found "
+                        "in plan file, skipping"
+                    )
+            entries = enriched
+            if not entries:
+                console.print(
+                    "[yellow]No matching entries found in plan file.[/yellow]"
+                )
+                sys.exit(0)
         run_update_meta(entries)
     elif args.audit_only:
         asyncio.run(_run_audit_with_client(entries))

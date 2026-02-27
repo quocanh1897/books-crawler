@@ -16,7 +16,41 @@ from ..cover import download_cover as _download_cover
 from ..decrypt import DecryptionError
 from .base import BookSource, ChapterData
 
+# Author names that are placeholders, not real names.
+_PLACEHOLDER_AUTHOR_NAMES = {"đang cập nhật"}
+
 log = logging.getLogger("book-ingest.mtc")
+
+
+# ── Module-level helpers (fix-author) ───────────────────────────────────────
+
+
+def _author_needs_fix(author: dict | None) -> bool:
+    """Return True if the author is missing, has an empty name, or a placeholder."""
+    if not author:
+        return True
+    name = author.get("name")
+    if not name or not str(name).strip():
+        return True
+    if str(name).strip().lower() in _PLACEHOLDER_AUTHOR_NAMES:
+        return True
+    return False
+
+
+def _generate_author_from_creator(creator: dict | None) -> dict | None:
+    """Create a synthetic author from a creator (uploader).
+
+    ID is prefixed with 999 to avoid collisions with real author IDs.
+    E.g. creator id=1000043 → author id=9991000043.
+    """
+    if not creator or not creator.get("id"):
+        return None
+    return {
+        "id": int(f"999{creator['id']}"),
+        "name": creator["name"],
+        "local_name": None,
+        "avatar": None,
+    }
 
 
 class MTCSource(BookSource):
@@ -72,6 +106,22 @@ class MTCSource(BookSource):
         if meta.get("id") != book_id:
             log.warning("SKIP %d: API ID mismatch (got %s)", book_id, meta.get("id"))
             return None
+
+        # Fix-author: generate synthetic author from creator when the API
+        # returns an empty or placeholder author name.  This matches the
+        # logic in generate_plan.py (parse_book_full / _author_needs_fix).
+        author = meta.get("author")
+        if _author_needs_fix(author):
+            creator = meta.get("creator")
+            synthetic = _generate_author_from_creator(creator)
+            if synthetic:
+                meta["author"] = synthetic
+                log.debug(
+                    "FIX-AUTHOR %d: generated author %s from creator %s",
+                    book_id,
+                    synthetic["id"],
+                    creator.get("id") if creator else None,
+                )
 
         return meta
 
