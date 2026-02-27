@@ -82,6 +82,7 @@ COVERS_DIR = BINSLIB_DIR / "public" / "covers"
 PLAN_DIR = SCRIPT_DIR / "data"
 PLAN_FILE = PLAN_DIR / "books_plan_mtc.json"
 TTV_PLAN_FILE = PLAN_DIR / "books_plan_ttv.json"
+TF_PLAN_FILE = PLAN_DIR / "books_plan_tf.json"
 AUDIT_FILE = PLAN_DIR / "catalog_audit.json"
 
 # ── Scan config ─────────────────────────────────────────────────────────────
@@ -1438,6 +1439,473 @@ def run_cover_pull_ttv(
     )
 
 
+# ── TF plan generation ──────────────────────────────────────────────────────
+
+
+def run_generate_tf(
+    max_pages: int = 0,
+    min_chapters: int = MIN_CHAPTER_COUNT,
+    dry_run: bool = False,
+) -> list[dict]:
+    """Scrape TF hot completed listing, cross-ref with bundles, write plan.
+
+    Scrapes ``/danh-sach/truyen-hot/trang-{N}/`` for all completed hot books,
+    deduplicates against existing books in the DB (all sources), filters by
+    min chapter count, and writes ``data/books_plan_tf.json``.
+    """
+    from src.sources.tf import (
+        TF_BASE_URL,
+        TF_HEADERS,
+        build_existing_index,
+        get_or_create_book_id,
+        is_duplicate,
+        load_registry,
+        parse_listing_last_page,
+        parse_listing_page,
+        save_registry,
+    )
+
+    console.print("\n[bold blue]Scraping TF hot completed listing...[/bold blue]")
+
+    registry = load_registry()
+    existing_index = build_existing_index()
+    console.print(f"  Existing books index: {len(existing_index)} books for dedup")
+    console.print(f"  TF registry: {len(registry)} existing IDs")
+
+    all_books: list[dict] = []
+    seen_slugs: set[str] = set()
+    skipped_dup = 0
+
+    with httpx.Client(headers=TF_HEADERS, timeout=30, follow_redirects=True) as client:
+        page = 0
+        page_limit = max_pages if max_pages > 0 else 100_000
+
+        while page < page_limit:
+            page += 1
+            url = f"{TF_BASE_URL}/danh-sach/truyen-hot/trang-{page}/"
+
+            try:
+                r = client.get(url)
+                html = r.text
+            except Exception as e:
+                console.print(f"  Page {page}: FAILED ({e})")
+                break
+
+            books = parse_listing_page(html)
+            if not books:
+                console.print(f"  Page {page}: no books found, stopping")
+                break
+
+            if page == 1:
+                total_pages = parse_listing_last_page(html)
+                page_limit = min(page_limit, total_pages)
+                console.print(
+                    f"  Total pages available: {total_pages}, will scrape: {page_limit}"
+                )
+
+            new_on_page = 0
+            for book in books:
+                tf_slug = book.get("tf_slug", book["slug"])
+                if not tf_slug or tf_slug in seen_slugs:
+                    continue
+                seen_slugs.add(tf_slug)
+
+                # Dedup against existing books (all sources)
+                if is_duplicate(book["slug"], book["name"], existing_index):
+                    skipped_dup += 1
+                    continue
+
+                all_books.append(book)
+                new_on_page += 1
+
+            if page % 50 == 0 or page == 1:
+                console.print(
+                    f"  Page {page}/{page_limit}: {len(books)} found, "
+                    f"{new_on_page} new, total: {len(all_books)}"
+                )
+
+            time.sleep(REQUEST_DELAY)
+
+    console.print(
+        f"\n  Discovery complete: {len(all_books)} unique books, "
+        f"{skipped_dup} duplicates skipped"
+    )
+
+    # Assign IDs and build plan entries
+    console.print("[bold blue]Building plan entries...[/bold blue]")
+    known_bids = get_bundle_chapter_counts()
+
+    have_complete: list[dict] = []
+    have_partial: list[dict] = []
+    need_download: list[dict] = []
+
+    for book in all_books:
+        tf_slug = book.get("tf_slug", book["slug"])
+        slug = book["slug"]
+        book_id = get_or_create_book_id(tf_slug, registry)
+        ch_count = book.get("chapter_count", 0)
+
+        if ch_count < min_chapters:
+            continue
+
+        from src.sources.tf import AUTHOR_ID_OFFSET as TF_AUTHOR_OFFSET
+
+        # Generate deterministic author ID
+        author_name = book.get("author_name", "")
+        author_id = None
+        if author_name:
+            author_id = TF_AUTHOR_OFFSET + (hash(author_name) % 10_000_000)
+            if author_id < TF_AUTHOR_OFFSET:
+                author_id += 10_000_000
+
+        entry = {
+            "id": book_id,
+            "name": book["name"],
+            "slug": slug,
+            "tf_slug": tf_slug,
+            "chapter_count": ch_count,
+            "status": 2,
+            "status_name": "Full",
+            "source": "tf",
+            "author": {
+                "id": author_id,
+                "name": author_name,
+            },
+            "genres": [],
+            "tags": [],
+            "synopsis": "",
+            "cover_url": book.get("cover_url", ""),
+            "word_count": 0,
+            "view_count": 0,
+            "bookmark_count": 0,
+            "vote_count": 0,
+            "comment_count": 0,
+            "review_score": 0,
+            "review_count": 0,
+            "created_at": None,
+            "updated_at": None,
+            "published_at": None,
+            "new_chap_at": None,
+        }
+
+        local_ch = known_bids.get(book_id, 0)
+        if local_ch > 0:
+            if local_ch >= ch_count:
+                have_complete.append({**entry, "local": local_ch})
+            else:
+                have_partial.append(
+                    {**entry, "local": local_ch, "gap": ch_count - local_ch}
+                )
+        else:
+            need_download.append(entry)
+
+    # Save registry
+    save_registry(registry)
+
+    # Display audit summary
+    total_gap = sum(b.get("gap", 0) for b in have_partial) + sum(
+        b["chapter_count"] for b in need_download
+    )
+
+    table = Table(title="TF Catalog Audit", show_header=False, border_style="yellow")
+    table.add_column("Label", style="dim", width=22)
+    table.add_column("Value", justify="right", width=10)
+    table.add_row("Discovered books", str(len(all_books)))
+    table.add_row(
+        f"  >= {min_chapters} chapters",
+        str(len(need_download) + len(have_partial) + len(have_complete)),
+    )
+    table.add_row("On disk (complete)", f"[green]{len(have_complete)}[/green]")
+    table.add_row("On disk (partial)", f"[yellow]{len(have_partial)}[/yellow]")
+    table.add_row("Not downloaded", f"[red]{len(need_download)}[/red]")
+    table.add_row("Chapters to fetch", f"[bold]{total_gap:,}[/bold]")
+    table.add_row("Duplicates skipped", str(skipped_dup))
+    console.print(table)
+
+    if dry_run:
+        console.print("\n[yellow]Dry run — plan file not written.[/yellow]")
+        return []
+
+    # Write plan file
+    plan_entries: list[dict] = list(need_download)
+    for b in sorted(have_partial, key=lambda x: -x.get("gap", 0)):
+        entry = {k: v for k, v in b.items() if k not in ("local", "gap")}
+        plan_entries.append(entry)
+
+    PLAN_DIR.mkdir(parents=True, exist_ok=True)
+    with open(TF_PLAN_FILE, "w", encoding="utf-8") as f:
+        json.dump(plan_entries, f, indent=2, ensure_ascii=False)
+    console.print(
+        f"\n[green]Plan written:[/green] {TF_PLAN_FILE}\n"
+        f"  {len(plan_entries)} entries "
+        f"({len(need_download)} new + {len(have_partial)} partial)"
+    )
+
+    return plan_entries
+
+
+async def _run_refresh_tf(
+    entries: list[dict],
+    workers: int,
+    delay: float,
+    min_chapters: int,
+) -> tuple[list[dict], RefreshStats]:
+    """Async core: re-fetch metadata for TF books via HTML scraping."""
+    from src.sources.tf import (
+        TF_BASE_URL,
+        TF_HEADERS,
+        parse_book_detail,
+    )
+
+    stats = RefreshStats(total=len(entries))
+    old_by_id = {e["id"]: e for e in entries}
+
+    sem = asyncio.Semaphore(workers)
+    results: dict[int, dict | None] = {}
+    results_lock = asyncio.Lock()
+    progress_count = {"done": 0}
+    total = len(entries)
+    start = time.time()
+
+    async with httpx.AsyncClient(
+        headers=TF_HEADERS,
+        timeout=httpx.Timeout(connect=10, read=30, write=10, pool=30),
+        follow_redirects=True,
+        limits=httpx.Limits(
+            max_connections=workers + 10,
+            max_keepalive_connections=workers,
+        ),
+    ) as client:
+
+        async def _fetch_one(entry: dict) -> None:
+            book_id = entry["id"]
+            tf_slug = entry.get("tf_slug") or entry.get("slug", "")
+            if not tf_slug:
+                async with results_lock:
+                    results[book_id] = None
+                    progress_count["done"] += 1
+                return
+
+            for attempt in range(3):
+                async with sem:
+                    await asyncio.sleep(delay)
+                    try:
+                        r = await client.get(f"{TF_BASE_URL}/{tf_slug}/")
+                    except httpx.TransportError:
+                        if attempt < 2:
+                            await asyncio.sleep(2 ** (attempt + 1))
+                            continue
+                        async with results_lock:
+                            results[book_id] = None
+                            progress_count["done"] += 1
+                        return
+
+                if r.status_code == 404:
+                    async with results_lock:
+                        results[book_id] = None
+                        progress_count["done"] += 1
+                    return
+
+                if r.status_code != 200:
+                    if attempt < 2:
+                        await asyncio.sleep(2 ** (attempt + 1))
+                        continue
+                    async with results_lock:
+                        results[book_id] = None
+                        progress_count["done"] += 1
+                    return
+
+                meta = parse_book_detail(r.text, tf_slug)
+                meta["id"] = book_id
+                meta["source"] = "tf"
+
+                async with results_lock:
+                    results[book_id] = meta
+                    progress_count["done"] += 1
+
+                done = progress_count["done"]
+                if done % 200 == 0 or done == total:
+                    elapsed = time.time() - start
+                    rate = done / elapsed if elapsed > 0 else 0
+                    console.print(f"  refresh [{done:,}/{total:,}] {rate:.0f}/s")
+                return
+
+            # exhausted retries
+            async with results_lock:
+                results[book_id] = None
+                progress_count["done"] += 1
+
+        tasks = [_fetch_one(e) for e in entries]
+        await asyncio.gather(*tasks)
+
+    # Reconcile
+    updated_list: list[dict] = []
+    for book_id, old_entry in old_by_id.items():
+        new = results.get(book_id)
+        if new is None:
+            stats.removed += 1
+            continue
+
+        old_ch = old_entry.get("chapter_count", 0)
+        new_ch = new.get("chapter_count", 0)
+        delta = max(0, new_ch - old_ch)
+
+        if delta > 0 or new.get("name") != old_entry.get("name"):
+            stats.updated += 1
+            stats.new_chapters += delta
+        else:
+            stats.unchanged += 1
+
+        if new.get("chapter_count", 0) >= min_chapters:
+            updated_list.append(new)
+
+    updated_list.sort(key=lambda b: -b.get("chapter_count", 0))
+    return updated_list, stats
+
+
+def run_refresh_tf(
+    workers: int,
+    delay: float,
+    min_chapters: int,
+    dry_run: bool,
+) -> list[dict]:
+    """Read existing TF plan, re-fetch metadata from HTML, write back."""
+
+    if not TF_PLAN_FILE.exists():
+        console.print(
+            f"[red]Error:[/red] TF plan file not found: {TF_PLAN_FILE}\n"
+            "  Run with --source tf (no --refresh) first to generate an initial plan."
+        )
+        sys.exit(1)
+
+    with open(TF_PLAN_FILE, encoding="utf-8") as f:
+        entries = json.load(f)
+
+    if not isinstance(entries, list):
+        console.print("[red]Error:[/red] TF plan file must be a JSON array.")
+        sys.exit(1)
+
+    console.print(f"  Plan file:      [dim]{TF_PLAN_FILE}[/dim]")
+    console.print(f"  Input books:    [bold]{len(entries):,}[/bold]")
+    console.print(f"  Workers:        [dim]{workers}[/dim]")
+    console.print(f"  Min chapters:   [dim]{min_chapters}[/dim]")
+
+    start = time.time()
+    updated, stats = asyncio.run(_run_refresh_tf(entries, workers, delay, min_chapters))
+    elapsed = time.time() - start
+
+    # Report
+    console.print()
+    table = Table(title="TF Refresh Report", show_header=False, border_style="yellow")
+    table.add_column("Label", style="dim", width=22)
+    table.add_column("Value", justify="right", width=12)
+    table.add_row("Input books", f"{len(entries):,}")
+    table.add_row("Output books", f"[bold]{len(updated):,}[/bold]")
+    table.add_row("Updated", f"[green]{stats.updated:,}[/green]")
+    table.add_row("Unchanged", f"{stats.unchanged:,}")
+    table.add_row("Removed (404)", f"[red]{stats.removed:,}[/red]")
+    table.add_row("New chapters", f"[bold]{stats.new_chapters:,}[/bold]")
+    table.add_row("Duration", f"{elapsed:.1f}s")
+    if elapsed > 0:
+        table.add_row("Rate", f"{len(entries) / elapsed:.0f} books/s")
+    console.print(table)
+
+    if dry_run:
+        console.print("\n[yellow]Dry run — plan file not written.[/yellow]")
+        return updated
+
+    PLAN_DIR.mkdir(parents=True, exist_ok=True)
+    with open(TF_PLAN_FILE, "w", encoding="utf-8") as f:
+        json.dump(updated, f, indent=2, ensure_ascii=False)
+    console.print(f"\n[green]Wrote {len(updated):,} books to {TF_PLAN_FILE}[/green]")
+
+    return updated
+
+
+def run_cover_pull_tf(
+    plan_entries: list[dict],
+    force: bool,
+    dry_run: bool,
+    delay: float,
+) -> None:
+    """Download missing covers for TF books using cover_url from the plan."""
+    from src.sources.tf import TF_HEADERS as _TF_HEADERS
+
+    COVERS_DIR.mkdir(parents=True, exist_ok=True)
+
+    if force:
+        pending = plan_entries
+    else:
+        pending = [
+            e
+            for e in plan_entries
+            if not (COVERS_DIR / f"{e['id']}.jpg").exists() and e.get("cover_url")
+        ]
+
+    console.print(f"  Plan entries:   [bold]{len(plan_entries)}[/bold]")
+    console.print(f"  Missing covers: [bold]{len(pending)}[/bold]")
+    console.print(f"  Destination:    [dim]{COVERS_DIR}[/dim]")
+    console.print()
+
+    if not pending:
+        console.print("[green]All TF covers present. Nothing to do.[/green]")
+        return
+
+    if dry_run:
+        console.print("[yellow]Dry run — would download covers for:[/yellow]")
+        for e in pending[:30]:
+            console.print(f"  {e['id']}  {e.get('name', '?')[:40]}")
+        if len(pending) > 30:
+            console.print(f"  [dim]... and {len(pending) - 30} more[/dim]")
+        return
+
+    succeeded = 0
+    failed = 0
+
+    progress = Progress(
+        TextColumn("[bold yellow]{task.description}"),
+        BarColumn(bar_width=30),
+        MofNCompleteColumn(),
+        TextColumn("•"),
+        TimeElapsedColumn(),
+        TextColumn("•"),
+        TimeRemainingColumn(),
+    )
+
+    with (
+        progress,
+        httpx.Client(headers=_TF_HEADERS, timeout=30, follow_redirects=True) as client,
+    ):
+        task = progress.add_task("Pulling TF covers", total=len(pending))
+
+        for i, entry in enumerate(pending, 1):
+            bid = entry["id"]
+            cover_url = entry.get("cover_url", "")
+            dest = str(COVERS_DIR / f"{bid}.jpg")
+
+            progress.update(task, description=f"Cover {bid}")
+
+            try:
+                r = client.get(cover_url, follow_redirects=True, timeout=30)
+                if r.status_code == 200 and len(r.content) > 100:
+                    with open(dest, "wb") as f:
+                        f.write(r.content)
+                    succeeded += 1
+                else:
+                    failed += 1
+            except Exception:
+                failed += 1
+
+            progress.advance(task)
+            if i < len(pending):
+                time.sleep(delay)
+
+    console.print(
+        f"\nDone: [green]{succeeded}[/green] succeeded, "
+        f"[red]{failed}[/red] failed out of {len(pending)}"
+    )
+
+
 # ── CLI ─────────────────────────────────────────────────────────────────────
 
 
@@ -1447,7 +1915,7 @@ def main() -> None:
             "Generate and maintain the book-ingest download plan.\n\n"
             "Default (no flags): paginate the source catalog, cross-ref with\n"
             "local bundles, write a fresh plan, and pull missing covers.\n\n"
-            "--source: select data source (mtc or ttv, default: mtc).\n"
+            "--source: select data source (mtc, ttv, or tf; default: mtc).\n"
             "--refresh: read existing plan, enrich with full per-book metadata.\n"
             "--scan (with --refresh, MTC only): also probe the full MTC ID\n"
             "range to discover books invisible to the catalog endpoint."
@@ -1458,9 +1926,9 @@ def main() -> None:
     # Source selection
     parser.add_argument(
         "--source",
-        choices=["mtc", "ttv"],
+        choices=["mtc", "ttv", "tf"],
         default="mtc",
-        help="Data source: mtc (metruyencv, default) or ttv (tangthuvien)",
+        help="Data source: mtc (metruyencv, default), ttv (tangthuvien), or tf (truyenfull)",
     )
 
     # Mode flags
@@ -1551,10 +2019,11 @@ def main() -> None:
     args = parser.parse_args()
 
     is_ttv = args.source == "ttv"
+    is_tf = args.source == "tf"
 
     # Resolve delay default per source
     if args.delay is None:
-        args.delay = 0.3 if is_ttv else 0.015
+        args.delay = 0.3 if (is_ttv or is_tf) else 0.015
 
     # Validation
     if args.scan and not args.refresh:
@@ -1565,10 +2034,10 @@ def main() -> None:
         )
         sys.exit(1)
 
-    if args.scan and is_ttv:
+    if args.scan and (is_ttv or is_tf):
         console.print(
             "[red]Error:[/red] --scan is only supported for MTC.\n"
-            "  TTV discovery uses listing-page scraping, not ID-range probing."
+            "  TTV/TF discovery uses listing-page scraping, not ID-range probing."
         )
         sys.exit(1)
 
@@ -1581,7 +2050,7 @@ def main() -> None:
         do_covers = True
 
     # Title
-    src_label = "TTV" if is_ttv else "MTC"
+    src_label = "TF" if is_tf else ("TTV" if is_ttv else "MTC")
     if args.cover_only:
         subtitle = f"{src_label} covers only"
     elif args.refresh and args.scan:
@@ -1595,7 +2064,7 @@ def main() -> None:
         Panel(
             f"[bold]{src_label} Plan Generator[/bold]",
             subtitle=subtitle,
-            border_style="cyan" if is_ttv else "blue",
+            border_style="yellow" if is_tf else ("cyan" if is_ttv else "blue"),
             expand=False,
         )
     )
@@ -1603,7 +2072,21 @@ def main() -> None:
     # ── Plan phase ──────────────────────────────────────────────────────
 
     if do_plan:
-        if is_ttv:
+        if is_tf:
+            if args.refresh:
+                run_refresh_tf(
+                    workers=min(args.workers, 30),
+                    delay=args.delay,
+                    min_chapters=args.min_chapters,
+                    dry_run=args.dry_run,
+                )
+            else:
+                run_generate_tf(
+                    max_pages=args.pages,
+                    min_chapters=args.min_chapters,
+                    dry_run=args.dry_run,
+                )
+        elif is_ttv:
             if args.refresh:
                 run_refresh_ttv(
                     workers=min(args.workers, 30),  # TTV needs fewer workers
@@ -1633,7 +2116,19 @@ def main() -> None:
     # ── Cover phase ─────────────────────────────────────────────────────
 
     if do_covers:
-        if is_ttv:
+        if is_tf:
+            plan_path = TF_PLAN_FILE
+            if plan_path.exists():
+                with open(plan_path, encoding="utf-8") as f:
+                    tf_entries = json.load(f)
+                console.print(f"\n[bold yellow]TF Cover Pull[/bold yellow]")
+                run_cover_pull_tf(tf_entries, args.force, args.dry_run, args.delay)
+            else:
+                console.print(
+                    f"\n[yellow]TF plan file not found: {plan_path}[/yellow]\n"
+                    "  Run without --cover-only first to generate a plan."
+                )
+        elif is_ttv:
             # TTV covers come from the plan file (cover_url field)
             plan_path = TTV_PLAN_FILE
             if plan_path.exists():

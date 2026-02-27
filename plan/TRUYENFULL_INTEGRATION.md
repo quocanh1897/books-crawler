@@ -346,9 +346,9 @@ MTC [●———] TTV          ← binary toggle, click to flip
 ```
 📚 Nguồn ▾              ← dropdown trigger (icon + label + chevron)
 ┌──────────────────────┐
-│  📘  MTC       ✓     │ ← active source highlighted
-│  📗  TTV              │
-│  📙  TruyenFull       │
+│  📙  MTC       ✓     │ ← active source highlighted
+│  📗  TTV             │
+│  📘  TruyenFull      │
 └──────────────────────┘
 ```
 
@@ -365,9 +365,9 @@ MTC [●———] TTV          ← binary toggle, click to flip
 
 | Source | Short name | Icon | Accent color | Description |
 |---|---|---|---|---|
-| `mtc` | MTC | 📘 or custom SVG (book with lock) | `blue-500` | metruyencv — encrypted API |
+| `mtc` | MTC | 📙 or custom SVG (book with lock) | `amber-500` | metruyencv — encrypted API |
 | `ttv` | TTV | 📗 or custom SVG (book with globe) | `emerald-500` | tangthuvien — HTML scraping |
-| `tf` | TruyenFull | 📙 or custom SVG (book with star) | `amber-500` | truyenfull — hot completed books |
+| `tf` | TruyenFull | 📘 or custom SVG (book with star) | `blue-500` | truyenfull — HTLM scaping |
 
 Use inline SVG icons (not emoji) for consistency with the rest of the UI. Each icon should be a 16×16 or 20×20 SVG with `stroke="currentColor"`.
 

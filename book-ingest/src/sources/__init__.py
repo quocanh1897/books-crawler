@@ -22,11 +22,13 @@ if TYPE_CHECKING:
 _REGISTRY: dict[str, str] = {
     "mtc": "src.sources.mtc",
     "ttv": "src.sources.ttv",
+    "tf": "src.sources.tf",
 }
 
 _CLASS_NAMES: dict[str, str] = {
     "mtc": "MTCSource",
     "ttv": "TTVSource",
+    "tf": "TFSource",
 }
 
 VALID_SOURCES = tuple(_REGISTRY.keys())

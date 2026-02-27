@@ -105,6 +105,7 @@ COVERS_DIR = BINSLIB_DIR / "public" / "covers"
 PLAN_PREFIX = "books_plan_"
 DEFAULT_PLAN = SCRIPT_DIR / "data" / "books_plan_mtc.json"
 TTV_DEFAULT_PLAN = SCRIPT_DIR / "data" / "books_plan_ttv.json"
+TF_DEFAULT_PLAN = SCRIPT_DIR / "data" / "books_plan_tf.json"
 
 LOG_DIR = SCRIPT_DIR / "data"
 DETAIL_LOG = LOG_DIR / "ingest-detail.log"
@@ -118,6 +119,7 @@ console = Console()
 _SOURCE_DEFAULTS = {
     "mtc": {"max_concurrent": 180, "request_delay": 0.015},
     "ttv": {"max_concurrent": 20, "request_delay": 0.3},
+    "tf": {"max_concurrent": 20, "request_delay": 0.3},
 }
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -872,7 +874,12 @@ def main():
 
     # Build entries list
     source_name = args.source
-    default_plan = TTV_DEFAULT_PLAN if source_name == "ttv" else DEFAULT_PLAN
+    if source_name == "ttv":
+        default_plan = TTV_DEFAULT_PLAN
+    elif source_name == "tf":
+        default_plan = TF_DEFAULT_PLAN
+    else:
+        default_plan = DEFAULT_PLAN
 
     if args.book_ids:
         entries = entries_from_ids(args.book_ids, source_name)
