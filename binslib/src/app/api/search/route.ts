@@ -46,7 +46,8 @@ async function resolveSource(
 ): Promise<BookSource | undefined> {
   const explicit = searchParams.get("source");
   if (explicit) {
-    if (explicit === "mtc" || explicit === "ttv") return explicit;
+    if (explicit === "mtc" || explicit === "ttv" || explicit === "tf")
+      return explicit;
     // "all" or anything else → no filter
     return undefined;
   }

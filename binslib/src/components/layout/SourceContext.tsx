@@ -9,20 +9,18 @@ import {
 } from "react";
 import { useRouter } from "next/navigation";
 
-export type BookSource = "mtc" | "ttv";
+export type BookSource = "mtc" | "ttv" | "tf";
 
 const SOURCE_COOKIE = "book_source";
 
 interface SourceContextValue {
   source: BookSource;
   setSource: (s: BookSource) => void;
-  toggle: () => void;
 }
 
 const SourceContext = createContext<SourceContextValue>({
   source: "mtc",
   setSource: () => {},
-  toggle: () => {},
 });
 
 export function SourceProvider({
@@ -41,15 +39,11 @@ export function SourceProvider({
       document.cookie = `${SOURCE_COOKIE}=${s};path=/;max-age=${60 * 60 * 24 * 365};samesite=lax`;
       router.refresh();
     },
-    [router]
+    [router],
   );
 
-  const toggle = useCallback(() => {
-    setSource(source === "mtc" ? "ttv" : "mtc");
-  }, [source, setSource]);
-
   return (
-    <SourceContext.Provider value={{ source, setSource, toggle }}>
+    <SourceContext.Provider value={{ source, setSource }}>
       {children}
     </SourceContext.Provider>
   );

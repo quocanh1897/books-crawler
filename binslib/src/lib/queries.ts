@@ -63,7 +63,7 @@ const VALID_SORT = new Set([
   "word_count",
 ]);
 
-export type BookSource = "mtc" | "ttv";
+export type BookSource = "mtc" | "ttv" | "tf";
 
 export async function getBooks(params: {
   sort?: string;

@@ -17,8 +17,9 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
+  const rawSource = cookieStore.get("book_source")?.value;
   const source: BookSource =
-    cookieStore.get("book_source")?.value === "ttv" ? "ttv" : "mtc";
+    rawSource === "ttv" ? "ttv" : rawSource === "tf" ? "tf" : "mtc";
 
   return (
     <html lang="vi">
