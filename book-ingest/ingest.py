@@ -203,6 +203,18 @@ def entries_from_ids(book_ids: list[int], source_name: str = "mtc") -> list[dict
             if slug:
                 e["slug"] = slug
 
+    elif source_name == "tf":
+        from src.sources.tf import load_registry as load_tf_registry
+
+        registry = load_tf_registry()
+        # Invert: id → tf_slug
+        id_to_slug = {v: k for k, v in registry.items()}
+        for e in entries:
+            tf_slug = id_to_slug.get(e["id"])
+            if tf_slug:
+                e["tf_slug"] = tf_slug
+                e["slug"] = tf_slug  # fallback for fetch_book_metadata
+
     return entries
 
 
@@ -333,11 +345,15 @@ async def ingest_book(
     chapter_progress: Progress,
     chapter_task_id: int,
     lock: asyncio.Lock,
+    fix_mode: bool = False,
 ) -> dict:
     """Ingest a single book: fetch → compress → bundle + DB.
 
     The *source* handles all transport details (API calls, HTML parsing,
     decryption, walk strategy).  This function is source-agnostic.
+
+    When *fix_mode* is True, the "bundle complete" skip logic is bypassed
+    so that missing chapters (gaps in the bundle) are re-downloaded.
 
     Returns stats dict with keys: book_id, name, saved, skipped, errors.
     """
@@ -375,7 +391,11 @@ async def ingest_book(
     bundle_path = str(COMPRESSED_DIR / f"{book_id}.bundle")
     bundle_indices = await asyncio.to_thread(read_bundle_indices, bundle_path)
 
-    if len(bundle_indices) >= api_chapter_count and api_chapter_count > 0:
+    if (
+        not fix_mode
+        and len(bundle_indices) >= api_chapter_count
+        and api_chapter_count > 0
+    ):
         # Bundle is complete — check if DB needs update
         async with lock:
             db = open_db(db_path)
@@ -446,9 +466,16 @@ async def ingest_book(
 
     existing = bundle_indices | db_indices
 
-    if len(existing) >= api_chapter_count and api_chapter_count > 0:
+    if not fix_mode and len(existing) >= api_chapter_count and api_chapter_count > 0:
         stats["skipped"] = len(existing)
         return stats
+
+    if fix_mode and existing:
+        gaps = api_chapter_count - len(existing) if api_chapter_count > 0 else 0
+        log_detail(
+            f'FIX {book_id} "{book_name}": {len(existing)} existing, '
+            f"{api_chapter_count} total, ~{gaps} gaps to fill"
+        )
 
     if source.name == "mtc" and not meta.get("first_chapter"):
         log_detail(f'SKIP {book_id} "{book_name}": no first_chapter')
@@ -608,6 +635,7 @@ async def run_ingest(
     flush_every: int,
     dry_run: bool,
     source_name: str = "mtc",
+    fix_mode: bool = False,
 ) -> None:
     """Run the ingest pipeline with a worker pool."""
     total_books = len(entries)
@@ -616,7 +644,8 @@ async def run_ingest(
     console.print(
         f"\n[bold]book-ingest[/bold] ({source_name}) — {format_num(total_books)} books, "
         f"{workers} workers, flush every {flush_every} chapters"
-        f"{' [yellow](dry run)[/yellow]' if dry_run else ''}\n"
+        f"{' [yellow](dry run)[/yellow]' if dry_run else ''}"
+        f"{' [cyan](fix mode)[/cyan]' if fix_mode else ''}\n"
         f"  Workers: {workers}\n"
         f"  Source:  {source_name}\n"
         f"  DB:      {DB_PATH}\n"
@@ -713,6 +742,7 @@ async def run_ingest(
                             chapter_progress=progress,
                             chapter_task_id=chapter_task,
                             lock=lock,
+                            fix_mode=fix_mode,
                         )
                         total_saved += max(stats["saved"], 0)
                         total_skipped += max(stats["skipped"], 0)
@@ -856,6 +886,13 @@ def parse_args() -> argparse.Namespace:
         help="Delete existing bundle + DB chapters and re-download from scratch. "
         "Requires explicit book IDs (not a plan file). Prompts for confirmation.",
     )
+    parser.add_argument(
+        "--fix",
+        action="store_true",
+        help="Re-download missing chapters for existing books. "
+        "Audits each bundle for gaps and fills them. "
+        "Works with plan files and explicit book IDs, all sources.",
+    )
     return parser.parse_args()
 
 
@@ -981,6 +1018,18 @@ def main():
             f"Starting re-download...[/green]\n"
         )
 
+    # --fix bypasses min-chapters filter (we want to fix existing books)
+    fix_mode = getattr(args, "fix", False)
+    if fix_mode and not args.book_ids and args.min_chapters > 0:
+        # In fix mode from plan, include all books regardless of chapter count
+        # (they're already ingested, we just want to fill gaps)
+        pass  # min-chapters filter was already applied above; re-include filtered
+        entries = (
+            load_plan(args.plan or str(default_plan), args.offset, args.limit)
+            if not args.book_ids
+            else entries
+        )
+
     if args.update_meta_only:
         # Bare book IDs (no plan metadata) would produce garbage in
         # _plan_entry_to_meta() — name="?", slug="", chapter_count=0, no
@@ -1021,7 +1070,12 @@ def main():
     else:
         asyncio.run(
             run_ingest(
-                entries, args.workers, args.flush_every, args.dry_run, source_name
+                entries,
+                args.workers,
+                args.flush_every,
+                args.dry_run,
+                source_name,
+                fix_mode=fix_mode,
             )
         )
 
