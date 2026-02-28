@@ -87,7 +87,7 @@ class _AsyncTFClient:
         delay: float = TF_DEFAULT_DELAY,
         max_concurrent: int = TF_DEFAULT_MAX_CONCURRENT,
         timeout: float = 30,
-        max_retries: int = 3,
+        max_retries: int = 5,
     ):
         self._sem = asyncio.Semaphore(max_concurrent)
         self._delay = delay
@@ -133,6 +133,13 @@ class _AsyncTFClient:
             if r.status_code == 429:
                 wait = int(r.headers.get("Retry-After", 2 ** (attempt + 2)))
                 if attempt < retries - 1:
+                    log.debug(
+                        "429 rate-limited %s, retry %d/%d in %ds",
+                        url,
+                        attempt + 1,
+                        retries,
+                        wait,
+                    )
                     await asyncio.sleep(wait)
                     continue
                 raise TFFetchError(f"Rate limited after {retries} retries")
@@ -140,9 +147,35 @@ class _AsyncTFClient:
             if r.status_code == 404:
                 raise TFNotFound(f"Not found: {url}")
 
-            if r.status_code != 200:
+            if r.status_code == 503:
+                # Server overloaded — use longer backoff than other errors.
+                # 503 is common when scraping aggressively; most recover
+                # within a few seconds.
+                wait = 3 * (2**attempt)  # 3s, 6s, 12s, 24s, 48s
                 if attempt < retries - 1:
-                    await asyncio.sleep(2 ** (attempt + 1))
+                    log.debug(
+                        "503 server busy %s, retry %d/%d in %ds",
+                        url,
+                        attempt + 1,
+                        retries,
+                        wait,
+                    )
+                    await asyncio.sleep(wait)
+                    continue
+                raise TFFetchError(f"HTTP 503 after {retries} retries: {url}")
+
+            if r.status_code != 200:
+                wait = 2 ** (attempt + 1)
+                if attempt < retries - 1:
+                    log.debug(
+                        "HTTP %d %s, retry %d/%d in %ds",
+                        r.status_code,
+                        url,
+                        attempt + 1,
+                        retries,
+                        wait,
+                    )
+                    await asyncio.sleep(wait)
                     continue
                 raise TFFetchError(f"HTTP {r.status_code}: {url}")
 
