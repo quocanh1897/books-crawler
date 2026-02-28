@@ -142,7 +142,7 @@ console = Console()
 _SOURCE_DEFAULTS = {
     "mtc": {"max_concurrent": 180, "request_delay": 0.015},
     "ttv": {"max_concurrent": 20, "request_delay": 0.3},
-    "tf": {"max_concurrent": 20, "request_delay": 0.3},
+    "tf": {"max_concurrent": 20, "request_delay": 0.15},
 }
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────

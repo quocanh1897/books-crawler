@@ -47,7 +47,7 @@ TF_HEADERS = {
     "accept-language": "vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7",
 }
 
-TF_DEFAULT_DELAY = 0.3  # seconds between requests
+TF_DEFAULT_DELAY = 0.15  # seconds between requests
 TF_DEFAULT_MAX_CONCURRENT = 20
 
 # TF book IDs start at 30M to avoid collision with MTC (< 1M) and TTV (10M+).
@@ -87,7 +87,7 @@ class _AsyncTFClient:
         delay: float = TF_DEFAULT_DELAY,
         max_concurrent: int = TF_DEFAULT_MAX_CONCURRENT,
         timeout: float = 30,
-        max_retries: int = 5,
+        max_retries: int = 3,
     ):
         self._sem = asyncio.Semaphore(max_concurrent)
         self._delay = delay
@@ -148,10 +148,11 @@ class _AsyncTFClient:
                 raise TFNotFound(f"Not found: {url}")
 
             if r.status_code == 503:
-                # Server overloaded — use longer backoff than other errors.
+                # Server overloaded — fixed backoff schedule.
                 # 503 is common when scraping aggressively; most recover
                 # within a few seconds.
-                wait = 3 * (2**attempt)  # 3s, 6s, 12s, 24s, 48s
+                _503_backoff = [3, 5, 8]
+                wait = _503_backoff[min(attempt, len(_503_backoff) - 1)]
                 if attempt < retries - 1:
                     log.debug(
                         "503 server busy %s, retry %d/%d in %ds",
@@ -640,63 +641,98 @@ class TFSource(BookSource):
 
     # ── Chapter iteration ───────────────────────────────────────────────
 
+    # Batch size for parallel chapter fetching.  Chapters within a batch
+    # are fetched concurrently (bounded by the client semaphore), then
+    # yielded in index order before starting the next batch.
+    _FETCH_BATCH_SIZE = 20
+
     async def fetch_chapters(
         self,
         meta: dict,
         existing_indices: set[int],
         bundle_path: str,
     ) -> AsyncIterator[ChapterData]:
-        """Iterate ``chuong-1`` … ``chuong-N``, skipping existing indices.
+        """Fetch missing chapters in parallel batches.
 
-        TF serves chapters at predictable URLs, so the walk is a simple
-        sequential loop — same approach as TTV.
+        Unlike the old sequential approach (one request at a time, ~3 ch/s),
+        this fetches ``_FETCH_BATCH_SIZE`` chapters concurrently per batch,
+        achieving ~15-60 ch/s depending on server response time and the
+        client's ``max_concurrent`` setting.
+
+        Results are yielded in ascending index order within each batch.
         """
         tf_slug = meta.get("tf_slug", meta["slug"])
         chapter_count = meta.get("chapter_count", 0)
         book_id = meta["id"]
 
-        for ch_idx in range(1, chapter_count + 1):
-            if ch_idx in existing_indices:
-                continue
+        # Collect all missing indices upfront
+        to_fetch = sorted(
+            idx for idx in range(1, chapter_count + 1) if idx not in existing_indices
+        )
 
-            url = f"/{tf_slug}/chuong-{ch_idx}/"
+        if not to_fetch:
+            return
 
-            # Retry up to 3 times when the server returns 200 but the page
-            # is not a chapter (ad interstitial, CAPTCHA, throttle page).
-            # The old code silently skipped these, losing ~75% of chapters.
-            parsed = None
-            for _attempt in range(3):
-                try:
-                    html = await self._client.get_html(url)
-                except TFNotFound:
-                    break  # Real 404 — chapter doesn't exist
-                except TFFetchError as exc:
-                    log.warning("  [%d] chuong-%d: %s", book_id, ch_idx, exc)
-                    break  # Network error — skip this chapter
+        # Process in batches
+        for batch_start in range(0, len(to_fetch), self._FETCH_BATCH_SIZE):
+            batch = to_fetch[batch_start : batch_start + self._FETCH_BATCH_SIZE]
 
-                parsed = parse_chapter(html)
-                if parsed:
-                    break  # Success
+            # Fetch all chapters in this batch concurrently
+            results: dict[int, ChapterData | None] = {}
 
-                # Server returned 200 but page has no #chapter-c — likely
-                # a throttle/ad page.  Back off and retry.
-                if _attempt < 2:
-                    await asyncio.sleep(2 ** (_attempt + 1))
+            async def _fetch_one(ch_idx: int) -> None:
+                data = await self._fetch_single_chapter(book_id, tf_slug, ch_idx)
+                results[ch_idx] = data
 
-            if not parsed:
-                continue
+            await asyncio.gather(*[_fetch_one(idx) for idx in batch])
 
-            body = parsed["body"]
-            word_count = len(body.split())
+            # Yield successful results in index order
+            for idx in batch:
+                ch = results.get(idx)
+                if ch is not None:
+                    yield ch
 
-            yield ChapterData(
-                index=ch_idx,
-                title=parsed["title"],
-                slug=f"chuong-{ch_idx}",
-                body=body,
-                word_count=word_count,
-                # chapter_id stays 0 — TF has no API chapter IDs
-            )
+    async def _fetch_single_chapter(
+        self,
+        book_id: int,
+        tf_slug: str,
+        ch_idx: int,
+    ) -> ChapterData | None:
+        """Fetch and parse a single chapter with retry on parse failure.
+
+        Returns ``ChapterData`` on success, ``None`` on failure.
+        """
+        url = f"/{tf_slug}/chuong-{ch_idx}/"
+
+        # Retry up to 3 times when the server returns 200 but the page
+        # is not a chapter (ad interstitial, CAPTCHA, throttle page).
+        for _attempt in range(3):
+            try:
+                html = await self._client.get_html(url)
+            except TFNotFound:
+                return None  # Real 404 — chapter doesn't exist
+            except TFFetchError as exc:
+                log.warning("  [%d] chuong-%d: %s", book_id, ch_idx, exc)
+                return None  # Network error after retries — skip
+
+            parsed = parse_chapter(html)
+            if parsed:
+                body = parsed["body"]
+                word_count = len(body.split())
+                return ChapterData(
+                    index=ch_idx,
+                    title=parsed["title"],
+                    slug=f"chuong-{ch_idx}",
+                    body=body,
+                    word_count=word_count,
+                )
+
+            # Server returned 200 but page has no #chapter-c — likely
+            # a throttle/ad page.  Back off and retry.
+            if _attempt < 2:
+                await asyncio.sleep(2 ** (_attempt + 1))
+
+        return None
 
     # ── Cover ───────────────────────────────────────────────────────────
 
