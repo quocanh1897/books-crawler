@@ -362,10 +362,13 @@ def parse_book_detail(html: str, tf_slug: str) -> dict:
         except ValueError:
             pass
 
-    # Chapter count from the chapter list pagination or listing data
+    # Chapter count from the chapter list.
+    # The first page shows up to 50 chapters; if paginated, we estimate
+    # from (last_page - 1) * 50 + chapters_on_first_page.  This is still
+    # an estimate — the listing page's "Chương N" is authoritative and
+    # is preferred in fetch_book_metadata() when available.
     ch_links = soup.select("ul.list-chapter li a")
     chapter_count = len(ch_links)
-    # If paginated, the real count is higher — check pagination
     ch_pag_links = soup.select("#list-chapter ul.pagination li a")
     if ch_pag_links:
         last_ch_page = 1
@@ -374,9 +377,10 @@ def parse_book_detail(html: str, tf_slug: str) -> dict:
             m = re.search(r"trang-(\d+)", str(href))
             if m:
                 last_ch_page = max(last_ch_page, int(m.group(1)))
-        # Each page has ~50 chapters; estimate total
         if last_ch_page > 1:
-            chapter_count = last_ch_page * 50  # Rough estimate
+            # Estimate: (N-1) full pages + first page count (less aggressive
+            # than the old last_page * 50 which always over-counted).
+            chapter_count = (last_ch_page - 1) * 50 + len(ch_links)
 
     # Author ID — use a hash-based offset to avoid needing a separate registry
     author_id: int | None = None
@@ -624,10 +628,12 @@ class TFSource(BookSource):
             registry = load_registry()
             meta["id"] = get_or_create_book_id(tf_slug, registry)
 
-        # Use chapter_count from the plan entry if available and larger
-        # (the detail page estimate from pagination may be rough)
+        # Prefer the plan's chapter_count (from the listing page "Chương N"
+        # text, which is exact) over the detail page's estimate (which rounds
+        # up from pagination: last_page × 50).  E.g. listing says 2489 but
+        # detail page estimates 2500.
         plan_ch = entry.get("chapter_count", 0)
-        if plan_ch > meta.get("chapter_count", 0):
+        if plan_ch > 0:
             meta["chapter_count"] = plan_ch
 
         return meta
