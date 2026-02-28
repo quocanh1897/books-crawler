@@ -703,6 +703,60 @@ async def run_ingest(
             db.close()
     est_chapters = sum(e.get("chapter_count", 0) for e in entries)
 
+    # ── Fix mode pre-audit: scan bundles for gaps ───────────────────────
+    if fix_mode:
+        console.print("[bold cyan]Fix mode: auditing bundles for gaps...[/bold cyan]")
+        total_gaps = 0
+        books_with_gaps = 0
+        books_complete = 0
+        # (id, name, bundle_count, expected_count, gap_count)
+        audit_rows: list[tuple[int, str, int, int, int]] = []
+
+        for e in entries:
+            bid = e["id"]
+            ch_count = e.get("chapter_count", 0)
+            bpath = str(COMPRESSED_DIR / f"{bid}.bundle")
+            b_indices = read_bundle_indices(bpath)
+            expected = set(range(1, ch_count + 1)) if ch_count > 0 else set()
+            gaps = len(expected - b_indices)
+            if gaps > 0:
+                books_with_gaps += 1
+                total_gaps += gaps
+                audit_rows.append(
+                    (bid, e.get("name", "?"), len(b_indices), ch_count, gaps)
+                )
+            else:
+                books_complete += 1
+
+        console.print(f"  Books scanned:         {format_num(len(entries))}")
+        console.print(f"  Already complete:      {format_num(books_complete)}")
+        console.print(f"  With gaps:             {format_num(books_with_gaps)}")
+        console.print(f"  Total chapters to fix: [bold]{format_num(total_gaps)}[/bold]")
+
+        if audit_rows:
+            audit_rows.sort(key=lambda r: -r[4])
+            console.print(f"\n  [bold]Top books with gaps:[/bold]")
+            for bid, name, have, total, gap in audit_rows[:15]:
+                console.print(
+                    f"    {bid:>10}  {have:>5}/{total:<5}  gap={gap:>5}  {name[:40]}"
+                )
+            if len(audit_rows) > 15:
+                console.print(f"    [dim]... and {len(audit_rows) - 15} more[/dim]")
+
+        if total_gaps == 0:
+            console.print("\n[green]All books are complete. Nothing to fix.[/green]")
+            return
+
+        # Filter to only books with gaps; update totals for progress bar
+        gap_book_ids = {r[0] for r in audit_rows}
+        entries = [e for e in entries if e["id"] in gap_book_ids]
+        total_books = len(entries)
+        est_chapters = total_gaps
+        console.print(
+            f"\n  Proceeding with {format_num(total_books)} books, "
+            f"{format_num(est_chapters)} chapters to download.\n"
+        )
+
     start_time = time.time()
     lock = asyncio.Lock()  # protects DB access
 
@@ -733,7 +787,8 @@ async def run_ingest(
         console=console,
     ) as progress:
         book_task = progress.add_task("[cyan]Books", total=total_books)
-        chapter_task = progress.add_task("[green]Chapters", total=max(est_chapters, 1))
+        ch_label = "[cyan]Fixing" if fix_mode else "[green]Chapters"
+        chapter_task = progress.add_task(ch_label, total=max(est_chapters, 1))
 
         async def worker():
             nonlocal total_saved, total_skipped, total_errors, total_covers
