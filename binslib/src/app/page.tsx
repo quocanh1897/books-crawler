@@ -15,9 +15,11 @@ export default async function HomePage() {
   const source = await getSource();
 
   const rankingMetrics: RankingMetric[] =
-    source === "ttv"
-      ? ["bookmark_count", "vote_count", "view_count"]
-      : ["bookmark_count", "vote_count", "comment_count"];
+    source === "tf"
+      ? ["review_score", "review_count", "vote_count"]
+      : source === "ttv"
+        ? ["bookmark_count", "vote_count", "view_count"]
+        : ["bookmark_count", "vote_count", "comment_count"];
 
   const [
     metric1Ranked,
@@ -30,7 +32,13 @@ export default async function HomePage() {
     getRankedBooks(rankingMetrics[1], 30, undefined, undefined, true, source),
     getRankedBooks(rankingMetrics[2], 30, undefined, undefined, true, source),
     getBooks({ sort: "updated_at", order: "desc", limit: 15, source }),
-    getBooks({ sort: "bookmark_count", order: "desc", status: 2, limit: 8, source }),
+    getBooks({
+      sort: "bookmark_count",
+      order: "desc",
+      status: 2,
+      limit: 8,
+      source,
+    }),
   ]);
 
   const rankingData: Partial<Record<RankingMetric, typeof metric1Ranked>> = {
@@ -85,7 +93,10 @@ export default async function HomePage() {
                     <span className="shrink-0 text-xs text-[var(--color-text-secondary)]">
                       {formatNumber(book.chapterCount)} ch
                     </span>
-                    <span className="shrink-0 text-xs text-[var(--color-text-secondary)] w-16 text-right" title="Đề cử">
+                    <span
+                      className="shrink-0 text-xs text-[var(--color-text-secondary)] w-16 text-right"
+                      title="Đề cử"
+                    >
                       {formatNumber(book.voteCount)} đề cử
                     </span>
                     <QuickDownloadButton bookId={book.id} />

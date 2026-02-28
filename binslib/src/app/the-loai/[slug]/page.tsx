@@ -21,23 +21,44 @@ export default async function GenrePage({ params }: Props) {
   const genre = allGenres.find((g) => g.slug === slug);
   if (!genre) notFound();
 
+  const rankingMetrics: RankingMetric[] =
+    source === "tf"
+      ? ["review_score", "review_count", "vote_count"]
+      : source === "ttv"
+        ? ["bookmark_count", "vote_count", "view_count"]
+        : ["bookmark_count", "vote_count", "comment_count"];
+
   const [
-    voteRanked, bookmarkRanked, commentRanked, reviewRanked,
-    recentBooks, completedBooks,
+    metric1Ranked,
+    metric2Ranked,
+    metric3Ranked,
+    recentBooks,
+    completedBooks,
   ] = await Promise.all([
-    getRankedBooks("vote_count", 30, slug, undefined, true, source),
-    getRankedBooks("bookmark_count", 30, slug, undefined, true, source),
-    getRankedBooks("comment_count", 30, slug, undefined, true, source),
-    getRankedBooks("review_score", 30, slug, undefined, true, source),
-    getBooks({ sort: "updated_at", order: "desc", genre: slug, limit: 10, source }),
-    getBooks({ sort: "bookmark_count", order: "desc", genre: slug, status: 2, limit: 6, source }),
+    getRankedBooks(rankingMetrics[0], 30, slug, undefined, true, source),
+    getRankedBooks(rankingMetrics[1], 30, slug, undefined, true, source),
+    getRankedBooks(rankingMetrics[2], 30, slug, undefined, true, source),
+    getBooks({
+      sort: "updated_at",
+      order: "desc",
+      genre: slug,
+      limit: 10,
+      source,
+    }),
+    getBooks({
+      sort: "bookmark_count",
+      order: "desc",
+      genre: slug,
+      status: 2,
+      limit: 6,
+      source,
+    }),
   ]);
 
-  const rankingData: Partial<Record<RankingMetric, typeof voteRanked>> = {
-    vote_count: voteRanked,
-    bookmark_count: bookmarkRanked,
-    comment_count: commentRanked,
-    review_score: reviewRanked,
+  const rankingData: Partial<Record<RankingMetric, typeof metric1Ranked>> = {
+    [rankingMetrics[0]]: metric1Ranked,
+    [rankingMetrics[1]]: metric2Ranked,
+    [rankingMetrics[2]]: metric3Ranked,
   };
 
   return (
