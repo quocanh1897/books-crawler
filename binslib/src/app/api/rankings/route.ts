@@ -4,10 +4,12 @@ import type { RankingMetric } from "@/types";
 import { logApi } from "@/lib/api-logger";
 
 const VALID_METRICS: RankingMetric[] = [
+  "vote_count",
   "view_count",
   "comment_count",
   "bookmark_count",
   "review_score",
+  "review_count",
 ];
 
 export async function GET(request: NextRequest) {

@@ -6,8 +6,8 @@ import { BookCover } from "@/components/books/BookCover";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Pagination } from "@/components/ui/Pagination";
 import { formatNumber, timeAgo, cn } from "@/lib/utils";
-import { METRIC_LABELS } from "@/types";
-import type { RankingMetric } from "@/types";
+import { METRIC_LABELS, SOURCE_RANKING_TABS } from "@/types";
+import type { RankingMetric, BookSourceType } from "@/types";
 
 export const dynamic = "force-dynamic";
 
@@ -23,21 +23,36 @@ interface Props {
   }>;
 }
 
-const VALID_METRICS: RankingMetric[] = ["vote_count", "view_count", "comment_count", "bookmark_count", "review_score"];
-
 export default async function RankingsPage({ searchParams }: Props) {
   const params = await searchParams;
   const source = await getSource();
-  const metric = (VALID_METRICS.includes(params.metric as RankingMetric)
-    ? params.metric
-    : "vote_count") as RankingMetric;
+
+  // Source-specific ranking tabs (TF shows different metrics than MTC/TTV)
+  const tabs =
+    SOURCE_RANKING_TABS[source as BookSourceType] ?? SOURCE_RANKING_TABS.mtc;
+  const validMetrics = tabs.map((t) => t.metric);
+  const defaultMetric = tabs[0].metric;
+
+  const metric = (
+    validMetrics.includes(params.metric as RankingMetric)
+      ? params.metric
+      : defaultMetric
+  ) as RankingMetric;
   const genreSlug = params.genre || undefined;
   const status = params.status ? parseInt(params.status, 10) : undefined;
   const page = Math.max(1, parseInt(params.page || "1", 10));
   const vietnameseOnly = params.viet === "1";
 
   const [result, genres] = await Promise.all([
-    getRankedBooksPaginated(metric, page, ITEMS_PER_PAGE, genreSlug, status, vietnameseOnly, source),
+    getRankedBooksPaginated(
+      metric,
+      page,
+      ITEMS_PER_PAGE,
+      genreSlug,
+      status,
+      vietnameseOnly,
+      source,
+    ),
     getGenresWithCounts(source),
   ]);
 
@@ -68,33 +83,37 @@ export default async function RankingsPage({ searchParams }: Props) {
       <div className="bg-white rounded-lg border border-[var(--color-border)] p-4 mb-4 space-y-3">
         {/* Metric */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[var(--color-text-secondary)] w-16">Xếp hạng:</span>
-          {VALID_METRICS.map((m) => (
+          <span className="text-xs font-medium text-[var(--color-text-secondary)] w-16">
+            Xếp hạng:
+          </span>
+          {tabs.map((tab) => (
             <Link
-              key={m}
-              href={buildUrl({ metric: m })}
+              key={tab.metric}
+              href={buildUrl({ metric: tab.metric })}
               className={cn(
                 "px-3 py-1 text-xs rounded-full border transition-colors",
-                metric === m
+                metric === tab.metric
                   ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]"
+                  : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]",
               )}
             >
-              {METRIC_LABELS[m]}
+              {tab.label}
             </Link>
           ))}
         </div>
 
         {/* Genre */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[var(--color-text-secondary)] w-16">Thể loại:</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)] w-16">
+            Thể loại:
+          </span>
           <Link
             href={buildUrl({ genre: undefined })}
             className={cn(
               "px-3 py-1 text-xs rounded-full border transition-colors",
               !genreSlug
                 ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]"
+                : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]",
             )}
           >
             Tất cả
@@ -107,7 +126,7 @@ export default async function RankingsPage({ searchParams }: Props) {
                 "px-3 py-1 text-xs rounded-full border transition-colors",
                 genreSlug === g.slug
                   ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]"
+                  : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]",
               )}
             >
               {g.name}
@@ -117,7 +136,9 @@ export default async function RankingsPage({ searchParams }: Props) {
 
         {/* Status */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-medium text-[var(--color-text-secondary)] w-16">Trạng thái:</span>
+          <span className="text-xs font-medium text-[var(--color-text-secondary)] w-16">
+            Trạng thái:
+          </span>
           {[
             { v: undefined, l: "Tất cả" },
             { v: "1", l: "Đang ra" },
@@ -131,7 +152,7 @@ export default async function RankingsPage({ searchParams }: Props) {
                 "px-3 py-1 text-xs rounded-full border transition-colors",
                 (v === undefined ? !status : String(status) === v)
                   ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-                  : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]"
+                  : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:border-[var(--color-primary)]",
               )}
             >
               {l}
@@ -142,19 +163,28 @@ export default async function RankingsPage({ searchParams }: Props) {
             href={buildUrl({ viet: vietnameseOnly ? undefined : "1" })}
             className="flex items-center gap-1.5"
           >
-            <span className={cn("text-xs font-medium transition-colors", vietnameseOnly ? "text-[var(--color-accent)]" : "text-[var(--color-text-secondary)]")}>
+            <span
+              className={cn(
+                "text-xs font-medium transition-colors",
+                vietnameseOnly
+                  ? "text-[var(--color-accent)]"
+                  : "text-[var(--color-text-secondary)]",
+              )}
+            >
               Truyện Việt
             </span>
             <span
               className={cn(
                 "relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200",
-                vietnameseOnly ? "bg-[var(--color-accent)]" : "bg-gray-300"
+                vietnameseOnly ? "bg-[var(--color-accent)]" : "bg-gray-300",
               )}
             >
               <span
                 className={cn(
                   "inline-block h-4 w-4 mt-0.5 rounded-full bg-white shadow-sm transition-transform duration-200",
-                  vietnameseOnly ? "translate-x-4 ml-0.5" : "translate-x-0 ml-0.5"
+                  vietnameseOnly
+                    ? "translate-x-4 ml-0.5"
+                    : "translate-x-0 ml-0.5",
                 )}
               />
             </span>
@@ -189,14 +219,16 @@ export default async function RankingsPage({ searchParams }: Props) {
                     "w-7 h-7 rounded flex items-center justify-center text-xs font-bold shrink-0",
                     rankOffset + i < 3
                       ? "bg-[var(--color-accent)] text-white"
-                      : "bg-gray-100 text-[var(--color-text-secondary)]"
+                      : "bg-gray-100 text-[var(--color-text-secondary)]",
                   )}
                 >
                   {rankOffset + i + 1}
                 </span>
                 <BookCover bookId={book.id} name={book.name} size="sm" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-[var(--color-text)] line-clamp-1">{book.name}</p>
+                  <p className="text-sm font-medium text-[var(--color-text)] line-clamp-1">
+                    {book.name}
+                  </p>
                   <p className="text-xs text-[var(--color-text-secondary)]">
                     {book.author && (
                       <AuthorLink
@@ -219,12 +251,12 @@ export default async function RankingsPage({ searchParams }: Props) {
                       metric === "vote_count"
                         ? book.voteCount
                         : metric === "view_count"
-                        ? book.viewCount
-                        : metric === "comment_count"
-                        ? book.commentCount
-                        : metric === "review_score"
-                        ? book.reviewScore ?? 0
-                        : book.bookmarkCount
+                          ? book.viewCount
+                          : metric === "comment_count"
+                            ? book.commentCount
+                            : metric === "review_score"
+                              ? (book.reviewScore ?? 0)
+                              : book.bookmarkCount,
                     )}
                   </span>
                   <div className="text-[10px] text-[var(--color-text-secondary)]">

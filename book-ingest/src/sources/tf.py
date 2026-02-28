@@ -113,9 +113,13 @@ class _AsyncTFClient:
 
         retries = retries if retries is not None else self._max_retries
 
-        async with self._sem:
-            for attempt in range(retries):
-                await asyncio.sleep(self._delay)
+        for attempt in range(retries):
+            # Sleep OUTSIDE the semaphore to avoid holding a slot idle.
+            # The old code held the semaphore during sleep + retries,
+            # reducing effective concurrency from 20 to ~3 and causing
+            # 4+ hour ingests for a single book.
+            await asyncio.sleep(self._delay)
+            async with self._sem:
                 try:
                     r = await self._client.get(url, params=params)
                 except httpx.TransportError as exc:
@@ -126,23 +130,23 @@ class _AsyncTFClient:
                         f"Transport error after {retries} retries: {exc}"
                     ) from exc
 
-                if r.status_code == 429:
-                    wait = int(r.headers.get("Retry-After", 2 ** (attempt + 2)))
-                    if attempt < retries - 1:
-                        await asyncio.sleep(wait)
-                        continue
-                    raise TFFetchError(f"Rate limited after {retries} retries")
+            if r.status_code == 429:
+                wait = int(r.headers.get("Retry-After", 2 ** (attempt + 2)))
+                if attempt < retries - 1:
+                    await asyncio.sleep(wait)
+                    continue
+                raise TFFetchError(f"Rate limited after {retries} retries")
 
-                if r.status_code == 404:
-                    raise TFNotFound(f"Not found: {url}")
+            if r.status_code == 404:
+                raise TFNotFound(f"Not found: {url}")
 
-                if r.status_code != 200:
-                    if attempt < retries - 1:
-                        await asyncio.sleep(2 ** (attempt + 1))
-                        continue
-                    raise TFFetchError(f"HTTP {r.status_code}: {url}")
+            if r.status_code != 200:
+                if attempt < retries - 1:
+                    await asyncio.sleep(2 ** (attempt + 1))
+                    continue
+                raise TFFetchError(f"HTTP {r.status_code}: {url}")
 
-                return r
+            return r
 
         raise TFFetchError(f"Failed after {retries} retries: {url}")
 
@@ -166,7 +170,7 @@ def parse_listing_page(html: str) -> list[dict]:
     """Parse a hot-books listing page and return book entries.
 
     Each entry has keys: ``name``, ``slug``, ``tf_slug``, ``author_name``,
-    ``chapter_count``, ``cover_url``.
+    ``chapter_count``, ``cover_url``, ``hot_rank`` (position on listing).
     """
     soup = BeautifulSoup(html, "lxml")
     books: list[dict] = []
@@ -178,6 +182,9 @@ def parse_listing_page(html: str) -> list[dict]:
                 books.append(book)
         except Exception:
             continue
+    # Assign hot_rank based on position (caller adds page offset)
+    for i, book in enumerate(books):
+        book["hot_rank"] = i + 1
     return books
 
 
@@ -238,6 +245,7 @@ def _parse_listing_item(row: Tag) -> dict | None:
         "author_name": unescape(author_name),
         "chapter_count": chapter_count,
         "cover_url": cover_url,
+        "hot_rank": 0,  # Set by caller based on page position
     }
 
 
@@ -613,18 +621,30 @@ class TFSource(BookSource):
                 continue
 
             url = f"/{tf_slug}/chuong-{ch_idx}/"
-            try:
-                html = await self._client.get_html(url)
-            except TFNotFound:
-                log.warning("  [%d] chuong-%d: 404", book_id, ch_idx)
-                continue
-            except TFFetchError as exc:
-                log.warning("  [%d] chuong-%d: %s", book_id, ch_idx, exc)
-                continue
 
-            parsed = parse_chapter(html)
+            # Retry up to 3 times when the server returns 200 but the page
+            # is not a chapter (ad interstitial, CAPTCHA, throttle page).
+            # The old code silently skipped these, losing ~75% of chapters.
+            parsed = None
+            for _attempt in range(3):
+                try:
+                    html = await self._client.get_html(url)
+                except TFNotFound:
+                    break  # Real 404 — chapter doesn't exist
+                except TFFetchError as exc:
+                    log.warning("  [%d] chuong-%d: %s", book_id, ch_idx, exc)
+                    break  # Network error — skip this chapter
+
+                parsed = parse_chapter(html)
+                if parsed:
+                    break  # Success
+
+                # Server returned 200 but page has no #chapter-c — likely
+                # a throttle/ad page.  Back off and retry.
+                if _attempt < 2:
+                    await asyncio.sleep(2 ** (_attempt + 1))
+
             if not parsed:
-                log.warning("  [%d] chuong-%d: parser returned None", book_id, ch_idx)
                 continue
 
             body = parsed["body"]

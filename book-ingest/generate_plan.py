@@ -1506,6 +1506,7 @@ def run_generate_tf(
     seen_slugs: set[str] = set()
     skipped_dup = 0
     books_since_flush = 0
+    global_rank = 0  # Track position across all pages for "top hot" ranking
 
     with httpx.Client(headers=TF_HEADERS, timeout=30, follow_redirects=True) as client:
         page = 0
@@ -1535,7 +1536,8 @@ def run_generate_tf(
                 )
 
             new_on_page = 0
-            for book in books:
+            for i, book in enumerate(books):
+                global_rank += 1
                 tf_slug = book.get("tf_slug", book["slug"])
                 if not tf_slug or tf_slug in seen_slugs:
                     continue
@@ -1551,6 +1553,8 @@ def run_generate_tf(
                     book.get("tf_slug", book["slug"]), registry
                 )
                 book["source"] = "tf"
+                # Preserve the original listing position for "top hot" ranking
+                book["hot_rank"] = global_rank
                 all_books.append(book)
                 new_on_page += 1
 
@@ -1618,12 +1622,15 @@ def run_generate_tf(
             "synopsis": "",
             "cover_url": book.get("cover_url", ""),
             "word_count": 0,
+            # Store inverse hot_rank in vote_count so ORDER BY vote_count DESC
+            # gives the correct "top hot" listing order (rank 1 → highest value).
             "view_count": 0,
             "bookmark_count": 0,
-            "vote_count": 0,
+            "vote_count": max(0, 1_000_000 - book.get("hot_rank", 0)),
             "comment_count": 0,
             "review_score": 0,
             "review_count": 0,
+            "hot_rank": book.get("hot_rank", 0),
             "created_at": None,
             "updated_at": None,
             "published_at": None,

@@ -29,7 +29,13 @@ export type GenreWithCount = Genre & {
   bookCount: number;
 };
 
-export type RankingMetric = "vote_count" | "view_count" | "comment_count" | "bookmark_count" | "review_score";
+export type RankingMetric =
+  | "vote_count"
+  | "view_count"
+  | "comment_count"
+  | "bookmark_count"
+  | "review_score"
+  | "review_count";
 
 export type BookStatus = 1 | 2 | 3; // 1=ongoing, 2=completed, 3=paused
 
@@ -51,6 +57,49 @@ export const METRIC_LABELS: Record<RankingMetric, string> = {
   comment_count: "Bình luận",
   bookmark_count: "Yêu thích",
   review_score: "Đánh giá",
+  review_count: "Lượt đánh giá",
+};
+
+/**
+ * Source-specific ranking tabs.
+ *
+ * Each source shows a different set of metrics in the "Bảng xếp hạng" page.
+ * - MTC/TTV: standard metrics (vote_count, view_count, comment_count, bookmark_count, review_score)
+ * - TF: "Top đánh giá" (review_score), "Top đề cử" (review_count), "Top hot" (vote_count)
+ */
+export type BookSourceType = "mtc" | "ttv" | "tf";
+
+export interface RankingTab {
+  metric: RankingMetric;
+  label: string;
+  /** For review_score, sort ties by review_count DESC */
+  tiebreaker?: string;
+}
+
+export const SOURCE_RANKING_TABS: Record<BookSourceType, RankingTab[]> = {
+  mtc: [
+    { metric: "vote_count", label: "Đề cử" },
+    { metric: "view_count", label: "Lượt đọc" },
+    { metric: "comment_count", label: "Bình luận" },
+    { metric: "bookmark_count", label: "Yêu thích" },
+    { metric: "review_score", label: "Đánh giá", tiebreaker: "review_count" },
+  ],
+  ttv: [
+    { metric: "vote_count", label: "Đề cử" },
+    { metric: "view_count", label: "Lượt đọc" },
+    { metric: "comment_count", label: "Bình luận" },
+    { metric: "bookmark_count", label: "Yêu thích" },
+    { metric: "review_score", label: "Đánh giá", tiebreaker: "review_count" },
+  ],
+  tf: [
+    {
+      metric: "review_score",
+      label: "Top đánh giá",
+      tiebreaker: "review_count",
+    },
+    { metric: "review_count", label: "Top đề cử" },
+    { metric: "vote_count", label: "Top hot" },
+  ],
 };
 
 export interface SearchResult {

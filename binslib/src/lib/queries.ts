@@ -57,6 +57,7 @@ const VALID_SORT = new Set([
   "bookmark_count",
   "vote_count",
   "review_score",
+  "review_count",
   "chapter_count",
   "updated_at",
   "created_at",
