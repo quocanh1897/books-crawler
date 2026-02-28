@@ -78,18 +78,14 @@ export interface RankingTab {
 
 export const SOURCE_RANKING_TABS: Record<BookSourceType, RankingTab[]> = {
   mtc: [
-    { metric: "vote_count", label: "Đề cử" },
-    { metric: "view_count", label: "Lượt đọc" },
-    { metric: "comment_count", label: "Bình luận" },
-    { metric: "bookmark_count", label: "Yêu thích" },
-    { metric: "review_score", label: "Đánh giá", tiebreaker: "review_count" },
+    { metric: "bookmark_count", label: "Top yêu thích" },
+    { metric: "vote_count", label: "Top đề cử" },
+    { metric: "comment_count", label: "Top bình luận" },
   ],
   ttv: [
-    { metric: "vote_count", label: "Đề cử" },
-    { metric: "view_count", label: "Lượt đọc" },
-    { metric: "comment_count", label: "Bình luận" },
-    { metric: "bookmark_count", label: "Yêu thích" },
-    { metric: "review_score", label: "Đánh giá", tiebreaker: "review_count" },
+    { metric: "bookmark_count", label: "Top yêu thích" },
+    { metric: "vote_count", label: "Top đề cử" },
+    { metric: "view_count", label: "Top lượt xem" },
   ],
   tf: [
     {
