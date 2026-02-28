@@ -18,6 +18,7 @@ import asyncio
 import json
 import logging
 import os
+import random
 import re
 from collections.abc import AsyncIterator
 from html import unescape
@@ -115,26 +116,27 @@ class _AsyncTFClient:
 
         for attempt in range(retries):
             # Sleep OUTSIDE the semaphore to avoid holding a slot idle.
-            # The old code held the semaphore during sleep + retries,
-            # reducing effective concurrency from 20 to ~3 and causing
-            # 4+ hour ingests for a single book.
-            await asyncio.sleep(self._delay)
+            # Jitter the base delay (±50%) so concurrent requests don't
+            # all hit the server at the same instant (thundering herd).
+            jittered_delay = self._delay * (0.5 + random.random())
+            await asyncio.sleep(jittered_delay)
             async with self._sem:
                 try:
                     r = await self._client.get(url, params=params)
                 except httpx.TransportError as exc:
                     if attempt < retries - 1:
-                        await asyncio.sleep(2 ** (attempt + 1))
+                        await asyncio.sleep(random.uniform(1, 10))
                         continue
                     raise TFFetchError(
                         f"Transport error after {retries} retries: {exc}"
                     ) from exc
 
             if r.status_code == 429:
-                wait = int(r.headers.get("Retry-After", 2 ** (attempt + 2)))
+                server_wait = int(r.headers.get("Retry-After", 5))
+                wait = server_wait + random.uniform(1, 5)
                 if attempt < retries - 1:
                     log.debug(
-                        "429 rate-limited %s, retry %d/%d in %ds",
+                        "429 rate-limited %s, retry %d/%d in %.1fs",
                         url,
                         attempt + 1,
                         retries,
@@ -148,14 +150,12 @@ class _AsyncTFClient:
                 raise TFNotFound(f"Not found: {url}")
 
             if r.status_code == 503:
-                # Server overloaded — fixed backoff schedule.
-                # 503 is common when scraping aggressively; most recover
-                # within a few seconds.
-                _503_backoff = [3, 5, 8]
-                wait = _503_backoff[min(attempt, len(_503_backoff) - 1)]
+                # Server overloaded — random jitter backoff to prevent
+                # thundering herd (all 20 threads retrying simultaneously).
+                wait = random.uniform(1, 10)
                 if attempt < retries - 1:
                     log.debug(
-                        "503 server busy %s, retry %d/%d in %ds",
+                        "503 server busy %s, retry %d/%d in %.1fs",
                         url,
                         attempt + 1,
                         retries,
@@ -166,10 +166,10 @@ class _AsyncTFClient:
                 raise TFFetchError(f"HTTP 503 after {retries} retries: {url}")
 
             if r.status_code != 200:
-                wait = 2 ** (attempt + 1)
+                wait = random.uniform(1, 10)
                 if attempt < retries - 1:
                     log.debug(
-                        "HTTP %d %s, retry %d/%d in %ds",
+                        "HTTP %d %s, retry %d/%d in %.1fs",
                         r.status_code,
                         url,
                         attempt + 1,
@@ -728,9 +728,9 @@ class TFSource(BookSource):
                 )
 
             # Server returned 200 but page has no #chapter-c — likely
-            # a throttle/ad page.  Back off and retry.
+            # a throttle/ad page.  Random backoff to avoid thundering herd.
             if _attempt < 2:
-                await asyncio.sleep(2 ** (_attempt + 1))
+                await asyncio.sleep(random.uniform(1, 10))
 
         return None
 
