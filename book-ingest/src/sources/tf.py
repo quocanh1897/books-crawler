@@ -116,16 +116,19 @@ class _AsyncTFClient:
 
         for attempt in range(retries):
             # Sleep OUTSIDE the semaphore to avoid holding a slot idle.
-            # Jitter the base delay (±50%) so concurrent requests don't
+            # Jitter the base delay (50%–150%) so concurrent requests don't
             # all hit the server at the same instant (thundering herd).
+            # On retries, add extra delay so repeated failures back off.
             jittered_delay = self._delay * (0.5 + random.random())
+            if attempt > 0:
+                jittered_delay += random.uniform(2, 8)
             await asyncio.sleep(jittered_delay)
             async with self._sem:
                 try:
                     r = await self._client.get(url, params=params)
                 except httpx.TransportError as exc:
                     if attempt < retries - 1:
-                        await asyncio.sleep(random.uniform(1, 10))
+                        await asyncio.sleep(random.uniform(3, 10))
                         continue
                     raise TFFetchError(
                         f"Transport error after {retries} retries: {exc}"
@@ -151,8 +154,9 @@ class _AsyncTFClient:
 
             if r.status_code == 503:
                 # Server overloaded — random jitter backoff to prevent
-                # thundering herd (all 20 threads retrying simultaneously).
-                wait = random.uniform(1, 10)
+                # thundering herd.  Use 3-10s range (not 1-10) so the
+                # server has real breathing room before the next attempt.
+                wait = random.uniform(3, 10)
                 if attempt < retries - 1:
                     log.debug(
                         "503 server busy %s, retry %d/%d in %.1fs",
@@ -166,7 +170,7 @@ class _AsyncTFClient:
                 raise TFFetchError(f"HTTP 503 after {retries} retries: {url}")
 
             if r.status_code != 200:
-                wait = random.uniform(1, 10)
+                wait = random.uniform(3, 10)
                 if attempt < retries - 1:
                     log.debug(
                         "HTTP %d %s, retry %d/%d in %.1fs",
@@ -644,7 +648,9 @@ class TFSource(BookSource):
     # Batch size for parallel chapter fetching.  Chapters within a batch
     # are fetched concurrently (bounded by the client semaphore), then
     # yielded in index order before starting the next batch.
-    _FETCH_BATCH_SIZE = 20
+    # Kept at 10 (not 20) to avoid overwhelming the server — a batch of
+    # 20 simultaneous requests frequently triggers 503 responses.
+    _FETCH_BATCH_SIZE = 10
 
     async def fetch_chapters(
         self,
@@ -673,8 +679,16 @@ class TFSource(BookSource):
         if not to_fetch:
             return
 
+        # Progressive backoff: when a batch has many errors, pause longer
+        # before the next batch to let the server recover.
+        batch_delay = 0.0  # seconds to wait before starting next batch
+
         # Process in batches
         for batch_start in range(0, len(to_fetch), self._FETCH_BATCH_SIZE):
+            # Inter-batch delay — increases when errors are detected
+            if batch_delay > 0:
+                await asyncio.sleep(batch_delay)
+
             batch = to_fetch[batch_start : batch_start + self._FETCH_BATCH_SIZE]
 
             # Fetch all chapters in this batch concurrently
@@ -685,6 +699,25 @@ class TFSource(BookSource):
                 results[ch_idx] = data
 
             await asyncio.gather(*[_fetch_one(idx) for idx in batch])
+
+            # Count errors in this batch to adjust pacing
+            batch_errors = sum(1 for v in results.values() if v is None)
+            if batch_errors > len(batch) // 2:
+                # More than half failed — server is struggling, back off
+                batch_delay = min(batch_delay + 5.0, 30.0)
+                log.info(
+                    "  [%d] batch %d/%d: %d/%d failed, backing off %.0fs",
+                    book_id,
+                    batch_start // self._FETCH_BATCH_SIZE + 1,
+                    (len(to_fetch) + self._FETCH_BATCH_SIZE - 1)
+                    // self._FETCH_BATCH_SIZE,
+                    batch_errors,
+                    len(batch),
+                    batch_delay,
+                )
+            elif batch_errors == 0 and batch_delay > 0:
+                # All succeeded — ease off the backoff
+                batch_delay = max(batch_delay - 2.0, 0.0)
 
             # Yield successful results in index order
             for idx in batch:
@@ -728,9 +761,9 @@ class TFSource(BookSource):
                 )
 
             # Server returned 200 but page has no #chapter-c — likely
-            # a throttle/ad page.  Random backoff to avoid thundering herd.
+            # a throttle/ad page.  Random backoff before retry.
             if _attempt < 2:
-                await asyncio.sleep(random.uniform(1, 10))
+                await asyncio.sleep(random.uniform(3, 10))
 
         return None
 
