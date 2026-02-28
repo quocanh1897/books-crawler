@@ -705,6 +705,30 @@ async def run_ingest(
 
     # ── Fix mode pre-audit: scan bundles for gaps ───────────────────────
     if fix_mode:
+        # Enrich entries from the plan file to get accurate chapter_count.
+        # The DB may have an inflated estimate (e.g. 2500 from detail page
+        # pagination) while the plan has the exact listing count (e.g. 2489).
+        plan_path = SCRIPT_DIR / "data" / f"books_plan_{source_name}.json"
+        if plan_path.exists():
+            plan_data = load_plan(str(plan_path))
+            plan_by_id = {e["id"]: e for e in plan_data}
+            enriched_count = 0
+            for e in entries:
+                plan_entry = plan_by_id.get(e["id"])
+                if plan_entry:
+                    plan_ch = plan_entry.get("chapter_count", 0)
+                    if plan_ch > 0:
+                        e["chapter_count"] = plan_ch
+                        enriched_count += 1
+                    # Also carry over slug/tf_slug if missing
+                    for key in ("slug", "tf_slug", "ttv_slug", "name"):
+                        if key in plan_entry and key not in e:
+                            e[key] = plan_entry[key]
+            if enriched_count:
+                console.print(
+                    f"  [dim]Enriched {enriched_count} entries from plan file[/dim]"
+                )
+
         console.print("[bold cyan]Fix mode: auditing bundles for gaps...[/bold cyan]")
         total_gaps = 0
         books_with_gaps = 0
