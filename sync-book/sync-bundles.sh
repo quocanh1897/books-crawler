@@ -68,7 +68,7 @@ fi
 # ── Config ──────────────────────────────────────────────────────────────────
 
 REMOTE_USER="alex"
-REMOTE_HOST="central7567.binscode.site"
+REMOTE_HOST="192.168.1.22"
 REMOTE_DOCKER_COMPOSE_DIR="/data/mtc/binslib"
 PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
