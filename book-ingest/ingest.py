@@ -1034,8 +1034,10 @@ def main():
         )
         sys.exit(1)
 
-    # Filter out small books (only when loading from a plan, not explicit IDs)
-    if not args.book_ids and args.min_chapters > 0:
+    # Filter out small books (only when loading from a plan, not explicit IDs).
+    # Skipped in --fix mode: we want to fix ALL existing books regardless of size.
+    fix_mode = getattr(args, "fix", False)
+    if not args.book_ids and args.min_chapters > 0 and not fix_mode:
         before = len(entries)
         entries = [e for e in entries if e.get("chapter_count", 0) >= args.min_chapters]
         skipped = before - len(entries)
@@ -1118,18 +1120,6 @@ def main():
         console.print(
             f"[green]Deleted data for {len(entries)} book(s). "
             f"Starting re-download...[/green]\n"
-        )
-
-    # --fix bypasses min-chapters filter (we want to fix existing books)
-    fix_mode = getattr(args, "fix", False)
-    if fix_mode and not args.book_ids and args.min_chapters > 0:
-        # In fix mode from plan, include all books regardless of chapter count
-        # (they're already ingested, we just want to fill gaps)
-        pass  # min-chapters filter was already applied above; re-include filtered
-        entries = (
-            load_plan(args.plan or str(default_plan), args.offset, args.limit)
-            if not args.book_ids
-            else entries
         )
 
     if args.update_meta_only:
