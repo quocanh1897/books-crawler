@@ -304,10 +304,11 @@ def parse_book_detail(html: str, tf_slug: str) -> dict:
     h1 = soup.select_one("h1")
     name = h1.get_text(strip=True) if h1 else tf_slug
 
-    # Author — from the info section only
-    author_el = soup.select_one(".info span[itemprop='author']")
+    # Author — from the info section only.
+    # The element is <a itemprop="author">, not <span>.
+    author_el = soup.select_one(".info [itemprop='author']")
     if not author_el:
-        author_el = soup.select_one("span[itemprop='author']")
+        author_el = soup.select_one("[itemprop='author']")
     author_name = author_el.get_text(strip=True) if author_el else ""
 
     # Genres — from the info section to avoid sidebar duplicates
