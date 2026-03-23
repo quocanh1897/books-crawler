@@ -45,10 +45,6 @@ epub-converter/epub-output/
 *.swp
 *.swo
 
-# Claude / Cursor
-.claude/
-.cursor/
-
 # Debug logs
 npm-debug.log*
 yarn-debug.log*
@@ -71,3 +67,4 @@ sync-book/*.log
 
 nohup.out
 .zed/
+.gitnexus
