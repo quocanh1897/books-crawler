@@ -176,14 +176,14 @@ Use `book-ingest/ingest.crontab.example` as the template cron entry, then smoke-
 
 ```bash
 cd book-ingest/
-INGEST_INTERVAL_SECONDS=0 ./run_ingest_cycle.sh
+./run_ingest_cycle.sh --force-run-now
 ```
 
-To force a run before 10 hours have elapsed, set `INGEST_INTERVAL_SECONDS=0`. This bypasses the time gate but still honors the wrapper lock, so it will not overlap an active cycle.
+To force a run before 10 hours have elapsed, pass `--force-run-now`. This bypasses the time gate but still honors the wrapper lock, so it will not overlap an active cycle. `INGEST_INTERVAL_SECONDS=0` still works if you prefer the env var override.
 
 ```bash
 cd book-ingest/
-INGEST_INTERVAL_SECONDS=0 ./run_ingest_cycle.sh --dry-run --limit 1
+./run_ingest_cycle.sh --force-run-now --dry-run --limit 1
 ```
 
 ### Docker deployment

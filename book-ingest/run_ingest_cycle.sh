@@ -15,6 +15,42 @@ TTV_WORKERS="${TTV_WORKERS:-3}"
 TF_WORKERS="${TF_WORKERS:-3}"
 SOURCE_PAUSE_SECONDS="${SOURCE_PAUSE_SECONDS:-0}"
 INGEST_EXTRA_ARGS="${INGEST_EXTRA_ARGS:-}"
+FORCE_RUN_NOW=0
+
+print_usage() {
+  cat <<'EOF'
+Usage: ./run_ingest_cycle.sh [wrapper options] [--] [ingest.py args...]
+
+Wrapper options:
+  --force-run-now  Bypass the 10-hour interval gate for this invocation only.
+  -h, --help       Show this help message.
+
+All other arguments are forwarded to ingest.py.
+EOF
+}
+
+PASSTHROUGH_ARGS=()
+while (($# > 0)); do
+  case "$1" in
+    --force-run-now)
+      FORCE_RUN_NOW=1
+      shift
+      ;;
+    -h|--help)
+      print_usage
+      exit 0
+      ;;
+    --)
+      shift
+      PASSTHROUGH_ARGS+=("$@")
+      break
+      ;;
+    *)
+      PASSTHROUGH_ARGS+=("$1")
+      shift
+      ;;
+  esac
+done
 
 mkdir -p "${CRON_DIR}"
 touch "${CYCLE_LOG}"
@@ -219,9 +255,14 @@ if [[ -n "${INGEST_EXTRA_ARGS}" ]]; then
   done < <(parse_env_extra_args)
 fi
 
-FORWARDED_ARGS=("${ENV_EXTRA_ARGS[@]}" "$@")
+FORWARDED_ARGS=("${ENV_EXTRA_ARGS[@]}" "${PASSTHROUGH_ARGS[@]}")
 
 run_due_check() {
+  if (( FORCE_RUN_NOW > 0 )); then
+    log "Force run requested; bypassing the 10-hour interval gate."
+    return
+  fi
+
   local last_started=""
   last_started="$(json_value "last_started_epoch" || true)"
   if [[ -z "${last_started}" ]]; then
