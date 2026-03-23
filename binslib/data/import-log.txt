@@ -61,3 +61,6 @@
 [2026-02-23 16:34:50] mode=incremental duration=0s
   scanned=1 imported=1 skipped=0 failed=0 gap_errors=0 meta_resynced=0
   chapters=54 covers=0 meta_pulls=1
+[2026-02-26 11:58:18] mode=incremental duration=24h 21m 41s
+  scanned=10474 imported=6366 skipped=4089 failed=0 gap_errors=19 meta_resynced=3
+  chapters=7405038 covers=199 meta_pulls=6202
