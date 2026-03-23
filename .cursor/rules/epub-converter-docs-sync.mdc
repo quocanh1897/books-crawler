@@ -1,0 +1,40 @@
+---
+description: Keep epub-converter documentation in sync with code changes
+alwaysApply: false
+---
+
+# epub-converter: Documentation Sync
+
+When modifying any file in `epub-converter/`, always update **all** related docs to stay in sync.
+
+## What to check after every change
+
+| If you change...                  | Then update...                                                                                        |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| CLI flags in `convert.py`         | Docstring in `convert.py`, CLI Flags table in `CONTEXT.md`, examples in `docker-compose.yml` comments |
+| Dependencies (imports)            | `requirements.txt`, Dependencies table in `CONTEXT.md`                                                |
+| Volume mount paths                | `docker-compose.yml`, path detection in `convert.py`, Volume Mounts table in `CONTEXT.md`             |
+| Output path or structure          | Output Structure section in `CONTEXT.md`, docstring in `convert.py`                                   |
+| EPUB structure (cover, TOC, etc.) | EPUB Structure section in `CONTEXT.md`                                                                |
+| AUDIT.md section format           | AUDIT.md Integration section in `CONTEXT.md`                                                          |
+| Files added or removed            | Files table in `CONTEXT.md`, `COPY` line in `Dockerfile`                                              |
+
+## Cross-file consistency rules
+
+1. **`convert.py` docstring** must list the same flags as `argparse` definitions below it
+2. **`CONTEXT.md` CLI Flags table** must match `argparse` in `convert.py` exactly
+3. **`CONTEXT.md` Dependencies table** must match `requirements.txt` exactly
+4. **`CONTEXT.md` Volume Mounts table** must match `docker-compose.yml` volumes exactly
+5. **`CONTEXT.md` Files table** must list every file in `epub-converter/`
+6. **`docker-compose.yml` examples** in comments must match actual CLI flags
+7. **`Dockerfile` COPY** must include all `.py` files used at runtime
+8. **`convert.py` path detection** (Docker vs local) must reference the same mount paths as `docker-compose.yml`
+
+## Quick checklist
+
+- [ ] `requirements.txt` matches actual imports across all `.py` files
+- [ ] `CONTEXT.md` tables are all current
+- [ ] `convert.py` docstring matches argparse
+- [ ] `docker-compose.yml` comment examples match argparse
+- [ ] `Dockerfile` COPY includes all source files
+- [ ] No unused imports in `.py` files

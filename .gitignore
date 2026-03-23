@@ -30,6 +30,7 @@ apk/
 
 # TXT output
 */output/
+book-ingest/data/cron/
 
 # EPUB output (generated files)
 epub-converter/epub-output/
@@ -44,10 +45,6 @@ epub-converter/epub-output/
 .idea/
 *.swp
 *.swo
-
-# Claude / Cursor
-.claude/
-.cursor/
 
 # Debug logs
 npm-debug.log*
@@ -71,3 +68,4 @@ sync-book/*.log
 
 nohup.out
 .zed/
+.gitnexus
