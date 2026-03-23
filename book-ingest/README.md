@@ -92,7 +92,12 @@ Use `run_ingest_cycle.sh` when you want a host-side cron job to drive recurring 
 
 Use a frequent cron tick because standard cron cannot express a true repeating 10-hour cadence across midnight. The checked-in `ingest.crontab.example` runs the wrapper every 15 minutes and lets the wrapper decide whether the next cycle is due.
 
+To force an immediate cycle before the 10-hour window has elapsed, set `INGEST_INTERVAL_SECONDS=0`. This bypasses the time gate but still respects the overlap lock, so it will not start if another cycle is already running.
+
 ```bash
+# Force a full cycle immediately, even if 10 hours have not passed yet
+INGEST_INTERVAL_SECONDS=0 ./run_ingest_cycle.sh
+
 # Manual smoke test: bypass the 10-hour gate and forward args to each source run
 INGEST_INTERVAL_SECONDS=0 ./run_ingest_cycle.sh --dry-run --limit 1
 

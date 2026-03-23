@@ -176,6 +176,13 @@ Use `book-ingest/ingest.crontab.example` as the template cron entry, then smoke-
 
 ```bash
 cd book-ingest/
+INGEST_INTERVAL_SECONDS=0 ./run_ingest_cycle.sh
+```
+
+To force a run before 10 hours have elapsed, set `INGEST_INTERVAL_SECONDS=0`. This bypasses the time gate but still honors the wrapper lock, so it will not overlap an active cycle.
+
+```bash
+cd book-ingest/
 INGEST_INTERVAL_SECONDS=0 ./run_ingest_cycle.sh --dry-run --limit 1
 ```
 
