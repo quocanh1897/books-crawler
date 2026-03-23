@@ -168,6 +168,17 @@ cd sync-book/
 ./sync-bundles.sh upload --db-only          # database only
 ```
 
+### Scheduled ingest (optional)
+
+`book-ingest/run_ingest_cycle.sh` is a host-cron wrapper that runs `ingest.py` sequentially for `mtc`, `ttv`, and `tf`, while enforcing a true 10-hour interval from the previous cycle start. Runtime state and logs live under `book-ingest/data/cron/`.
+
+Use `book-ingest/ingest.crontab.example` as the template cron entry, then smoke-test it manually before installing:
+
+```bash
+cd book-ingest/
+INGEST_INTERVAL_SECONDS=0 ./run_ingest_cycle.sh --dry-run --limit 1
+```
+
 ### Docker deployment
 
 ```bash

@@ -1,0 +1,12 @@
+SHELL=/bin/bash
+PATH=/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
+MAILTO=""
+
+# Replace /ABSOLUTE/PATH/TO/mtc with your checkout path before installing.
+# The wrapper runs every 15 minutes, but only starts a real ingest cycle when
+# 10 hours have elapsed since the previous cycle started.
+*/15 * * * * /ABSOLUTE/PATH/TO/mtc/book-ingest/run_ingest_cycle.sh >/dev/null 2>&1
+
+# Optional overrides:
+# */15 * * * * PYTHON_BIN=/opt/homebrew/bin/python3 MTC_WORKERS=5 TTV_WORKERS=3 TF_WORKERS=3 /ABSOLUTE/PATH/TO/mtc/book-ingest/run_ingest_cycle.sh >/dev/null 2>&1
+# */15 * * * * INGEST_INTERVAL_SECONDS=36000 INGEST_EXTRA_ARGS="--dry-run --limit 1" /ABSOLUTE/PATH/TO/mtc/book-ingest/run_ingest_cycle.sh >/dev/null 2>&1

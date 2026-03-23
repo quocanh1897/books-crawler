@@ -30,6 +30,7 @@ apk/
 
 # TXT output
 */output/
+book-ingest/data/cron/
 
 # EPUB output (generated files)
 epub-converter/epub-output/
