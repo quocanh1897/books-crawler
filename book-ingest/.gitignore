@@ -1,6 +1,12 @@
 data/*.log
 data/*.txt
 data/catalog_audit.json
+data/cron/state_*.json
+data/cron/env.*
+data/cron/*.lock/
+data/cron/cycle.log*
 __pycache__/
 *.pyc
 updated.json
+nohup.out
+.bg-shell/
