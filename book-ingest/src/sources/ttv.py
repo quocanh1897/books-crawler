@@ -78,6 +78,10 @@ class TTVNotFound(TTVFetchError):
     """HTTP 404 from TTV."""
 
 
+class TTVRedirect(TTVFetchError):
+    """Request was silently redirected (e.g. VIP chapter → book page)."""
+
+
 class _AsyncTTVClient:
     """Async HTTP client with semaphore-based throttling and retries.
 
@@ -151,6 +155,20 @@ class _AsyncTTVClient:
 
     async def get_html(self, url: str, params: dict | None = None) -> str:
         return (await self.get(url, params=params)).text
+
+    async def get_chapter_html(self, url: str) -> str:
+        """Fetch chapter HTML, raising :class:`TTVRedirect` on silent redirect.
+
+        TTV redirects non-existent / VIP chapters back to the book listing
+        page instead of returning 404.  We detect this by comparing the
+        response URL against the requested URL.
+        """
+        r = await self.get(url)
+        req_path = url if url.startswith("/") else url.split(".vn", 1)[-1]
+        resp_path = str(r.url.path) if hasattr(r.url, "path") else str(r.url)
+        if not resp_path.endswith(req_path.rstrip("/")):
+            raise TTVRedirect(f"Redirected: {url} → {r.url}")
+        return r.text
 
     async def get_bytes(self, url: str) -> bytes:
         return (await self.get(url)).content
@@ -661,6 +679,10 @@ class TTVSource(BookSource):
 
     # ── Chapter iteration ───────────────────────────────────────────────
 
+    # Maximum consecutive fetch failures (redirect / parse error) before
+    # we assume remaining chapters are VIP-only and stop the walk.
+    MAX_CONSECUTIVE_FAILURES = 10
+
     async def fetch_chapters(
         self,
         meta: dict,
@@ -671,31 +693,78 @@ class TTVSource(BookSource):
 
         TTV serves chapters at predictable URLs, so the walk is a simple
         sequential loop — no linked-list traversal or resume logic needed.
+
+        Two early-exit mechanisms avoid wasting time on VIP/premium chapters
+        that TTV does not serve publicly:
+
+        1. **Redirect detection** — TTV silently redirects missing or VIP
+           chapter URLs back to the book listing page (HTTP 200, no 404).
+           We detect this via URL comparison and skip immediately.
+        2. **Circuit breaker** — after ``MAX_CONSECUTIVE_FAILURES``
+           consecutive failures (redirects, 404s, or parse errors), we
+           assume all remaining chapters are unavailable and break out.
         """
         # Use the original TTV slug for URLs (may contain diacritics);
         # meta["slug"] is the ASCII-clean version for DB storage.
         ttv_slug = meta.get("ttv_slug", meta["slug"])
         chapter_count = meta.get("chapter_count", 0)
         book_id = meta["id"]
+        consecutive_failures = 0
 
         for ch_idx in range(1, chapter_count + 1):
             if ch_idx in existing_indices:
+                # Don't reset counter — existing chapters don't tell us
+                # whether the *next* chapter will be available.
                 continue
 
             url = f"/doc-truyen/{ttv_slug}/chuong-{ch_idx}"
             try:
-                html = await self._client.get_html(url)
+                html = await self._client.get_chapter_html(url)
+            except TTVRedirect:
+                consecutive_failures += 1
+                if consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+                    skipped = chapter_count - ch_idx
+                    log.info(
+                        "  [%d] stopping at chuong-%d: %d consecutive "
+                        "redirects (likely VIP), skipping ~%d chapters",
+                        book_id, ch_idx, consecutive_failures, skipped,
+                    )
+                    return
+                continue
             except TTVNotFound:
-                log.warning("  [%d] chuong-%d: 404", book_id, ch_idx)
+                consecutive_failures += 1
+                if consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+                    log.info(
+                        "  [%d] stopping at chuong-%d: %d consecutive 404s",
+                        book_id, ch_idx, consecutive_failures,
+                    )
+                    return
                 continue
             except TTVFetchError as exc:
+                consecutive_failures += 1
                 log.warning("  [%d] chuong-%d: %s", book_id, ch_idx, exc)
+                if consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+                    log.info(
+                        "  [%d] stopping at chuong-%d: %d consecutive errors",
+                        book_id, ch_idx, consecutive_failures,
+                    )
+                    return
                 continue
 
             parsed = parse_chapter(html)
             if not parsed:
-                log.warning("  [%d] chuong-%d: parser returned None", book_id, ch_idx)
+                consecutive_failures += 1
+                if consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+                    log.info(
+                        "  [%d] stopping at chuong-%d: %d consecutive "
+                        "parse failures",
+                        book_id, ch_idx, consecutive_failures,
+                    )
+                    return
                 continue
+
+            # Success — reset circuit breaker
+            consecutive_failures = 0
 
             body = parsed["body"]
             word_count = len(body.split())

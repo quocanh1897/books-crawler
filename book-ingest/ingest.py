@@ -442,11 +442,19 @@ async def ingest_book(
                 # Recover missing chapter rows from v2 bundle metadata
                 if missing_in_db:
                     bundle_ch_meta = read_bundle_meta(bundle_path)
-                    recover = {
-                        idx: (m.title, m.slug, m.word_count, m.chapter_id)
-                        for idx, m in bundle_ch_meta.items()
-                        if idx in missing_in_db and m.title
-                    }
+                    recover = {}
+                    for idx in missing_in_db:
+                        m = bundle_ch_meta.get(idx)
+                        if m and m.title:
+                            recover[idx] = (m.title, m.slug, m.word_count, m.chapter_id)
+                        else:
+                            # V1 bundle or empty metadata — use placeholder
+                            recover[idx] = (
+                                f"Chương {idx}",
+                                f"chuong-{idx}",
+                                m.word_count if m else 0,
+                                m.chapter_id if m else 0,
+                            )
                     if recover:
                         insert_chapters(db, book_id, recover)
                         log_detail(
@@ -858,7 +866,7 @@ async def run_ingest(
                     books_processed += 1
                     progress.update(book_task, advance=1)
 
-                    # Periodic progress log
+                    # Periodic progress log — write to detail log AND console
                     if books_processed % progress_interval == 0:
                         elapsed = time.time() - start_time
                         pct = (books_processed / total_books) * 100
@@ -868,12 +876,15 @@ async def run_ingest(
                             if books_per_sec > 0
                             else 0
                         )
-                        log_detail(
+                        progress_msg = (
                             f"PROGRESS: {format_num(books_processed)}/{format_num(total_books)} "
                             f"books ({pct:.1f}%), +{format_num(total_saved)} chapters, "
+                            f"{format_num(total_errors)} errors, "
                             f"elapsed {format_duration(elapsed)}, "
                             f"ETA {format_duration(remaining)}"
                         )
+                        log_detail(progress_msg)
+                        console.print(f"  [dim]{progress_msg}[/dim]")
 
         # Launch workers
         tasks = [asyncio.create_task(worker()) for _ in range(workers)]
